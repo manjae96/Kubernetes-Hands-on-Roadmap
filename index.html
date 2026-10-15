@@ -1,0 +1,973 @@
+<meta charset="utf-8">
+<title>쿠버네티스 실습 항해도</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Kubernetes 공식 문서를 근거로 기본·중급·고급 과정을 minikube 실습으로 익히는 한국어 학습 사이트">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout concept: 해도(chart) 위의 항로. 상단 고정 항해 바, 왼쪽 수준별 항로(목차), 가운데 65자 폭 본문, 넓은 화면에서 오른쪽 이 페이지 목차. */
+:root {
+  --paper: #f2f5f7;        /* 해도 종이 */
+  --sheet: #ffffff;        /* 본문 면 */
+  --ink: #142231;          /* 본문 잉크 */
+  --muted: #566778;        /* 보조 글 */
+  --rule: #d3dce4;         /* 선 */
+  --chart: #1d5bb8;        /* 항로 청색 (강조) */
+  --chart-soft: #e3ecf8;
+  --buoy: #c2410c;         /* 부표 주황 (예정·주의) */
+  --buoy-soft: #fbeee6;
+  --ok: #24773a; --ok-soft: #e4f2e7;
+  --warn: #946200; --warn-soft: #fbf1d9;
+  --bad: #b42323; --bad-soft: #f9e4e4;
+  --code-bg: #0f1b27; --code-ink: #dbe6f0; --code-dim: #8aa0b5;
+  --font-display: "Hahmlet", "Noto Serif KR", "Apple SD Gothic Neo", serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "D2Coding", "Nanum Gothic Coding", ui-monospace, Menlo, Consolas, monospace;
+  --step-0: 1rem; --step-1: 1.125rem; --step-2: 1.375rem; --step-3: 1.75rem; --step-4: 2.25rem;
+  --radius: 6px;
+  --header-h: 56px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1621; --sheet: #121e2b; --ink: #e2eaf2; --muted: #95a6b7; --rule: #26394c;
+    --chart: #7eaefc; --chart-soft: #172b45; --buoy: #ff9a62; --buoy-soft: #3a2116;
+    --ok: #7dd396; --ok-soft: #16301f; --warn: #f0c060; --warn-soft: #33290f; --bad: #ff8f8f; --bad-soft: #3b1818;
+    --code-bg: #08111a; --code-ink: #dbe6f0; --code-dim: #7f95aa;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1621; --sheet: #121e2b; --ink: #e2eaf2; --muted: #95a6b7; --rule: #26394c;
+  --chart: #7eaefc; --chart-soft: #172b45; --buoy: #ff9a62; --buoy-soft: #3a2116;
+  --ok: #7dd396; --ok-soft: #16301f; --warn: #f0c060; --warn-soft: #33290f; --bad: #ff8f8f; --bad-soft: #3b1818;
+  --code-bg: #08111a; --code-ink: #dbe6f0; --code-dim: #7f95aa;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: calc(var(--header-h) + 16px); }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: var(--step-0); line-height: 1.7; margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
+a { color: var(--chart); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--chart); outline-offset: 2px; border-radius: 3px; }
+button, select, input, textarea { font: inherit; color: inherit; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.3; }
+h1, h2 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
+h3, h4 { font-weight: 700; }
+code, pre, kbd { font-family: var(--font-mono); font-size: 0.9em; }
+:not(pre) > code { background: var(--chart-soft); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; white-space: normal; }
+.skip { position: absolute; left: -999px; top: 0; background: var(--sheet); padding: 8px 12px; z-index: 50; }
+.skip:focus { left: max(16px, env(safe-area-inset-left, 0px)); top: calc(8px + env(safe-area-inset-top, 0px)); }
+
+/* 상단 항해 바 */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--sheet); border-bottom: 1px solid var(--rule); }
+.topbar-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: var(--header-h); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 6px; max-width: 1440px; margin: 0 auto; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--ink); text-decoration: none; white-space: nowrap; }
+.brand svg { flex: none; }
+.mainnav { display: flex; flex-wrap: wrap; gap: 2px; }
+.mainnav a { color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: var(--radius); font-weight: 500; font-size: 0.95rem; }
+.mainnav a:hover { color: var(--ink); background: var(--chart-soft); }
+.mainnav a[aria-current="page"] { color: var(--chart); background: var(--chart-soft); }
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; }
+.tools label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.02em; }
+.tools select, .field select, .field input { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); padding: 5px 8px; }
+.search-wrap { position: relative; }
+#q { width: 14rem; max-width: 60vw; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 6px 10px; }
+.menu-btn { display: none; background: none; border: 1px solid var(--rule); border-radius: var(--radius); padding: 5px 10px; cursor: pointer; }
+@media (max-width: 980px) {
+  .menu-btn { display: inline-block; }
+  .mainnav { display: none; width: 100%; }
+  .mainnav.open { display: flex; }
+  .tools { margin-left: 0; width: 100%; }
+  #q { width: 100%; max-width: none; }
+  .search-wrap { flex: 1 1 12rem; }
+}
+
+/* 본체 */
+.shell { display: grid; grid-template-columns: 17rem minmax(0, 1fr); gap: 32px; max-width: 1440px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 64px; }
+.shell.no-side { grid-template-columns: minmax(0, 1fr); }
+.side { position: sticky; top: calc(var(--header-h) + 24px + env(safe-area-inset-top, 0px)); align-self: start; max-height: calc(100vh - var(--header-h) - 48px); overflow-y: auto; font-size: 0.92rem; min-width: 0; }
+.shell.no-side .side { display: none; }
+main { min-width: 0; }
+main:focus { outline: none; }
+@media (max-width: 980px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; max-height: none; order: 2; }
+}
+.side h2 { font-family: var(--font-body); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.route { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--rule); }
+.route li { position: relative; }
+.route a { display: grid; grid-template-columns: 1.4rem minmax(0,1fr); gap: 6px; padding: 6px 8px 6px 10px; text-decoration: none; color: var(--ink); border-radius: 0 var(--radius) var(--radius) 0; }
+.route a:hover { background: var(--chart-soft); }
+.route a[aria-current="page"] { background: var(--chart-soft); color: var(--chart); font-weight: 700; box-shadow: inset 3px 0 0 var(--chart); margin-left: -2px; padding-left: 12px; }
+.route .st { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); text-align: center; }
+.route .planned { color: var(--muted); }
+.route .opt { font-size: 0.75rem; color: var(--muted); }
+
+/* 본문 */
+.page-head { margin-bottom: 24px; }
+.eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.page-head h1 { font-size: var(--step-4); margin: 6px 0 8px; }
+.lede { font-size: var(--step-1); color: var(--muted); max-width: 46rem; margin: 0; }
+.article-grid { display: grid; grid-template-columns: minmax(0, 46rem) 14rem; gap: 40px; align-items: start; }
+@media (max-width: 1240px) { .article-grid { grid-template-columns: minmax(0, 1fr); } .toc { display: none; } }
+.prose { max-width: 46rem; min-width: 0; }
+.prose h2 { font-size: var(--step-3); margin: 2.4em 0 0.6em; padding-top: 0.6em; border-top: 1px solid var(--rule); }
+.prose h2:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
+.prose h3 { font-size: var(--step-2); margin: 1.8em 0 0.5em; }
+.prose h4 { font-size: var(--step-1); margin: 1.4em 0 0.4em; }
+.prose p, .prose li { max-width: 65ch; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose li + li { margin-top: 0.25em; }
+.prose hr { border: 0; border-top: 1px dashed var(--rule); margin: 2em 0; }
+.prose blockquote { margin: 1em 0; padding: 0.2em 1em; border-left: 3px solid var(--rule); color: var(--muted); }
+.toc { position: sticky; top: calc(var(--header-h) + 24px + env(safe-area-inset-top, 0px)); font-size: 0.85rem; max-height: calc(100vh - var(--header-h) - 48px); overflow-y: auto; }
+.toc h2 { font-family: var(--font-body); font-size: 0.75rem; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; }
+.toc ol { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--rule); }
+.toc a { display: block; padding: 3px 0 3px 12px; color: var(--muted); text-decoration: none; }
+.toc a:hover { color: var(--chart); }
+
+.table-wrap { overflow-x: auto; margin: 1em 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 700; background: var(--paper); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td { font-variant-numeric: tabular-nums; }
+
+/* 코드 블록 */
+figure.code, figure.output { margin: 1.1em 0; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--rule); }
+figure.code figcaption, figure.output figcaption { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 0.78rem; padding: 6px 10px; background: var(--sheet); border-bottom: 1px solid var(--rule); color: var(--muted); }
+figure.code .shell-tag { font-weight: 700; color: var(--ink); }
+figure.code .fname { font-family: var(--font-mono); color: var(--chart); }
+figure.code .actions { margin-left: auto; display: flex; gap: 6px; }
+.btn-sm { border: 1px solid var(--rule); background: var(--paper); border-radius: 4px; padding: 2px 9px; font-size: 0.78rem; cursor: pointer; }
+.btn-sm:hover { border-color: var(--chart); color: var(--chart); }
+figure pre { margin: 0; padding: 12px 14px; overflow-x: auto; background: var(--code-bg); color: var(--code-ink); font-size: 0.86rem; line-height: 1.6; }
+figure pre .cm { color: var(--code-dim); }
+figure.output pre { background: var(--sheet); color: var(--ink); }
+figure.output.example { border-style: dashed; }
+figure.output.example figcaption { background: var(--warn-soft); color: var(--warn); font-weight: 500; }
+figure.output.verified figcaption { background: var(--ok-soft); color: var(--ok); font-weight: 500; }
+
+/* 콜아웃 */
+.callout { margin: 1.2em 0; padding: 12px 16px; border-radius: var(--radius); background: var(--sheet); border: 1px solid var(--rule); }
+.callout > :first-child { margin-top: 0; } .callout > :last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; margin: 0 0 4px; font-size: 0.95rem; }
+.callout.note { background: var(--chart-soft); border-color: transparent; }
+.callout.note .callout-title { color: var(--chart); }
+.callout.warn { background: var(--warn-soft); border-color: transparent; }
+.callout.warn .callout-title { color: var(--warn); }
+.callout.danger { background: var(--bad-soft); border-color: transparent; }
+.callout.danger .callout-title { color: var(--bad); }
+.callout.why { border-left: 4px solid var(--chart); }
+.callout.version { background: var(--buoy-soft); border-color: transparent; }
+.callout.version .callout-title { color: var(--buoy); }
+details.answer { margin: 1em 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet); }
+details.answer > summary { cursor: pointer; padding: 8px 14px; font-weight: 700; }
+details.answer > div { padding: 0 14px 10px; }
+
+/* 칩·배지 */
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 500; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--rule); background: var(--sheet); color: var(--muted); white-space: nowrap; line-height: 1.6; }
+.chip.lv { font-family: var(--font-mono); letter-spacing: 0.05em; }
+.chip.planned { color: var(--buoy); border-color: currentColor; background: var(--buoy-soft); }
+.chip.published { color: var(--chart); border-color: currentColor; }
+.chip.manual { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+.chip.verified { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
+.chip.v-runtime { color: var(--ok); border-color: currentColor; }
+.chip.v-partial { color: var(--warn); border-color: currentColor; }
+.chip.v-none { color: var(--bad); border-color: currentColor; }
+.chip.na { color: var(--bad); background: var(--bad-soft); border-color: transparent; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* 정보 표 (실습 머리) */
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; margin: 0 0 24px; }
+.facts > div { padding: 10px 14px; min-width: 0; box-shadow: 1px 1px 0 var(--rule); }
+.facts dt { font-size: 0.75rem; letter-spacing: 0.06em; color: var(--muted); margin: 0; }
+.facts dd { margin: 2px 0 0; font-size: 0.92rem; }
+.facts dd ul { margin: 0; padding-left: 1.1em; }
+
+.banner { padding: 12px 16px; border-radius: var(--radius); margin: 0 0 20px; }
+.banner.na { background: var(--bad-soft); color: var(--ink); border: 1px solid var(--bad); }
+.banner.na strong { color: var(--bad); }
+.banner.plan { background: var(--buoy-soft); border: 1px solid var(--buoy); }
+
+/* 검증 위젯 */
+.verify { margin: 1.4em 0; border: 2px solid var(--ok); border-radius: var(--radius); background: var(--sheet); padding: 14px 16px; }
+.verify h4 { margin: 0 0 6px; color: var(--ok); font-family: var(--font-body); }
+.verify label { display: block; font-size: 0.85rem; font-weight: 500; margin: 10px 0 4px; }
+.verify textarea { width: 100%; min-height: 4.5rem; font-family: var(--font-mono); font-size: 0.85rem; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 8px; resize: vertical; }
+.verify .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 8px; }
+.verify .msg { margin: 0; font-size: 0.9rem; }
+.verify .msg.pass { color: var(--ok); font-weight: 700; }
+.verify .msg.fail { color: var(--bad); }
+.verify .note { font-size: 0.8rem; color: var(--muted); margin: 6px 0 0; }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--chart); background: var(--chart); color: var(--sheet); padding: 7px 16px; border-radius: var(--radius); font-weight: 700; cursor: pointer; text-decoration: none; font-size: 0.95rem; }
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--chart); }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+/* 완료 패널 */
+.done-panel { margin-top: 40px; border-top: 2px solid var(--ink); padding-top: 16px; display: grid; gap: 14px; }
+.done-panel .states { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.check { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; font-weight: 500; }
+.check input { width: 1.1rem; height: 1.1rem; accent-color: var(--chart); }
+.pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.pager a { display: grid; padding: 10px 14px; border: 1px solid var(--rule); border-radius: var(--radius); text-decoration: none; background: var(--sheet); max-width: 22rem; }
+.pager a small { color: var(--muted); }
+.pager a.next { margin-left: auto; text-align: right; }
+
+/* 홈 */
+.hero { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 32px; align-items: center; padding: 8px 0 28px; border-bottom: 1px solid var(--rule); margin-bottom: 28px; }
+@media (max-width: 860px) { .hero { grid-template-columns: minmax(0,1fr); } }
+.hero h1 { font-size: clamp(2rem, 4.5vw, 3rem); margin: 4px 0 12px; }
+.hero p { font-size: var(--step-1); color: var(--muted); margin: 0 0 16px; max-width: 34rem; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-chart { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet); padding: 12px; }
+.hero-chart svg { width: 100%; height: auto; display: block; }
+.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 960px) { .levels { grid-template-columns: minmax(0, 1fr); } }
+.level-card { display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px; min-width: 0; }
+.level-card.current { border-color: var(--chart); box-shadow: 0 0 0 1px var(--chart); }
+.level-card h3 { font-family: var(--font-display); font-size: var(--step-2); margin: 0; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.level-card dl { margin: 0; display: grid; gap: 8px; font-size: 0.9rem; }
+.level-card dt { font-size: 0.75rem; letter-spacing: 0.06em; color: var(--muted); }
+.level-card dd { margin: 0; }
+.level-card dd ul { margin: 0; padding-left: 1.1em; }
+.level-card .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.meter { height: 6px; background: var(--paper); border-radius: 3px; overflow: hidden; border: 1px solid var(--rule); }
+.meter > span { display: block; height: 100%; background: var(--chart); }
+.section-title { font-family: var(--font-display); font-size: var(--step-3); margin: 40px 0 12px; }
+.quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 12px; }
+.quick a { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px; text-decoration: none; color: var(--ink); display: grid; gap: 2px; }
+.quick a:hover { border-color: var(--chart); }
+.quick a strong { color: var(--chart); }
+.quick a span { font-size: 0.88rem; color: var(--muted); }
+
+/* 로드맵·목록 */
+.roadmap-level { margin-bottom: 32px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: s; }
+.steps > li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.steps > li::before { counter-increment: s; content: counter(s); font-family: var(--font-mono); font-weight: 600; color: var(--chart); border: 2px solid var(--chart); border-radius: 50%; width: 2rem; height: 2rem; display: grid; place-items: center; font-size: 0.85rem; background: var(--sheet); }
+.steps > li.is-planned::before { color: var(--muted); border-color: var(--rule); border-style: dashed; }
+.steps > li.is-optional::before { border-style: dotted; }
+.steps .t { font-weight: 700; }
+.steps .t a { text-decoration: none; }
+.steps .p { font-size: 0.88rem; color: var(--muted); margin: 2px 0 6px; }
+.steps .time { font-family: var(--font-mono); font-size: 0.82rem; color: var(--muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .steps > li { grid-template-columns: 2.4rem minmax(0,1fr); } .steps .time { grid-column: 2; text-align: left; } }
+.filters { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; }
+.field { display: grid; gap: 2px; font-size: 0.82rem; color: var(--muted); }
+.field input { min-width: 14rem; }
+.count { margin-left: auto; font-size: 0.88rem; color: var(--muted); }
+.lab-list { display: grid; gap: 12px; }
+.lab-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); padding: 14px 16px; }
+.lab-row h3 { margin: 0; font-size: var(--step-1); }
+.lab-row h3 a { text-decoration: none; }
+.lab-row p { margin: 4px 0 8px; color: var(--muted); font-size: 0.92rem; }
+.lab-row .time { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+.lab-row.unavailable { opacity: 0.85; border-style: dashed; }
+@media (max-width: 560px) { .lab-row { grid-template-columns: minmax(0,1fr); } }
+mark { background: var(--warn-soft); color: inherit; padding: 0 2px; }
+
+/* 기간 표 */
+.duration { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; margin: 1em 0; }
+.duration > div { background: var(--sheet); padding: 10px 12px; }
+.duration .k { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em; }
+.duration .v { font-family: var(--font-mono); font-size: var(--step-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.duration .v small { font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+.guide-cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 16px 0 8px; }
+.task-item { list-style: none; margin-left: -1.4em; }
+.task-item label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.task-item input { margin-top: 0.45em; width: 1rem; height: 1rem; accent-color: var(--chart); flex: none; }
+
+/* 용어 */
+a.term { color: inherit; text-decoration: underline dotted var(--chart); text-underline-offset: 4px; }
+.gloss-list { display: grid; gap: 0; }
+.gloss-item { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 4px 20px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.gloss-item:target { background: var(--chart-soft); }
+.gloss-item h3 { margin: 0; font-size: var(--step-1); }
+.gloss-item h3 small { display: block; font-family: var(--font-mono); font-weight: 400; font-size: 0.85rem; color: var(--muted); }
+.gloss-item p { margin: 0 0 4px; }
+@media (max-width: 640px) { .gloss-item { grid-template-columns: minmax(0,1fr); } }
+
+/* 검색 결과 */
+.results { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.results li { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); padding: 12px 14px; }
+.results p { margin: 4px 0 0; font-size: 0.9rem; color: var(--muted); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); padding: 8px 16px; border-radius: var(--radius); font-size: 0.9rem; z-index: 60; }
+.loading { color: var(--muted); padding: 40px 0; }
+.site-foot { border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.82rem; }
+.site-foot > div { max-width: 1440px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; }
+.diagram { margin: 1.2em 0; padding: 12px; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius); overflow-x: auto; }
+.diagram svg { display: block; min-width: 520px; width: 100%; height: auto; }
+.diagram figcaption { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+.diagram .box { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.5; }
+.diagram .box.accent { fill: var(--chart-soft); stroke: var(--chart); }
+.diagram .box.dim { fill: var(--paper); stroke: var(--rule); }
+.diagram .box.warn { fill: var(--buoy-soft); stroke: var(--buoy); }
+.diagram .zone { fill: none; stroke: var(--muted); stroke-dasharray: 5 4; }
+.diagram text { fill: var(--ink); font-family: var(--font-body); font-size: 13px; }
+.diagram text.small { font-size: 11px; fill: var(--muted); }
+.diagram text.mono { font-family: var(--font-mono); font-size: 11.5px; }
+.diagram .line { stroke: var(--chart); stroke-width: 1.6; fill: none; }
+.diagram .line.dim { stroke: var(--muted); stroke-dasharray: 4 3; }
+.diagram .line.bad { stroke: var(--bad); }
+.diagram .arrowhead { fill: var(--chart); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+</style>
+
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#/" aria-label="쿠버네티스 실습 항해도 홈">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 3v6M16 23v6M3 16h6M23 16h6M6.8 6.8l4.2 4.2M21 21l4.2 4.2M6.8 25.2l4.2-4.2M21 11l4.2-4.2"/></g></svg>
+      <span>쿠버네티스 실습 항해도</span>
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mainnav">메뉴</button>
+    <nav class="mainnav" id="mainnav" aria-label="주요 메뉴">
+      <a href="#/roadmap" data-nav="roadmap">학습 로드맵</a>
+      <a href="#/item/setup" data-nav="setup">환경 준비</a>
+      <a href="#/labs" data-nav="labs">핸즈온 목록</a>
+      <a href="#/versions" data-nav="versions">버전 비교</a>
+      <a href="#/glossary" data-nav="glossary">용어집</a>
+      <a href="#/verification" data-nav="verification">검증 보고서</a>
+    </nav>
+    <div class="tools">
+      <label for="levelSel">학습 수준</label>
+      <select id="levelSel"></select>
+      <label for="verSel">Kubernetes</label>
+      <select id="verSel"></select>
+      <div class="search-wrap">
+        <input id="q" type="search" placeholder="검색 ( / 키)" aria-label="사이트 검색" autocomplete="off">
+      </div>
+    </div>
+  </div>
+</header>
+<div class="shell" id="shell">
+  <aside class="side" id="side" aria-label="과정 목차"></aside>
+  <main id="main" tabindex="-1"><p class="loading">불러오는 중…</p></main>
+</div>
+<footer class="site-foot"><div id="foot">콘텐츠 근거: kubernetes.io 공식 문서 (CC BY 4.0). 진도는 이 브라우저에만 저장됩니다.</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@18.0.14/lib/marked.umd.js"></script>
+<script>
+(() => {
+'use strict';
+/* ---------- 저장소 (브라우저 내 진도) ---------- */
+const KEY = 'k8s-hangdo-v1';
+const store = {
+  read() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } },
+  write(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* 저장 불가 환경 */ } }
+};
+const state = Object.assign({ level: 'basic', version: null, progress: {}, last: {}, checklist: {}, started: {} }, store.read());
+const save = () => store.write(state);
+const prog = id => (state.progress[id] = state.progress[id] || { manual: false, checks: {} });
+
+/* ---------- 유틸 ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtMin = m => { if (!m) return '0분'; const h = Math.floor(m / 60), r = m % 60; return (h ? h + '시간' : '') + (h && r ? ' ' : '') + (r ? r + '분' : ''); };
+const toast = msg => { const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2200); };
+async function getText(path) { const r = await fetch(path, { cache: 'no-cache' }); if (!r.ok) throw new Error(path + ' ' + r.status); return r.text(); }
+async function ensureMarked() {
+  if (window.marked) return;
+  await new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'vendor/marked.umd.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+}
+
+let C = null, G = [], GMAP = {};
+const mdCache = {};
+const LV = {};
+const ITEM = {};
+const levelItems = lv => C.items.filter(i => i.level === lv);
+const totals = items => items.reduce((a, i) => { const m = i.minutes || {}; a.concept += m.concept || 0; a.handson += m.handson || 0; a.review += m.review || 0; return a; }, { concept: 0, handson: 0, review: 0 });
+const sumT = t => t.concept + t.handson + t.review;
+const supports = (item, v) => !item.versions || item.versions.includes(v);
+function itemState(id) {
+  const p = state.progress[id]; const item = ITEM[id];
+  const need = (item && item.checks) || [];
+  const passed = p ? need.filter(c => p.checks && p.checks[c]).length : 0;
+  return { manual: !!(p && p.manual), verified: need.length > 0 && passed === need.length, passed, need: need.length };
+}
+const isDone = id => { const s = itemState(id); return s.manual || s.verified; };
+function statusChips(id) {
+  const s = itemState(id); const out = [];
+  if (s.verified) out.push('<span class="chip verified" title="성공 판정 출력을 붙여 넣어 기준과 일치함을 확인함">✓ 실행 결과 확인됨</span>');
+  else if (s.passed) out.push(`<span class="chip verified" title="성공 판정 중 일부 통과">실행 결과 ${s.passed}/${s.need}</span>`);
+  if (s.manual) out.push('<span class="chip manual" title="학습자가 직접 완료로 표시함">수동 완료</span>');
+  return out.join('');
+}
+const levelChip = lv => { const L = LV[lv]; return L ? `<span class="chip lv" title="난이도 ${esc(L.name)}">${esc(L.marker)} ${esc(L.name)}</span>` : ''; };
+const typeName = t => ({ setup: '환경 준비', lesson: '개념 강의', lab: '핸즈온 실습', capstone: '종합 과제' }[t] || t);
+const verChip = item => {
+  const v = item.verification || {}; if (item.status !== 'published') return '';
+  const map = { runtime: ['v-runtime', '실행 검증'], partial: ['v-partial', '부분 검증'], none: ['v-none', '미검증'] };
+  const [c, label] = map[v.status] || map.none;
+  return `<a class="chip ${c}" href="#/verification" title="${esc(v.summary || '')}">${label}</a>`;
+};
+
+/* ---------- 마크다운 처리 ---------- */
+function parseAttrs(info) {
+  const a = {}; const kind = (info || '').trim().split(/\s+/)[0] || '';
+  (info || '').replace(/(\w+)=("([^"]*)"|(\S+))/g, (m, k, _v, q, u) => { a[k] = q !== undefined ? q : u; });
+  return { kind, a };
+}
+function hl(kind, text) {
+  let h = esc(text);
+  if (/^(bash|sh|shell|powershell|ps1)$/.test(kind)) h = h.replace(/(^|\n)(\s*#[^\n]*)/g, '$1<span class="cm">$2</span>');
+  if (kind === 'yaml') h = h.replace(/(^|\n)(\s*#[^\n]*)/g, '$1<span class="cm">$2</span>');
+  return h;
+}
+const SHELL_LABEL = { bash: 'bash', sh: 'sh', powershell: 'PowerShell', yaml: 'YAML', text: '텍스트' };
+let blockSeq = 0;
+function renderCode(tok) {
+  const { kind, a } = parseAttrs(tok.lang);
+  const text = tok.text;
+  const id = 'cb' + (++blockSeq);
+  if (kind === 'output') {
+    const verified = a.kind === 'verified';
+    const cap = verified
+      ? `검증 환경에서 실제 실행한 출력 · ${esc(a.env || '')}${a.date ? ' · ' + esc(a.date) : ''} · 이름·IP·시간 값은 환경마다 다름`
+      : `예시 출력 · 실제 실행 결과가 아님${a.note ? ' · ' + esc(a.note) : ' · 이름 접미사·IP·AGE 값은 환경마다 다름'}`;
+    return `<figure class="output ${verified ? 'verified' : 'example'}"><figcaption>${cap}</figcaption><pre><code>${esc(text)}</code></pre></figure>`;
+  }
+  if (kind === 'verify') {
+    const f = {}; text.split('\n').forEach(l => { const m = l.match(/^(\w+):\s?(.*)$/); if (m) f[m[1]] = (f[m[1]] ? f[m[1]] + '\n' : '') + m[2]; });
+    const cid = f.id || id;
+    return `<section class="verify" data-check="${esc(cid)}" data-expect="${esc(f.expect || '')}" data-flags="${esc(f.flags || 'm')}">
+      <h4>성공 판정 · ${esc(f.title || '결과 확인')}</h4>
+      ${f.explain ? `<p>${esc(f.explain)}</p>` : ''}
+      <figure class="code" data-kind="bash"><figcaption><span class="shell-tag">bash</span><span>${esc(f.shell || '실습 터미널')}</span><span class="actions"><button class="btn-sm" data-copy="${id}">복사</button></span></figcaption><pre><code id="${id}">${esc(f.command || '')}</code></pre></figure>
+      <p class="note">기준: ${esc(f.criteria || f.expect || '')}</p>
+      <label for="${id}-in">위 명령의 출력을 붙여 넣으세요</label>
+      <textarea id="${id}-in" spellcheck="false"></textarea>
+      <div class="row"><button class="btn" data-verify="${esc(cid)}">결과 확인</button><p class="msg" aria-live="polite"></p></div>
+      <p class="note">붙여 넣은 출력을 기준 패턴과 비교합니다. 이 페이지는 클러스터에 직접 접속하지 않습니다.</p>
+    </section>`;
+  }
+  const isYaml = kind === 'yaml';
+  const label = a.shell ? `<span class="shell-tag">${esc(SHELL_LABEL[kind] || kind)}</span><span>${esc(a.shell)}</span>` : `<span class="shell-tag">${esc(SHELL_LABEL[kind] || kind || '코드')}</span>`;
+  const fname = a.file ? `<span class="fname">${esc(a.file)}</span>` : '';
+  const title = a.title ? `<span>${esc(a.title)}</span>` : '';
+  const dl = isYaml && a.file ? `<button class="btn-sm" data-dl="${id}" data-file="${esc(a.file)}">YAML 받기</button>` : '';
+  return `<figure class="code" data-kind="${esc(kind)}"><figcaption>${label}${fname}${title}<span class="actions"><button class="btn-sm" data-copy="${id}">복사</button>${dl}</span></figcaption><pre><code id="${id}">${hl(kind, text)}</code></pre></figure>`;
+}
+function preprocess(md) {
+  // ::: 블록 → 콜아웃(div) / 해설(details). 중첩하지 않는다.
+  const lines = md.split('\n'); const out = []; const stack = []; let inFence = false;
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) inFence = !inFence;
+    if (!inFence) {
+      const open = line.match(/^:::(\w+)[ \t]*(.*)$/);
+      if (open) {
+        const [, type, title] = open;
+        if (type === 'answer') { out.push('', `<details class="answer"><summary>${esc(title || '해설 보기')}</summary><div>`, ''); stack.push('</div></details>'); }
+        else { out.push('', `<div class="callout ${type}">${title ? `<p class="callout-title">${esc(title)}</p>` : ''}`, ''); stack.push('</div>'); }
+        continue;
+      }
+      if (/^:::\s*$/.test(line)) { out.push('', stack.pop() || '</div>', ''); continue; }
+    }
+    out.push(line);
+  }
+  md = out.join('\n');
+  // 용어 링크 [[id]] 또는 [[id|표시]] (코드 블록 밖에서만 쓰도록 작성)
+  md = md.replace(/\[\[([\w-]+)(?:\|([^\]]+))?\]\]/g, (m, id, label) => {
+    const g = GMAP[id]; if (!g) return label || id;
+    const text = label || `${g.ko}(${g.en})`;
+    return `<a class="term" href="#/glossary/${id}" title="${esc(g.short || g.desc || '')}">${esc(text)}</a>`;
+  });
+  return md;
+}
+let headSeq = 0;
+function setupMarked() {
+  marked.use({
+    gfm: true,
+    renderer: {
+      code(tok) { return renderCode(tok); },
+      heading(tok) { const inner = this.parser.parseInline(tok.tokens); return `<h${tok.depth} id="h${++headSeq}">${inner}</h${tok.depth}>`; },
+      table(tok) {
+        let h = '<div class="table-wrap"><table><thead><tr>';
+        tok.header.forEach(c => { h += `<th>${this.parser.parseInline(c.tokens)}</th>`; });
+        h += '</tr></thead><tbody>';
+        tok.rows.forEach(r => { h += '<tr>' + r.map(c => `<td>${this.parser.parseInline(c.tokens)}</td>`).join('') + '</tr>'; });
+        return h + '</tbody></table></div>';
+      }
+    }
+  });
+}
+async function loadMd(path) { if (!(path in mdCache)) mdCache[path] = await getText(path); return mdCache[path]; }
+function mdToHtml(md) { return marked.parse(preprocess(md)); }
+
+/* ---------- 상호작용: 복사·다운로드·검증·체크리스트 ---------- */
+async function copyText(text, btn) {
+  try { await navigator.clipboard.writeText(text); flash(btn, '복사됨'); }
+  catch (e) {
+    const code = btn.closest('figure').querySelector('code');
+    const r = document.createRange(); r.selectNodeContents(code); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    flash(btn, '선택됨 · Ctrl+C');
+  }
+}
+function flash(btn, msg) { const o = btn.textContent; btn.textContent = msg; setTimeout(() => { btn.textContent = o; }, 1600); }
+// 저장 전용 zip (STORE, 무압축) 생성: 아티팩트 뷰어는 .yaml 확장자 저장을 허용하지 않아 zip으로 감싼다
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(files) {
+  const enc = new TextEncoder(); const parts = []; const central = []; let offset = 0;
+  files.forEach(f => {
+    const name = enc.encode(f.name), data = enc.encode(f.text), crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true); lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+    lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+    ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true); ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+    ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + data.length;
+  });
+  const csize = central.reduce((a, p) => a + p.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, csize, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: 'application/zip' });
+}
+let downloadsCap;
+async function getDownloads() {
+  if (downloadsCap !== undefined) return downloadsCap;
+  downloadsCap = null;
+  try { if (window.claude && window.claude.use) downloadsCap = await window.claude.use('downloads'); } catch (e) { downloadsCap = null; }
+  return downloadsCap;
+}
+async function offerFiles(files, zipName, btn) {
+  const dl = await getDownloads();
+  if (dl) {
+    try { await dl.save({ filename: zipName, data: makeZip(files) }); flash(btn, '저장됨'); }
+    catch (e) { if (e && e.code === 'declined') flash(btn, '취소됨'); else { flash(btn, '저장 불가'); toast('이 화면에서는 파일 저장을 쓸 수 없습니다. 복사 버튼을 사용하세요.'); } }
+    return;
+  }
+  // 로컬 실행(http.server 등): 브라우저 다운로드
+  const one = files.length === 1;
+  const blob = one ? new Blob([files[0].text], { type: 'application/yaml' }) : makeZip(files);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = one ? files[0].name : zipName; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  flash(btn, '받는 중');
+}
+function wire(root, itemId) {
+  $$('[data-copy]', root).forEach(b => b.addEventListener('click', () => copyText($('#' + b.dataset.copy).textContent, b)));
+  $$('[data-dl]', root).forEach(b => b.addEventListener('click', () => {
+    const name = b.dataset.file; const text = $('#' + b.dataset.dl).textContent;
+    offerFiles([{ name, text }], name.replace(/\.ya?ml$/, '') + '.zip', b);
+  }));
+  $$('.verify', root).forEach(box => {
+    const cid = box.dataset.check; const btn = $('button[data-verify]', box); const ta = $('textarea', box); const msg = $('.msg', box);
+    const p = itemId ? state.progress[itemId] : null;
+    if (p && p.checks && p.checks[cid]) { msg.className = 'msg pass'; msg.textContent = '✓ 확인 완료 (' + new Date(p.checks[cid]).toLocaleString('ko-KR') + ')'; }
+    btn.addEventListener('click', () => {
+      const out = ta.value.replace(/\r/g, '').trim();
+      if (!out) { msg.className = 'msg fail'; msg.textContent = '출력이 비어 있습니다. 명령을 실행한 뒤 결과를 붙여 넣으세요.'; ta.focus(); return; }
+      let ok = false;
+      try { ok = new RegExp(box.dataset.expect, box.dataset.flags).test(out); } catch (e) { ok = false; }
+      if (ok) {
+        if (itemId) { prog(itemId).checks[cid] = Date.now(); save(); refreshSide(); refreshStatus(itemId); }
+        msg.className = 'msg pass'; msg.textContent = '✓ 기준과 일치합니다. 실행 결과 확인으로 기록했습니다.';
+      } else { msg.className = 'msg fail'; msg.textContent = '기준과 다릅니다. 아래 「흔한 오류」 절의 진단 순서를 따라 원인을 확인하세요.'; }
+    });
+  });
+  // 체크리스트 (작업 목록)
+  $$('li > input[type=checkbox]', root).forEach((cb, i) => {
+    const li = cb.parentElement; const key = (itemId || location.hash) + '#' + i;
+    cb.disabled = false; cb.checked = !!state.checklist[key];
+    li.classList.add('task-item');
+    const label = document.createElement('label'); const span = document.createElement('span');
+    while (cb.nextSibling) span.appendChild(cb.nextSibling);
+    li.insertBefore(label, cb); label.appendChild(cb); label.appendChild(span);
+    cb.addEventListener('change', () => { state.checklist[key] = cb.checked; save(); });
+  });
+}
+
+/* ---------- 레이아웃 ---------- */
+function setNav(key) { $$('#mainnav a').forEach(a => { if (key && a.dataset.nav === key) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }); }
+function sideFor(level, currentId) {
+  const L = LV[level]; if (!L) return '';
+  const items = levelItems(level);
+  let h = `<h2>${esc(L.name)} 과정 항로</h2><ul class="route">`;
+  h += `<li><a href="#/level/${level}" ${currentId === 'guide:' + level ? 'aria-current="page"' : ''}><span class="st">◇</span><span>이렇게 학습하세요</span></a></li>`;
+  items.forEach(i => {
+    const done = isDone(i.id); const s = itemState(i.id);
+    const mark = i.status === 'planned' ? '·' : (s.verified ? '✓' : (done ? '☑' : '○'));
+    const title = `${i.status === 'planned' ? '예정 · ' : ''}${typeName(i.type)}${s.verified ? ' · 실행 결과 확인됨' : (s.manual ? ' · 수동 완료' : '')}`;
+    h += `<li><a href="#/item/${i.id}" title="${esc(title)}" ${currentId === i.id ? 'aria-current="page"' : ''} class="${i.status === 'planned' ? 'planned' : ''}"><span class="st" aria-hidden="true">${mark}</span><span>${esc(i.title)}${i.required === false ? ' <span class="opt">(선택)</span>' : ''}${i.status === 'planned' ? ' <span class="opt">예정</span>' : ''}</span></a></li>`;
+  });
+  return h + '</ul>';
+}
+let sideCtx = null;
+function setSide(level, currentId) {
+  sideCtx = level ? { level, currentId } : null;
+  $('#shell').classList.toggle('no-side', !level);
+  $('#side').innerHTML = level ? sideFor(level, currentId) : '';
+}
+function refreshSide() { if (sideCtx) $('#side').innerHTML = sideFor(sideCtx.level, sideCtx.currentId); }
+function setMain(html) { const m = $('#main'); m.innerHTML = html; return m; }
+function focusMain() { const m = $('#main'); m.focus({ preventScroll: true }); window.scrollTo(0, 0); }
+function buildToc(root) {
+  const hs = $$('.prose h2', root); if (hs.length < 3) return '';
+  return `<nav class="toc" aria-label="이 페이지 목차"><h2>이 페이지</h2><ol>${hs.map(h => `<li><a href="#" data-goto="${h.id}">${esc(h.textContent)}</a></li>`).join('')}</ol></nav>`;
+}
+function wireToc(root) { $$('[data-goto]', root).forEach(a => a.addEventListener('click', e => { e.preventDefault(); const t = document.getElementById(a.dataset.goto); if (t) { t.scrollIntoView(); t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); } })); }
+
+/* ---------- 페이지: 홈 ---------- */
+function levelSummary(lv) {
+  const items = levelItems(lv); const pub = items.filter(i => i.status === 'published');
+  const tp = totals(pub), tall = totals(items);
+  const done = pub.filter(i => isDone(i.id)).length;
+  return { items, pub, tp, tall, done };
+}
+function renderHome() {
+  setNav(null); setSide(null);
+  const lastId = state.last.global; const last = lastId && ITEM[lastId];
+  const cards = C.levels.map(L => {
+    const s = levelSummary(L.id); const pct = s.pub.length ? Math.round(s.done / s.pub.length * 100) : 0;
+    const cur = state.level === L.id;
+    const resume = state.last[L.id] && ITEM[state.last[L.id]];
+    return `<article class="level-card ${cur ? 'current' : ''}" aria-labelledby="lv-${L.id}">
+      <h3 id="lv-${L.id}"><span class="chip lv">${esc(L.marker)}</span>${esc(L.name)} 과정 ${cur ? '<span class="chip published">선택됨</span>' : ''}</h3>
+      <p style="margin:0">${esc(L.tagline)}</p>
+      <dl>
+        <div><dt>대상</dt><dd>${esc(L.audience)}</dd></div>
+        <div><dt>필요한 선수 지식</dt><dd><ul>${L.prereq.map(p => `<li>${esc(p)}</li>`).join('')}</ul></dd></div>
+        <div><dt>학습 목표</dt><dd><ul>${L.goals.map(p => `<li>${esc(p)}</li>`).join('')}</ul></dd></div>
+        <div><dt>총 예상 시간 (현재 공개분)</dt><dd><strong style="font-family:var(--font-mono)">${fmtMin(sumT(s.tp))}</strong> <span style="color:var(--muted);font-size:.85rem">· 예정 포함 시 ${fmtMin(sumT(s.tall))}</span></dd></div>
+        <div><dt>진도</dt><dd><div class="meter" role="img" aria-label="공개 콘텐츠 ${s.pub.length}개 중 ${s.done}개 완료"><span style="width:${pct}%"></span></div><span style="font-size:.85rem;color:var(--muted)">공개 콘텐츠 ${s.pub.length}개 중 ${s.done}개 완료</span></dd></div>
+      </dl>
+      <div class="actions">
+        <button class="btn" data-pick="${L.id}">이 수준 선택</button>
+        ${resume ? `<a class="btn ghost" href="#/item/${resume.id}">이어서 학습하기</a>` : `<a class="btn ghost" href="#/level/${L.id}">가이드 보기</a>`}
+      </div>
+    </article>`;
+  }).join('');
+  const m = setMain(`
+    <section class="hero">
+      <div>
+        <div class="eyebrow"><span>Kubernetes ${esc(C.versions.map(v => v.minor).join(' · '))} 기준</span><span>마지막 확인 ${esc(C.meta.lastChecked)}</span></div>
+        <h1>쿠버네티스를 직접 운항하며 배웁니다</h1>
+        <p>공식 문서를 근거로 한 기본·중급·고급 과정입니다. 이 페이지에서 설명을 읽고, 내 터미널의 minikube 클러스터에서 명령을 실행하며 결과를 확인합니다.</p>
+        <div class="cta">
+          ${last ? `<a class="btn" href="#/item/${last.id}">이어서 학습하기 · ${esc(last.title)}</a>` : `<a class="btn" href="#/item/setup">환경 준비부터 시작</a>`}
+          <a class="btn ghost" href="#/roadmap">전체 로드맵</a>
+        </div>
+      </div>
+      <figure class="hero-chart" aria-label="학습 항로 개요">${heroSvg()}</figure>
+    </section>
+    <h2 class="section-title" id="pick">학습 수준 선택</h2>
+    <p style="color:var(--muted);margin-top:-4px">이전 과정을 마치지 않아도 어느 수준이든 시작할 수 있고, 언제든 상단의 「학습 수준」에서 바꿀 수 있습니다.</p>
+    <div class="levels">${cards}</div>
+    <h2 class="section-title">먼저 볼 곳</h2>
+    <div class="quick">
+      <a href="#/item/setup"><strong>환경 준비</strong><span>WSL2·macOS·Linux에서 minikube와 kubectl 설치 (최초 1회 약 ${fmtMin(ITEM.setup.minutes.handson + ITEM.setup.minutes.concept)})</span></a>
+      <a href="#/labs"><strong>핸즈온 목록</strong><span>난이도·버전으로 실습을 골라 보기</span></a>
+      <a href="#/versions"><strong>버전 비교</strong><span>${esc(C.versions.map(v => v.minor).join(', '))}의 주요 변경·폐기 API</span></a>
+      <a href="#/verification"><strong>검증 보고서</strong><span>예제를 실제로 실행한 환경과 결과, 검증하지 못한 범위</span></a>
+    </div>`);
+  $$('[data-pick]', m).forEach(b => b.addEventListener('click', () => { pickLevel(b.dataset.pick); location.hash = '#/level/' + b.dataset.pick; }));
+}
+function heroSvg() {
+  const lv = C.levels.map((L, i) => ({ L, s: levelSummary(L.id), x: 60 + i * 150 }));
+  return `<svg viewBox="0 0 480 190" role="img" aria-label="기본에서 고급으로 이어지는 항로">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrowhead" style="fill:var(--chart)"/></marker></defs>
+    <g style="stroke:var(--rule)" stroke-width="1">${[40, 80, 120, 160].map(y => `<line x1="10" x2="470" y1="${y}" y2="${y}"/>`).join('')}${[60, 210, 360].map(x => `<line y1="20" y2="175" x1="${x}" x2="${x}"/>`).join('')}</g>
+    <path d="M30 150 C 90 150, 90 100, 150 100 S 230 60, 290 60 S 400 30, 450 30" fill="none" style="stroke:var(--chart)" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+    ${lv.map((o, i) => { const y = [128, 82, 46][i]; return `<g transform="translate(${o.x + 20},${y})"><circle r="9" style="fill:var(--sheet);stroke:var(--chart)" stroke-width="2.5"/><text x="14" y="-12" style="fill:var(--ink);font-family:var(--font-display);font-size:15px;font-weight:700;paint-order:stroke;stroke:var(--sheet);stroke-width:5px">${esc(o.L.name)}</text><text x="14" y="6" style="fill:var(--muted);font-family:var(--font-mono);font-size:11px;paint-order:stroke;stroke:var(--sheet);stroke-width:4px">${fmtMin(sumT(o.s.tp))}</text></g>`; }).join('')}
+    <text x="14" y="178" style="fill:var(--muted);font-size:11px;font-family:var(--font-body)">환경 준비 → 기본 → 중급 → 고급 · 숫자는 공개된 강의·실습 예상 시간 합계</text>
+  </svg>`;
+}
+function pickLevel(lv) { state.level = lv; save(); $('#levelSel').value = lv; toast(LV[lv].name + ' 과정을 선택했습니다'); }
+
+/* ---------- 페이지: 로드맵 ---------- */
+function stepList(items, opts = {}) {
+  return `<ol class="steps">${items.map(i => {
+    const unavailable = !supports(i, state.version);
+    return `<li class="${i.status === 'planned' ? 'is-planned' : ''} ${i.required === false ? 'is-optional' : ''}">
+      <div><div class="t"><a href="#/item/${i.id}">${esc(i.title)}</a></div>
+      <div class="p">${esc(i.purpose || i.summary || '')}</div>
+      <div class="chips"><span class="chip">${typeName(i.type)}</span>${i.required === false ? '<span class="chip">선택 심화</span>' : '<span class="chip">필수</span>'}${i.status === 'planned' ? '<span class="chip planned">예정</span>' : '<span class="chip published">공개</span>'}${verChip(i)}${unavailable ? `<span class="chip na">${esc(state.version)}에서 사용 불가</span>` : ''}${statusChips(i.id)}</div></div>
+      <div class="time" title="개념 / 핸즈온 / 복습·과제">${fmtMin(sumT(totals([i])))}</div>
+    </li>`; }).join('')}</ol>`;
+}
+function renderRoadmap() {
+  setNav('roadmap'); setSide(null);
+  const prep = levelItems('prep');
+  const m = setMain(`<div class="page-head"><div class="eyebrow">전체 교육 과정</div><h1>학습 로드맵</h1>
+    <p class="lede">준비 과정부터 고급까지 전체 목차입니다. 공개된 항목은 바로 학습할 수 있고, 「예정」 항목은 후속으로 제작합니다. 시간은 개념·핸즈온·복습 시간을 더한 값입니다.</p></div>
+    <section class="roadmap-level"><h2 class="section-title" style="margin-top:0">준비 과정</h2><p style="color:var(--muted)">부족한 선수 지식을 채우고 실습 환경을 만듭니다.</p>${stepList(prep)}</section>
+    ${C.levels.map(L => { const s = levelSummary(L.id); return `<section class="roadmap-level"><h2 class="section-title">${esc(L.marker)} ${esc(L.name)} 과정</h2>
+      <p style="color:var(--muted)">선수 과정: ${esc(L.prereqCourse)} · 공개분 ${fmtMin(sumT(s.tp))} · 예정 포함 ${fmtMin(sumT(s.tall))} · <a href="#/level/${L.id}">이렇게 학습하세요</a></p>
+      <p><strong>수료하면</strong> ${esc(L.outcomes.join(' / '))}</p>${stepList(s.items)}</section>`; }).join('')}`);
+  focusMain();
+}
+
+/* ---------- 페이지: 수준 가이드 ---------- */
+async function renderLevel(lv) {
+  const L = LV[lv]; if (!L) return renderNotFound();
+  setNav(null); setSide(lv, 'guide:' + lv);
+  if (state.level !== lv) { state.level = lv; save(); $('#levelSel').value = lv; }
+  const s = levelSummary(lv);
+  const md = await loadMd(L.guide);
+  const roadmap = `<p>필수 단계를 순서대로 진행하고, 「선택 심화」는 필요할 때 학습합니다. 점선 원은 아직 제작 중인 예정 콘텐츠입니다.</p>${stepList(s.items)}`;
+  const t = s.tp; const total = sumT(t); const setup = sumT(totals([ITEM.setup]));
+  const days = per => Math.ceil(total / per);
+  const plannedExtra = sumT(s.tall) - total;
+  const duration = `<div class="duration">
+      <div><div class="k">개념 학습</div><div class="v">${fmtMin(t.concept)}</div></div>
+      <div><div class="k">핸즈온</div><div class="v">${fmtMin(t.handson)}</div></div>
+      <div><div class="k">복습·과제</div><div class="v">${fmtMin(t.review)}</div></div>
+      <div><div class="k">총 예상 시간</div><div class="v">${fmtMin(total)}</div></div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>하루 학습 시간</th><th>예상 완료 기간</th></tr></thead><tbody>
+      <tr><td>30분</td><td>약 ${days(30)}일</td></tr><tr><td>1시간</td><td>약 ${days(60)}일</td></tr><tr><td>2시간</td><td>약 ${days(120)}일</td></tr>
+    </tbody></table></div>
+    <p>총 예상 시간은 현재 공개된 강의·실습 ${s.pub.length}개의 시간을 합산한 값입니다.${plannedExtra > 0 ? ` 예정 콘텐츠가 모두 공개되면 ${fmtMin(plannedExtra)}이 더해집니다.` : ''}</p>
+    <p><strong>최초 실습 환경 설치</strong>는 위 시간과 별도로 약 ${fmtMin(setup)}이 걸립니다. (<a href="#/item/setup">환경 준비</a>, 이미 했다면 생략)</p>
+    <p style="color:var(--muted)">선수 지식이 부족하거나 오류 해결에 시간을 쓰면 더 걸릴 수 있습니다. 처음 보는 오류를 직접 진단하는 시간도 학습의 일부로 보세요.</p>`;
+  const first = s.items.find(i => i.status === 'published' && i.required !== false) || s.items[0];
+  const resume = state.last[lv] && ITEM[state.last[lv]];
+  const cta = `<div class="guide-cta"><a class="btn" href="#/item/${first.id}" data-start="${lv}">이 과정 시작하기</a>${resume ? `<a class="btn ghost" href="#/item/${resume.id}">이어서 학습하기 · ${esc(resume.title)}</a>` : ''}</div>`;
+  let html = mdToHtml(md).replace('<p>{{roadmap}}</p>', roadmap).replace('<p>{{duration}}</p>', duration).replace(/<p>\{\{cta\}\}<\/p>/g, cta);
+  const m = setMain(`<div class="article-grid"><article class="prose-wrap" style="min-width:0">
+    <div class="page-head"><div class="eyebrow">${levelChip(lv)}<span>과정 시작 가이드</span></div><h1>${esc(L.name)} 과정: 이렇게 학습하세요</h1><p class="lede">${esc(L.tagline)}</p></div>
+    <div class="prose">${html}</div></article><div id="tocSlot"></div></div>`);
+  wire(m, 'guide-' + lv);
+  $('#tocSlot').innerHTML = buildToc(m); wireToc(m);
+  $$('[data-start]', m).forEach(a => a.addEventListener('click', () => { state.started[lv] = true; save(); }));
+  focusMain();
+}
+
+/* ---------- 페이지: 강의·실습 ---------- */
+function factsFor(i) {
+  const m = i.minutes || {};
+  const vers = C.versions.map(v => `${v.minor}${supports(i, v.minor) ? ' ✓' : ' ✕'}`).join(' · ');
+  const comps = (i.components || []).map(c => `<li>${esc(c.name)} <span class="chip">${c.kind === 'core' ? 'Kubernetes 기능' : c.kind === 'addon' ? '애드온·외부 구성 요소' : '외부 생태계 도구'}</span>${c.version ? ` <code>${esc(c.version)}</code>` : ''}</li>`).join('');
+  const imgs = (i.images || []).map(x => `<li><code>${esc(x)}</code></li>`).join('');
+  const prereq = (i.prereq || []).map(id => ITEM[id] ? `<li><a href="#/item/${id}">${esc(ITEM[id].title)}</a></li>` : `<li>${esc(id)}</li>`).join('');
+  const docs = (i.docs || []).map(d => `<li><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a></li>`).join('');
+  return `<dl class="facts">
+    <div><dt>예상 시간</dt><dd>개념 ${fmtMin(m.concept)} · 핸즈온 ${fmtMin(m.handson)} · 복습 ${fmtMin(m.review)}</dd></div>
+    <div><dt>지원 버전</dt><dd>${vers}</dd></div>
+    <div><dt>실습 환경</dt><dd>${esc(i.env || '해당 없음')}</dd></div>
+    ${prereq ? `<div><dt>선수 과정</dt><dd><ul>${prereq}</ul></dd></div>` : ''}
+    ${comps ? `<div><dt>사용 구성 요소</dt><dd><ul>${comps}</ul></dd></div>` : ''}
+    ${imgs ? `<div><dt>컨테이너 이미지</dt><dd><ul>${imgs}</ul></dd></div>` : ''}
+    ${docs ? `<div><dt>공식 문서</dt><dd><ul>${docs}</ul></dd></div>` : ''}
+    <div><dt>검증 상태 · 마지막 확인</dt><dd>${verChip(i) || '<span class="chip planned">예정</span>'} ${esc(i.lastChecked || C.meta.lastChecked)}<br><span style="font-size:.85rem;color:var(--muted)">${esc((i.verification || {}).summary || '')}</span></dd></div>
+  </dl>`;
+}
+async function renderItem(id) {
+  const i = ITEM[id]; if (!i) return renderNotFound();
+  setNav(id === 'setup' ? 'setup' : null);
+  const lv = i.level === 'prep' ? null : i.level;
+  setSide(lv, id);
+  if (i.status === 'published') { state.last.global = id; if (lv) state.last[lv] = id; save(); }
+  const unavailable = !supports(i, state.version);
+  const vNote = (i.versionNotes || {})[state.version];
+  const banner = unavailable
+    ? `<div class="banner na" role="note"><strong>Kubernetes ${esc(state.version)}에서는 이 실습을 진행할 수 없습니다.</strong> ${esc(vNote || '이 실습이 쓰는 기능을 해당 버전이 제공하지 않습니다.')} 상단에서 지원 버전(${esc((i.versions || []).join(', '))})을 선택하면 계속할 수 있습니다.</div>`
+    : (vNote ? `<div class="banner plan" role="note">${esc(vNote)}</div>` : '');
+  const head = `<div class="page-head"><div class="eyebrow">${lv ? levelChip(lv) : '<span class="chip lv">준비</span>'}<span>${typeName(i.type)}</span>${i.required === false ? '<span class="chip">선택 심화</span>' : ''}${i.status === 'planned' ? '<span class="chip planned">예정</span>' : ''}<span id="stChips">${statusChips(id)}</span></div>
+    <h1>${esc(i.title)}</h1><p class="lede">${esc(i.summary || '')}</p></div>`;
+  if (i.status === 'planned') {
+    const m = setMain(`<article class="prose-wrap">${head}${banner}<div class="banner plan" role="note"><strong>후속 제작 예정 콘텐츠입니다.</strong> 아래 목차와 예상 시간은 계획이며, 공개 전까지 학습 시간 합계에는 포함하지 않습니다.</div>
+      ${factsFor(i)}<div class="prose"><h2 id="h-plan">계획된 내용</h2><ul>${(i.outline || []).map(o => `<li>${esc(o)}</li>`).join('')}</ul>${i.envNote ? `<div class="callout note"><p class="callout-title">실습 환경 계획</p><p>${esc(i.envNote)}</p></div>` : ''}</div>${pagerFor(i)}</article>`);
+    focusMain(); return;
+  }
+  let md;
+  try { md = await loadMd(i.file); } catch (e) { setMain(`<p>콘텐츠 파일(${esc(i.file)})을 불러오지 못했습니다. 로컬에서 실행 중이라면 README의 실행 방법대로 웹 서버로 열었는지 확인하세요.</p>`); return; }
+  const m = setMain(`<div class="article-grid"><article style="min-width:0">${head}${banner}${factsFor(i)}<div class="prose">${mdToHtml(md)}</div>
+    ${donePanel(i)}${pagerFor(i)}</article><div id="tocSlot"></div></div>`);
+  wire(m, id);
+  const bundle = $('#bundleBtn', m);
+  if (bundle) bundle.addEventListener('click', () => {
+    const files = $$('[data-dl]', m).map(b => ({ name: b.dataset.file, text: $('#' + b.dataset.dl).textContent }));
+    const uniq = []; const seen = new Set(); files.forEach(f => { if (!seen.has(f.name)) { seen.add(f.name); uniq.push(f); } });
+    offerFiles(uniq, id + '-yaml.zip', bundle);
+  });
+  const mc = $('#manualDone', m);
+  if (mc) mc.addEventListener('change', () => { prog(id).manual = mc.checked; save(); refreshSide(); refreshStatus(id); });
+  $('#tocSlot').innerHTML = buildToc(m); wireToc(m);
+  focusMain();
+}
+function refreshStatus(id) { const el = $('#stChips'); if (el) el.innerHTML = statusChips(id); const ds = $('#doneState'); if (ds) ds.innerHTML = doneStateText(id); }
+function doneStateText(id) {
+  const s = itemState(id);
+  return `${s.need ? `실행 결과 검증: <strong>${s.passed}/${s.need}</strong>개 통과${s.verified ? ' · <span class="chip verified">✓ 실행 결과 확인됨</span>' : ''}` : '이 페이지에는 실행 결과 검증 항목이 없습니다.'}`;
+}
+function donePanel(i) {
+  const p = state.progress[i.id] || {};
+  const yamlCount = (i.yamlFiles || 0);
+  return `<section class="done-panel" aria-label="학습 완료 기록">
+    <div class="states">
+      <label class="check"><input type="checkbox" id="manualDone" ${p.manual ? 'checked' : ''}> 학습을 마쳤습니다 (수동 완료)</label>
+      <span id="doneState">${doneStateText(i.id)}</span>
+      ${yamlCount ? `<button class="btn ghost" id="bundleBtn">이 실습의 YAML ${yamlCount}개 한 번에 받기 (zip)</button>` : ''}
+    </div>
+    <p style="margin:0;font-size:.85rem;color:var(--muted)">「수동 완료」는 직접 표시한 기록이고, 「실행 결과 확인됨」은 성공 판정 명령의 출력을 붙여 넣어 기준과 일치한 기록입니다. 두 기록은 따로 저장됩니다.</p>
+  </section>`;
+}
+function pagerFor(i) {
+  const list = i.level === 'prep' ? levelItems('prep') : levelItems(i.level);
+  const k = list.findIndex(x => x.id === i.id);
+  const prev = list[k - 1], next = list[k + 1];
+  const lnk = (x, cls, lab) => x ? `<a class="${cls}" href="#/item/${x.id}"><small>${lab}${x.status === 'planned' ? ' · 예정' : ''}</small>${esc(x.title)}</a>` : '';
+  return `<nav class="pager" aria-label="이전·다음" style="margin-top:20px">${lnk(prev, 'prev', '이전')}${lnk(next, 'next', '다음')}</nav>`;
+}
+
+/* ---------- 페이지: 핸즈온 목록 (검색·필터) ---------- */
+let labFilter = { q: '', level: 'all', version: null, status: 'all', type: 'handson' };
+function renderLabs() {
+  setNav('labs'); setSide(null);
+  if (!labFilter.version) labFilter.version = state.version;
+  const m = setMain(`<div class="page-head"><div class="eyebrow">핸즈온</div><h1>핸즈온 목록</h1><p class="lede">실습과 종합 과제를 난이도와 Kubernetes 버전으로 골라 봅니다. 선택한 버전에서 진행할 수 없는 항목은 이유와 함께 표시합니다.</p></div>
+    <form class="filters" id="labForm" role="search" onsubmit="return false">
+      <div class="field"><label for="fq">검색</label><input id="fq" type="search" value="${esc(labFilter.q)}" placeholder="예: HPA, Secret, rollout"></div>
+      <div class="field"><label for="fl">난이도</label><select id="fl"><option value="all">전체</option>${C.levels.map(L => `<option value="${L.id}">${esc(L.marker + ' ' + L.name)}</option>`).join('')}</select></div>
+      <div class="field"><label for="fv">버전</label><select id="fv"><option value="all">전체</option>${C.versions.map(v => `<option value="${v.minor}">${v.minor} 에서 가능</option>`).join('')}</select></div>
+      <div class="field"><label for="fs">상태</label><select id="fs"><option value="all">전체</option><option value="published">공개</option><option value="planned">예정</option><option value="todo">미완료</option><option value="done">완료</option></select></div>
+      <div class="field"><label for="ft">종류</label><select id="ft"><option value="handson">실습·종합 과제</option><option value="all">강의 포함 전체</option></select></div>
+      <span class="count" id="labCount" aria-live="polite"></span>
+    </form>
+    <div class="lab-list" id="labList"></div>`);
+  $('#fl', m).value = labFilter.level; $('#fv', m).value = labFilter.version || 'all'; $('#fs', m).value = labFilter.status; $('#ft', m).value = labFilter.type;
+  const upd = () => { labFilter = { q: $('#fq').value, level: $('#fl').value, version: $('#fv').value, status: $('#fs').value, type: $('#ft').value }; drawLabs(); };
+  ['#fq', '#fl', '#fv', '#fs', '#ft'].forEach(s => $(s, m).addEventListener('input', upd));
+  drawLabs(); focusMain();
+}
+function textOf(i) { return [i.title, i.summary, i.purpose, (i.tags || []).join(' '), (i.outline || []).join(' '), mdPlain(mdCache[i.file] || '')].join(' ').toLowerCase(); }
+function drawLabs() {
+  const f = labFilter; const q = f.q.trim().toLowerCase();
+  let list = C.items.filter(i => i.level !== 'prep');
+  if (f.type === 'handson') list = list.filter(i => i.type === 'lab' || i.type === 'capstone');
+  if (f.level !== 'all') list = list.filter(i => i.level === f.level);
+  if (f.status === 'published' || f.status === 'planned') list = list.filter(i => i.status === f.status);
+  if (f.status === 'done') list = list.filter(i => isDone(i.id));
+  if (f.status === 'todo') list = list.filter(i => i.status === 'published' && !isDone(i.id));
+  if (q) list = list.filter(i => q.split(/\s+/).every(w => textOf(i).includes(w)));
+  const shown = list;
+  $('#labCount').textContent = `${shown.length}개`;
+  $('#labList').innerHTML = shown.length ? shown.map(i => {
+    const na = f.version !== 'all' && !supports(i, f.version);
+    return `<article class="lab-row ${na ? 'unavailable' : ''}"><div style="min-width:0"><h3><a href="#/item/${i.id}">${hlq(i.title, q)}</a></h3><p>${hlq(i.summary || '', q)}</p>
+      <div class="chips">${levelChip(i.level)}<span class="chip">${typeName(i.type)}</span>${i.status === 'planned' ? '<span class="chip planned">예정</span>' : '<span class="chip published">공개</span>'}${verChip(i)}<span class="chip">지원 ${esc((i.versions || []).join(' · '))}</span>${statusChips(i.id)}</div>
+      ${na ? `<p style="color:var(--bad);margin:8px 0 0;font-size:.88rem"><strong>${esc(f.version)}에서 사용 불가:</strong> ${esc((i.versionNotes || {})[f.version] || '이 버전에서 지원하지 않는 기능을 사용합니다.')}</p>` : ''}</div>
+      <div class="time">${fmtMin(sumT(totals([i])))}</div></article>`; }).join('')
+    : '<p>조건에 맞는 항목이 없습니다. 검색어를 줄이거나 필터를 「전체」로 바꿔 보세요.</p>';
+}
+function hlq(s, q) { let h = esc(s); if (!q) return h; q.split(/\s+/).filter(Boolean).forEach(w => { h = h.replace(new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), x => `<mark>${x}</mark>`); }); return h; }
+function mdPlain(md) { return md.replace(/```[\s\S]*?```/g, m => m.replace(/^```.*$/gm, '')).replace(/<[^>]+>/g, ' ').replace(/[#>*_`|\[\]]/g, ' '); }
+
+/* ---------- 페이지: 일반 문서 (버전 비교·검증 보고서) ---------- */
+async function renderDoc(file, nav, eyebrow, title, lede) {
+  setNav(nav); setSide(null);
+  const md = await loadMd(file);
+  const m = setMain(`<div class="article-grid"><article style="min-width:0"><div class="page-head"><div class="eyebrow">${esc(eyebrow)}<span>마지막 확인 ${esc(C.meta.lastChecked)}</span></div><h1>${esc(title)}</h1><p class="lede">${esc(lede)}</p></div><div class="prose">${mdToHtml(md)}</div></article><div id="tocSlot"></div></div>`);
+  wire(m, null); $('#tocSlot').innerHTML = buildToc(m); wireToc(m); focusMain();
+}
+
+/* ---------- 페이지: 용어집 ---------- */
+function renderGlossary(anchor) {
+  setNav('glossary'); setSide(null);
+  const cats = [...new Set(G.map(g => g.cat))];
+  const m = setMain(`<div class="page-head"><div class="eyebrow">용어집 · ${G.length}개</div><h1>용어집</h1><p class="lede">강의에서 처음 등장하는 용어를 한국어 설명과 영어 원어로 정리했습니다. 「Kubernetes 기능」과 「외부 생태계 도구」를 구분해 표시합니다.</p></div>
+    <form class="filters" role="search" onsubmit="return false"><div class="field"><label for="gq">용어 찾기</label><input id="gq" type="search" placeholder="한국어 또는 영어"></div>
+    <div class="field"><label for="gc">분류</label><select id="gc"><option value="all">전체</option>${cats.map(c => `<option>${esc(c)}</option>`).join('')}</select></div><span class="count" id="gcount"></span></form>
+    <div class="gloss-list" id="glist"></div>`);
+  const draw = () => {
+    const q = $('#gq').value.trim().toLowerCase(); const c = $('#gc').value;
+    const list = G.filter(g => (c === 'all' || g.cat === c) && (!q || (g.ko + ' ' + g.en + ' ' + g.desc).toLowerCase().includes(q)));
+    $('#gcount').textContent = list.length + '개';
+    $('#glist').innerHTML = list.map(g => `<div class="gloss-item" id="g-${g.id}"><h3>${esc(g.ko)}<small>${esc(g.en)}</small></h3><div><p>${esc(g.desc)}</p><div class="chips"><span class="chip">${esc(g.cat)}</span><span class="chip">${g.scope === 'core' ? 'Kubernetes 기능' : g.scope === 'addon' ? '애드온·외부 구성 요소' : g.scope === 'ecosystem' ? '외부 생태계 도구' : '일반 개념'}</span>${g.doc ? `<a class="chip" href="${esc(g.doc)}" target="_blank" rel="noopener">공식 문서</a>` : ''}</div></div></div>`).join('');
+  };
+  $('#gq', m).addEventListener('input', draw); $('#gc', m).addEventListener('input', draw); draw();
+  if (anchor) { const t = document.getElementById('g-' + anchor); if (t) { t.scrollIntoView(); t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); return; } }
+  focusMain();
+}
+
+/* ---------- 검색 ---------- */
+let searchReady = null;
+function loadAll() { if (!searchReady) searchReady = Promise.all([...C.items.filter(i => i.file && i.status === 'published').map(i => loadMd(i.file).catch(() => '')), ...C.levels.map(L => loadMd(L.guide).catch(() => '')), ...C.pages.map(p => loadMd(p.file).catch(() => ''))]); return searchReady; }
+async function renderSearch(q) {
+  setNav(null); setSide(null);
+  setMain('<p class="loading">검색 중…</p>');
+  await loadAll();
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const docs = [
+    ...C.items.map(i => ({ href: '#/item/' + i.id, title: i.title, meta: `${LV[i.level] ? LV[i.level].name : '준비'} · ${typeName(i.type)}${i.status === 'planned' ? ' · 예정' : ''}`, text: [i.title, i.summary, (i.outline || []).join(' '), mdPlain(mdCache[i.file] || '')].join('\n') })),
+    ...C.levels.map(L => ({ href: '#/level/' + L.id, title: L.name + ' 과정 가이드', meta: '이렇게 학습하세요', text: mdPlain(mdCache[L.guide] || '') })),
+    ...C.pages.map(p => ({ href: p.href, title: p.title, meta: '문서', text: mdPlain(mdCache[p.file] || '') })),
+    ...G.map(g => ({ href: '#/glossary/' + g.id, title: `${g.ko} (${g.en})`, meta: '용어집', text: g.desc }))
+  ];
+  const res = docs.map(d => { const low = (d.title + '\n' + d.text).toLowerCase(); if (!words.every(w => low.includes(w))) return null;
+    const score = words.reduce((a, w) => a + (d.title.toLowerCase().includes(w) ? 10 : 0) + low.split(w).length, 0);
+    const pos = d.text.toLowerCase().indexOf(words[0]); const snip = pos >= 0 ? d.text.slice(Math.max(0, pos - 60), pos + 120).replace(/\s+/g, ' ') : '';
+    return { ...d, score, snip }; }).filter(Boolean).sort((a, b) => b.score - a.score);
+  setMain(`<div class="page-head"><div class="eyebrow">검색</div><h1>「${esc(q)}」 검색 결과</h1><p class="lede">${res.length}건</p></div>
+    ${res.length ? `<ul class="results">${res.map(r => `<li><a href="${r.href}"><strong>${hlq(r.title, q.toLowerCase())}</strong></a> <span class="chip">${esc(r.meta)}</span>${r.snip ? `<p>…${hlq(r.snip, q.toLowerCase())}…</p>` : ''}</li>`).join('')}</ul>` : '<p>결과가 없습니다. 다른 표현(예: 영어 원어)으로 검색해 보세요.</p>'}`);
+  focusMain();
+}
+
+function renderNotFound() { setNav(null); setSide(null); setMain('<h1>페이지를 찾을 수 없습니다</h1><p><a href="#/">홈으로</a></p>'); }
+
+/* ---------- 라우터 ---------- */
+let lastQuery = '';
+async function route() {
+  let h = decodeURIComponent(location.hash || '');
+  if (/^#[\w.~-]+$/.test(h)) h = '#/' + h.slice(1); // 공유 링크의 단순 앵커 (#labs 등)
+  const parts = h.replace(/^#\/?/, '').split('/');
+  $('#mainnav').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded', 'false');
+  try {
+    switch (parts[0]) {
+      case '': return renderHome();
+      case 'roadmap': return renderRoadmap();
+      case 'level': return await renderLevel(parts[1]);
+      case 'item': return await renderItem(parts[1]);
+      case 'setup': return await renderItem('setup');
+      case 'labs': return renderLabs();
+      case 'versions': return await renderDoc('content/pages/versions.md', 'versions', '버전 정보', 'Kubernetes 버전 비교', '지원 중인 최근 3개 마이너 버전의 주요 변경, 기능 단계, 지원 종료, 폐기·제거 API와 마이그레이션 방법입니다.');
+      case 'verification': return await renderDoc('content/pages/verification.md', 'verification', '품질 기록', '검증 보고서', '예제를 실제로 실행한 환경과 결과, 그리고 검증하지 못한 범위를 숨김없이 기록합니다.');
+      case 'glossary': return renderGlossary(parts[1]);
+      case 'search': return await renderSearch(parts.slice(1).join('/'));
+      default:
+        if (ITEM[parts[0]]) return await renderItem(parts[0]);
+        if (LV[parts[0]]) return await renderLevel(parts[0]);
+        return renderNotFound();
+    }
+  } catch (e) { console.error(e); setMain(`<h1>불러오기 오류</h1><p>${esc(e.message)}</p>`); }
+}
+
+/* ---------- 시작 ---------- */
+async function boot() {
+  await ensureMarked(); setupMarked();
+  const [cat, glo] = await Promise.all([getText('content/catalog.json'), getText('content/glossary.json')]);
+  C = JSON.parse(cat); G = JSON.parse(glo).terms; G.forEach(g => { GMAP[g.id] = g; });
+  C.levels.forEach(L => { LV[L.id] = L; });
+  C.items.forEach(i => { ITEM[i.id] = i; });
+  if (!state.version || !C.versions.some(v => v.minor === state.version)) state.version = C.meta.defaultVersion;
+  if (!LV[state.level]) state.level = 'basic';
+  save();
+  const ls = $('#levelSel'); ls.innerHTML = C.levels.map(L => `<option value="${L.id}">${esc(L.marker + ' ' + L.name)}</option>`).join(''); ls.value = state.level;
+  ls.addEventListener('change', () => { state.level = ls.value; save(); location.hash = '#/level/' + ls.value; });
+  const vs = $('#verSel'); vs.innerHTML = C.versions.map(v => `<option value="${v.minor}">${v.minor} (${v.patch})</option>`).join(''); vs.value = state.version;
+  vs.addEventListener('change', () => { state.version = vs.value; labFilter.version = vs.value; save(); toast('Kubernetes ' + vs.value + ' 기준으로 표시합니다'); route(); });
+  const q = $('#q');
+  q.addEventListener('keydown', e => { if (e.key === 'Enter' && q.value.trim()) { location.hash = '#/search/' + encodeURIComponent(q.value.trim()); } if (e.key === 'Escape') q.blur(); });
+  document.addEventListener('keydown', e => { if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); q.focus(); } });
+  $('#menuBtn').addEventListener('click', () => { const n = $('#mainnav'); const o = n.classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', String(o)); });
+  $('#foot').innerHTML = `콘텐츠 근거: <a href="https://kubernetes.io/docs/" target="_blank" rel="noopener">kubernetes.io 공식 문서</a> (CC BY 4.0) · 마지막 확인 ${esc(C.meta.lastChecked)} · 진도는 이 브라우저에만 저장됩니다. <button class="btn-sm" id="resetBtn">진도 초기화</button> <span id="resetConfirm" hidden>모든 진도를 지울까요? <button class="btn-sm" id="resetYes">지우기</button> <button class="btn-sm" id="resetNo">취소</button></span>`;
+  $('#resetBtn').addEventListener('click', () => { $('#resetConfirm').hidden = false; $('#resetYes').focus(); });
+  $('#resetNo').addEventListener('click', () => { $('#resetConfirm').hidden = true; });
+  $('#resetYes').addEventListener('click', () => { state.progress = {}; state.last = {}; state.checklist = {}; state.started = {}; save(); $('#resetConfirm').hidden = true; toast('진도를 초기화했습니다'); route(); });
+  window.addEventListener('hashchange', route);
+  route();
+}
+boot().catch(e => { document.getElementById('main').innerHTML = '<h1>사이트를 시작하지 못했습니다</h1><p>' + String(e.message).replace(/</g, '&lt;') + '</p><p>로컬 파일을 직접 열었다면(file://) README의 실행 방법대로 <code>python3 -m http.server</code>로 열어 주세요.</p>'; });
+})();
+</script>

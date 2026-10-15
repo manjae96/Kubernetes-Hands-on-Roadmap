@@ -1,0 +1,1158 @@
+{
+  "meta": {
+    "lastChecked": "2026-10-15",
+    "defaultVersion": "1.37",
+    "minikube": "v1.39.0"
+  },
+  "versions": [
+    {
+      "minor": "1.37",
+      "patch": "1.37.1",
+      "minikubeK8s": "v1.37.0",
+      "released": "2026-08-26",
+      "eol": "2027-10-28",
+      "name": "Garhwal",
+      "docs": "https://kubernetes.io/docs/home/"
+    },
+    {
+      "minor": "1.36",
+      "patch": "1.36.5",
+      "minikubeK8s": "v1.36.4",
+      "released": "2026-04-22",
+      "eol": "2027-06-28",
+      "name": "ハル (Haru)",
+      "docs": "https://v1-36.docs.kubernetes.io/docs/home/"
+    },
+    {
+      "minor": "1.35",
+      "patch": "1.35.9",
+      "minikubeK8s": "v1.35.8",
+      "released": "2025-12-17",
+      "eol": "2027-02-28",
+      "name": "Timbernetes",
+      "docs": "https://v1-35.docs.kubernetes.io/docs/home/"
+    }
+  ],
+  "pages": [
+    {
+      "href": "#/versions",
+      "title": "Kubernetes 버전 비교",
+      "file": "content/pages/versions.md"
+    },
+    {
+      "href": "#/verification",
+      "title": "검증 보고서",
+      "file": "content/pages/verification.md"
+    }
+  ],
+  "levels": [
+    {
+      "id": "basic",
+      "name": "기본",
+      "marker": "●○○",
+      "tagline": "클러스터의 구조를 이해하고 앱을 배포·확장·업데이트하며 상태를 읽습니다.",
+      "audience": "Linux 명령어와 컨테이너(docker run, 이미지, 포트)를 써 봤지만 Kubernetes는 처음이거나 따라 해 본 정도인 개발자",
+      "prereq": [
+        "Linux 셸 기본 명령 (cd, ls, cat, 파이프)",
+        "컨테이너 이미지와 컨테이너의 차이",
+        "환경 준비 과정 완료 (minikube·kubectl 설치)"
+      ],
+      "prereqCourse": "준비 과정 (환경 준비)",
+      "goals": [
+        "클러스터 구성 요소와 역할 설명",
+        "kubectl로 조회·생성·삭제",
+        "Pod·Deployment·Service로 앱 배포",
+        "Namespace·Label로 자원 구분",
+        "확장·롤링 업데이트·롤백",
+        "로그와 이벤트로 상태 확인"
+      ],
+      "outcomes": [
+        "YAML 매니페스트로 웹 앱을 배포하고 Service로 노출한다",
+        "레플리카 수를 바꾸고 이미지 버전을 무중단으로 올리고 되돌린다",
+        "ImagePullBackOff 같은 배포 실패를 이벤트와 로그로 찾아낸다"
+      ],
+      "guide": "content/guides/basic.md"
+    },
+    {
+      "id": "intermediate",
+      "name": "중급",
+      "marker": "●●○",
+      "tagline": "설정과 상태 점검, 자원 관리와 자동 확장으로 운영 가능한 앱을 만듭니다.",
+      "audience": "Deployment·Service를 YAML로 배포해 봤고, 실제 서비스처럼 설정·상태 점검·자원을 다루고 싶은 개발자",
+      "prereq": [
+        "기본 과정 수준의 kubectl·YAML 사용",
+        "Deployment·Service·Label 개념",
+        "HTTP 상태 코드와 환경 변수 개념"
+      ],
+      "prereqCourse": "기본 과정 (또는 동등한 경험)",
+      "goals": [
+        "ConfigMap·Secret으로 설정 분리",
+        "Liveness·Readiness·Startup Probe 설계",
+        "자원 요청·제한과 QoS 이해",
+        "PV·PVC·StatefulSet (예정)",
+        "HPA로 자동 확장",
+        "애플리케이션 장애 분석"
+      ],
+      "outcomes": [
+        "이미지를 다시 빌드하지 않고 설정을 바꿔 배포한다",
+        "Probe로 준비되지 않은 파드를 트래픽에서 빼낸다",
+        "OOMKilled·CrashLoopBackOff·설정 오류를 진단해 고친다",
+        "CPU 사용률 기준으로 레플리카를 자동 조정한다"
+      ],
+      "guide": "content/guides/intermediate.md"
+    },
+    {
+      "id": "advanced",
+      "name": "고급",
+      "marker": "●●●",
+      "tagline": "권한·네트워크·보안 기준으로 클러스터를 안전하게 나누고 운영 구조를 이해합니다.",
+      "audience": "앱 운영은 익숙하고, 여러 팀이 쓰는 클러스터의 권한·네트워크·보안 정책을 설계해야 하는 개발자·운영자",
+      "prereq": [
+        "중급 과정 수준의 매니페스트 작성",
+        "HTTP·TCP 포트와 방화벽 개념",
+        "인증(누구인가)과 인가(무엇을 할 수 있나)의 차이"
+      ],
+      "prereqCourse": "중급 과정 (또는 동등한 경험)",
+      "goals": [
+        "스케줄링 제어 (예정)",
+        "RBAC·ServiceAccount 최소 권한",
+        "NetworkPolicy·Pod Security",
+        "CRD와 Operator 개념 (예정)",
+        "클러스터 업그레이드와 복구 (예정)"
+      ],
+      "outcomes": [
+        "앱마다 필요한 권한만 가진 ServiceAccount를 만든다",
+        "기본 차단 후 필요한 통신만 허용하는 NetworkPolicy를 작성한다",
+        "Pod Security 기준(restricted)을 통과하는 워크로드를 만든다"
+      ],
+      "guide": "content/guides/advanced.md"
+    }
+  ],
+  "items": [
+    {
+      "id": "setup",
+      "level": "prep",
+      "type": "setup",
+      "status": "published",
+      "required": true,
+      "title": "환경 준비: minikube와 kubectl 설치",
+      "summary": "WSL2·macOS·Linux에서 Docker, minikube v1.39.0, kubectl을 설치하고 실습 전용 클러스터 k8s-lab을 만듭니다.",
+      "purpose": "모든 실습이 같은 조건에서 동작하도록 전용 클러스터를 준비합니다.",
+      "minutes": {
+        "concept": 10,
+        "handson": 40,
+        "review": 0
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "env": "학습자 PC (WSL2 · macOS · Linux)",
+      "components": [
+        {
+          "name": "minikube",
+          "kind": "ecosystem",
+          "version": "v1.39.0"
+        },
+        {
+          "name": "Docker (minikube 드라이버)",
+          "kind": "ecosystem",
+          "version": "Docker Engine 또는 Docker Desktop"
+        },
+        {
+          "name": "kubectl",
+          "kind": "core",
+          "version": "v1.37.1 (클러스터와 마이너 1 이내)"
+        }
+      ],
+      "docs": [
+        {
+          "title": "kubectl 설치 (Linux)",
+          "url": "https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/"
+        },
+        {
+          "title": "kubectl 설치 (macOS)",
+          "url": "https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/"
+        },
+        {
+          "title": "minikube start",
+          "url": "https://minikube.sigs.k8s.io/docs/start/"
+        },
+        {
+          "title": "minikube: WSL 2 설정",
+          "url": "https://minikube.sigs.k8s.io/docs/tutorials/wsl_docker_driver/"
+        },
+        {
+          "title": "버전 차이(skew) 정책",
+          "url": "https://kubernetes.io/releases/version-skew-policy/"
+        }
+      ],
+      "verification": {
+        "status": "none",
+        "summary": "설치 절차는 학습자 PC 전용이라 작업 환경에서 실행하지 못했습니다. 명령은 공식 설치 문서와 대조했습니다."
+      },
+      "file": "content/labs/setup.md",
+      "tags": [
+        "minikube",
+        "kubectl",
+        "WSL2",
+        "macOS",
+        "Linux",
+        "Docker",
+        "설치"
+      ],
+      "checks": [
+        "setup-node"
+      ],
+      "yamlFiles": 0
+    },
+    {
+      "id": "prep-linux-container",
+      "level": "prep",
+      "type": "lesson",
+      "status": "planned",
+      "required": false,
+      "title": "준비 과정: 리눅스와 컨테이너 복습",
+      "summary": "프로세스·포트·환경 변수와 컨테이너 이미지·레지스트리를 Kubernetes 관점에서 다시 짚습니다.",
+      "purpose": "선수 지식이 부족할 때 기본 과정 전에 봅니다.",
+      "minutes": {
+        "concept": 40,
+        "handson": 20,
+        "review": 10
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "outline": [
+        "프로세스, PID 1, 시그널(SIGTERM)과 종료",
+        "포트와 바인딩 주소(0.0.0.0 vs 127.0.0.1)",
+        "환경 변수와 설정 파일",
+        "이미지·태그·다이제스트, 레지스트리",
+        "docker run 옵션과 Pod 필드 대응표"
+      ],
+      "tags": [
+        "리눅스",
+        "컨테이너",
+        "docker"
+      ]
+    },
+    {
+      "id": "prep-yaml",
+      "level": "prep",
+      "type": "lesson",
+      "status": "planned",
+      "required": false,
+      "title": "준비 과정: YAML과 매니페스트 읽기",
+      "summary": "들여쓰기, 목록과 맵, 여러 문서(---) 구분 등 매니페스트를 읽고 쓰는 데 필요한 YAML 문법을 익힙니다.",
+      "purpose": "YAML이 낯설 때 기본 과정 전에 봅니다.",
+      "minutes": {
+        "concept": 25,
+        "handson": 15,
+        "review": 10
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "outline": [
+        "스칼라·목록·맵",
+        "들여쓰기 오류 찾기",
+        "apiVersion·kind·metadata·spec 구조",
+        "kubectl explain으로 필드 찾기",
+        "KYAML(1.37 Stable) 출력 읽기"
+      ],
+      "tags": [
+        "YAML",
+        "매니페스트",
+        "kubectl explain"
+      ]
+    },
+    {
+      "id": "b-concepts",
+      "level": "basic",
+      "type": "lesson",
+      "status": "planned",
+      "required": true,
+      "title": "쿠버네티스가 해결하는 문제와 클러스터 구성",
+      "summary": "선언형 운영과 제어 루프, 컨트롤 플레인과 노드 구성 요소의 역할을 개념으로 정리합니다.",
+      "purpose": "실습 전에 전체 구조를 머릿속에 그립니다.",
+      "minutes": {
+        "concept": 30,
+        "handson": 0,
+        "review": 10
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "outline": [
+        "명령형 vs 선언형",
+        "원하는 상태와 제어 루프",
+        "컨트롤 플레인: kube-apiserver, etcd, scheduler, controller-manager",
+        "노드: kubelet, kube-proxy, 컨테이너 런타임",
+        "애드온: CoreDNS, CNI"
+      ],
+      "tags": [
+        "아키텍처",
+        "컨트롤 플레인",
+        "노드"
+      ]
+    },
+    {
+      "id": "b-lab01",
+      "level": "basic",
+      "type": "lab",
+      "status": "published",
+      "required": true,
+      "title": "클러스터 둘러보기와 첫 Deployment·Service",
+      "summary": "kubectl로 클러스터를 살펴본 뒤 nginx를 Deployment로 배포하고 Service로 연결해 확장과 자가 치유를 확인합니다.",
+      "purpose": "Pod·Deployment·Service가 어떻게 연결되는지 직접 확인합니다.",
+      "minutes": {
+        "concept": 25,
+        "handson": 50,
+        "review": 20
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "setup"
+      ],
+      "env": "minikube 프로필 k8s-lab (docker 드라이버, 단일 노드)",
+      "components": [
+        {
+          "name": "Deployment · ReplicaSet · Pod · Service · Namespace",
+          "kind": "core"
+        },
+        {
+          "name": "minikube",
+          "kind": "ecosystem",
+          "version": "v1.39.0"
+        }
+      ],
+      "images": [
+        "nginx:1.30.6-alpine",
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "Kubernetes 구성 요소",
+          "url": "https://kubernetes.io/docs/concepts/overview/components/"
+        },
+        {
+          "title": "Deployments",
+          "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+        },
+        {
+          "title": "Service",
+          "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+        },
+        {
+          "title": "kubectl 빠른 참조",
+          "url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "검증 환경(v1.37.1 소스 빌드, 대체 이미지)에서 모든 명령과 YAML을 실행했습니다. kube-system 조회 출력과 minikube 명령은 예시입니다."
+      },
+      "file": "content/labs/b-lab01.md",
+      "tags": [
+        "kubectl",
+        "Pod",
+        "Deployment",
+        "ReplicaSet",
+        "Service",
+        "ClusterIP",
+        "scale",
+        "EndpointSlice",
+        "port-forward"
+      ],
+      "checks": [
+        "b1-final"
+      ],
+      "yamlFiles": 2
+    },
+    {
+      "id": "b-lab02",
+      "level": "basic",
+      "type": "lab",
+      "status": "published",
+      "required": true,
+      "title": "롤링 업데이트·롤백과 로그·이벤트로 문제 찾기",
+      "summary": "Label과 셀렉터로 자원을 고르고, 이미지 버전을 무중단으로 올린 뒤 잘못된 배포를 이벤트·로그로 진단하고 되돌립니다.",
+      "purpose": "배포 실패를 스스로 찾아 고치는 기본기를 익힙니다.",
+      "minutes": {
+        "concept": 20,
+        "handson": 50,
+        "review": 20
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "b-lab01"
+      ],
+      "env": "minikube 프로필 k8s-lab",
+      "components": [
+        {
+          "name": "Deployment 롤아웃 · Label · Event · 컨테이너 로그",
+          "kind": "core"
+        }
+      ],
+      "images": [
+        "nginx:1.30.6-alpine",
+        "nginx:1.31.7-alpine",
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "Deployment 업데이트·롤백",
+          "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment"
+        },
+        {
+          "title": "Labels and Selectors",
+          "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/"
+        },
+        {
+          "title": "애플리케이션 디버깅",
+          "url": "https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/"
+        },
+        {
+          "title": "Logging Architecture",
+          "url": "https://kubernetes.io/docs/concepts/cluster-administration/logging/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "검증 환경에서 롤아웃·롤백·이미지 오류 재현까지 실행했습니다. 레지스트리 접근이 막힌 환경이라 ImagePullBackOff 이벤트 문구 일부가 minikube와 다를 수 있습니다."
+      },
+      "file": "content/labs/b-lab02.md",
+      "tags": [
+        "rollout",
+        "rollback",
+        "롤링 업데이트",
+        "Label",
+        "Selector",
+        "logs",
+        "events",
+        "ImagePullBackOff",
+        "describe"
+      ],
+      "checks": [
+        "b2-rollback",
+        "b2-logs"
+      ],
+      "yamlFiles": 1
+    },
+    {
+      "id": "b-service-types",
+      "level": "basic",
+      "type": "lesson",
+      "status": "planned",
+      "required": false,
+      "title": "Service 유형 심화: NodePort와 LoadBalancer",
+      "summary": "클러스터 밖에서 앱에 접속하는 방법을 minikube service와 minikube tunnel로 비교합니다.",
+      "purpose": "외부 노출 방식의 차이를 이해합니다. (선택)",
+      "minutes": {
+        "concept": 20,
+        "handson": 30,
+        "review": 10
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "outline": [
+        "ClusterIP·NodePort·LoadBalancer·ExternalName",
+        "minikube service --url, minikube tunnel",
+        "Service .spec.externalIPs 폐기(1.36)와 대안",
+        "Gateway API 개요 (외부 생태계)"
+      ],
+      "tags": [
+        "NodePort",
+        "LoadBalancer",
+        "Gateway API"
+      ]
+    },
+    {
+      "id": "b-cap",
+      "level": "basic",
+      "type": "capstone",
+      "status": "published",
+      "required": true,
+      "title": "기본 종합 과제: 방명록 프런트 운영하기",
+      "summary": "요구 사항만 보고 네임스페이스·Deployment·Service를 직접 작성해 배포하고, 확장·업데이트·장애 복구까지 수행합니다.",
+      "purpose": "기본 과정 내용을 안내 없이 조합해 봅니다.",
+      "minutes": {
+        "concept": 0,
+        "handson": 60,
+        "review": 25
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "b-lab01",
+        "b-lab02"
+      ],
+      "env": "minikube 프로필 k8s-lab",
+      "components": [
+        {
+          "name": "Deployment · Service · Namespace · Label",
+          "kind": "core"
+        }
+      ],
+      "images": [
+        "nginx:1.30.6-alpine",
+        "nginx:1.31.7-alpine",
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "Deployments",
+          "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+        },
+        {
+          "title": "Recommended Labels",
+          "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "해설 YAML과 성공 판정 명령을 검증 환경에서 실행해 기준 출력과 일치함을 확인했습니다."
+      },
+      "file": "content/labs/b-cap.md",
+      "tags": [
+        "종합 과제",
+        "Deployment",
+        "Service",
+        "rollout",
+        "scale"
+      ],
+      "checks": [
+        "bcap-state",
+        "bcap-spec"
+      ],
+      "yamlFiles": 1
+    },
+    {
+      "id": "i-lab01",
+      "level": "intermediate",
+      "type": "lab",
+      "status": "published",
+      "required": true,
+      "title": "ConfigMap·Secret으로 설정 분리와 Probe로 상태 점검",
+      "summary": "nginx 설정과 웹 페이지를 ConfigMap으로, 접속 정보를 Secret으로 주입하고 Readiness·Liveness Probe로 비정상 파드를 걸러냅니다.",
+      "purpose": "이미지를 다시 만들지 않고 설정을 바꾸고, 준비되지 않은 파드를 트래픽에서 뺍니다.",
+      "minutes": {
+        "concept": 30,
+        "handson": 60,
+        "review": 25
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "b-lab02"
+      ],
+      "env": "minikube 프로필 k8s-lab",
+      "components": [
+        {
+          "name": "ConfigMap · Secret · Probe · EndpointSlice",
+          "kind": "core"
+        }
+      ],
+      "images": [
+        "nginx:1.30.6-alpine",
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "ConfigMaps",
+          "url": "https://kubernetes.io/docs/concepts/configuration/configmap/"
+        },
+        {
+          "title": "Secrets",
+          "url": "https://kubernetes.io/docs/concepts/configuration/secret/"
+        },
+        {
+          "title": "Liveness, Readiness, Startup Probes",
+          "url": "https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/"
+        },
+        {
+          "title": "Probe 설정하기 (Task)",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "검증 환경에서 ConfigMap·Secret 주입, 설정 변경 반영, Readiness 실패 시 엔드포인트 제외, Liveness 재시작을 실행해 확인했습니다."
+      },
+      "file": "content/labs/i-lab01.md",
+      "tags": [
+        "ConfigMap",
+        "Secret",
+        "Probe",
+        "readinessProbe",
+        "livenessProbe",
+        "startupProbe",
+        "볼륨",
+        "환경 변수"
+      ],
+      "checks": [
+        "i1-ready",
+        "i1-liveness",
+        "i1-config"
+      ],
+      "yamlFiles": 3
+    },
+    {
+      "id": "i-lab02",
+      "level": "intermediate",
+      "type": "lab",
+      "status": "published",
+      "required": true,
+      "title": "자원 요청·제한과 HorizontalPodAutoscaler",
+      "summary": "requests·limits와 QoS 클래스를 확인하고, 메모리 초과로 인한 OOMKilled를 재현한 뒤 metrics-server와 HPA로 CPU 기반 자동 확장을 실습합니다.",
+      "purpose": "자원 설정이 스케줄링·종료·자동 확장에 어떻게 쓰이는지 연결합니다.",
+      "minutes": {
+        "concept": 30,
+        "handson": 60,
+        "review": 25
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "i-lab01"
+      ],
+      "env": "minikube 프로필 k8s-lab + metrics-server 애드온",
+      "components": [
+        {
+          "name": "requests·limits · QoS · HorizontalPodAutoscaler (autoscaling/v2)",
+          "kind": "core"
+        },
+        {
+          "name": "metrics-server (minikube 애드온)",
+          "kind": "addon",
+          "version": "v0.9.0"
+        }
+      ],
+      "images": [
+        "busybox:1.37.0",
+        "registry.k8s.io/hpa-example"
+      ],
+      "docs": [
+        {
+          "title": "Resource Management for Pods and Containers",
+          "url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+        },
+        {
+          "title": "Pod Quality of Service Classes",
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/"
+        },
+        {
+          "title": "HorizontalPodAutoscaler Walkthrough",
+          "url": "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/"
+        },
+        {
+          "title": "Resource metrics pipeline",
+          "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/"
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "summary": "requests·limits, QoS, OOMKilled 재현은 실행 검증했습니다. metrics-server를 설치할 수 없어 HPA는 객체 생성·스펙 검증까지만 하고 실제 확장 동작은 검증하지 못했습니다."
+      },
+      "file": "content/labs/i-lab02.md",
+      "tags": [
+        "requests",
+        "limits",
+        "QoS",
+        "OOMKilled",
+        "HPA",
+        "metrics-server",
+        "kubectl top",
+        "autoscaling"
+      ],
+      "checks": [
+        "i2-oom",
+        "i2-hpa"
+      ],
+      "yamlFiles": 5
+    },
+    {
+      "id": "i-lab03",
+      "level": "intermediate",
+      "type": "lab",
+      "status": "planned",
+      "required": true,
+      "title": "PV·PVC와 StatefulSet으로 상태 저장 앱 운영",
+      "summary": "minikube 기본 StorageClass로 동적 프로비저닝을 확인하고, StatefulSet의 고정 이름·순서·전용 볼륨을 실습합니다.",
+      "purpose": "파드가 바뀌어도 데이터가 남는 구조를 이해합니다.",
+      "minutes": {
+        "concept": 30,
+        "handson": 60,
+        "review": 20
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "outline": [
+        "PV·PVC·StorageClass와 바인딩",
+        "accessModes와 reclaimPolicy",
+        "StatefulSet: 안정적인 네트워크 ID, volumeClaimTemplates",
+        "Headless Service",
+        "maxUnavailable(1.37 기본 재활성화) 참고",
+        "PVC 마지막 사용 시각(1.37 Beta) 소개"
+      ],
+      "envNote": "minikube 기본 storage-provisioner(hostPath 기반)를 사용합니다. 다중 노드에서의 볼륨 이동은 다루지 않습니다.",
+      "tags": [
+        "PV",
+        "PVC",
+        "StorageClass",
+        "StatefulSet",
+        "Headless Service"
+      ]
+    },
+    {
+      "id": "i-scale-zero",
+      "level": "intermediate",
+      "type": "lesson",
+      "status": "planned",
+      "required": false,
+      "title": "HPA로 0까지 축소하기 (scale to zero)",
+      "summary": "외부·오브젝트 지표 기반 HPA에서 minReplicas: 0을 써서 유휴 시 레플리카를 0으로 줄입니다.",
+      "purpose": "큐 소비자처럼 일이 없을 때 자원을 쓰지 않는 패턴을 익힙니다. (선택)",
+      "minutes": {
+        "concept": 20,
+        "handson": 40,
+        "review": 10
+      },
+      "versions": [
+        "1.37"
+      ],
+      "versionNotes": {
+        "1.36": "HPAScaleToZero 기능 게이트가 1.36까지 Alpha(기본 비활성)라 minReplicas: 0을 쓸 수 없습니다. 1.37에서 Beta로 올라가며 기본 활성화되었습니다.",
+        "1.35": "HPAScaleToZero 기능 게이트가 1.35에서 Alpha(기본 비활성)라 minReplicas: 0을 쓸 수 없습니다. 1.37에서 Beta로 올라가며 기본 활성화되었습니다."
+      },
+      "outline": [
+        "CPU·메모리 지표로는 0까지 줄일 수 없는 이유",
+        "Object·External 지표와 어댑터 (외부 생태계)",
+        "ScaledToZero 조건 읽기",
+        "수동으로 0을 만든 경우와의 구분"
+      ],
+      "envNote": "External 지표를 제공하는 어댑터(외부 생태계 도구)를 별도로 설치해야 하므로 설치·검증·삭제 절차를 함께 제공할 예정입니다.",
+      "tags": [
+        "HPA",
+        "scale to zero",
+        "1.37"
+      ]
+    },
+    {
+      "id": "i-cap",
+      "level": "intermediate",
+      "type": "capstone",
+      "status": "published",
+      "required": true,
+      "title": "중급 종합 과제: 고장 난 주문 API 살리기",
+      "summary": "결함 네 개가 숨은 매니페스트를 배포하고, 이벤트·로그·엔드포인트를 근거로 원인을 하나씩 찾아 고칩니다.",
+      "purpose": "장애 분석 순서를 몸에 익힙니다.",
+      "minutes": {
+        "concept": 0,
+        "handson": 70,
+        "review": 30
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "i-lab01",
+        "i-lab02"
+      ],
+      "env": "minikube 프로필 k8s-lab",
+      "components": [
+        {
+          "name": "ConfigMap · Probe · requests·limits · Service",
+          "kind": "core"
+        }
+      ],
+      "images": [
+        "nginx:1.30.6-alpine",
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "Debug Running Pods",
+          "url": "https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/"
+        },
+        {
+          "title": "Debug Services",
+          "url": "https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/"
+        },
+        {
+          "title": "Determine the Reason for Pod Failure",
+          "url": "https://kubernetes.io/docs/tasks/debug/debug-application/determine-reason-pod-failure/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "결함 매니페스트가 의도한 네 가지 증상을 내는지와 해설 수정본이 성공 판정을 통과하는지 검증 환경에서 확인했습니다."
+      },
+      "file": "content/labs/i-cap.md",
+      "tags": [
+        "종합 과제",
+        "장애 분석",
+        "CreateContainerConfigError",
+        "OOMKilled",
+        "Readiness",
+        "selector"
+      ],
+      "checks": [
+        "icap-final"
+      ],
+      "yamlFiles": 1
+    },
+    {
+      "id": "a-scheduling",
+      "level": "advanced",
+      "type": "lab",
+      "status": "planned",
+      "required": true,
+      "title": "스케줄링 제어: nodeSelector·Affinity·Taint",
+      "summary": "다중 노드 minikube에서 파드를 원하는 노드에 배치하거나 피하게 하고, 분산 배치를 설계합니다.",
+      "purpose": "스케줄러가 노드를 고르는 기준을 직접 조정합니다.",
+      "minutes": {
+        "concept": 30,
+        "handson": 60,
+        "review": 20
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "outline": [
+        "스케줄링 단계: 필터와 점수",
+        "nodeSelector·nodeAffinity",
+        "podAffinity·podAntiAffinity",
+        "Taint·Toleration",
+        "topologySpreadConstraints",
+        "PriorityClass와 선점"
+      ],
+      "envNote": "단일 노드로는 차이를 볼 수 없어 별도 프로필(minikube start -p k8s-lab-multi --nodes=3)을 사용할 예정입니다.",
+      "tags": [
+        "스케줄링",
+        "affinity",
+        "taint",
+        "toleration",
+        "topologySpreadConstraints"
+      ]
+    },
+    {
+      "id": "a-lab01",
+      "level": "advanced",
+      "type": "lab",
+      "status": "published",
+      "required": true,
+      "title": "RBAC와 ServiceAccount로 최소 권한 부여",
+      "summary": "파드 조회만 가능한 ServiceAccount를 만들고 Role·RoleBinding을 연결한 뒤 kubectl auth can-i와 실제 토큰으로 허용·거부를 확인합니다.",
+      "purpose": "필요한 권한만 주고 그 범위를 직접 검사합니다.",
+      "minutes": {
+        "concept": 30,
+        "handson": 50,
+        "review": 25
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "b-lab02"
+      ],
+      "env": "minikube 프로필 k8s-lab",
+      "components": [
+        {
+          "name": "ServiceAccount · Role · RoleBinding · ClusterRole · TokenRequest",
+          "kind": "core"
+        }
+      ],
+      "images": [],
+      "docs": [
+        {
+          "title": "Using RBAC Authorization",
+          "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+        },
+        {
+          "title": "Service Accounts",
+          "url": "https://kubernetes.io/docs/concepts/security/service-accounts/"
+        },
+        {
+          "title": "RBAC Good Practices",
+          "url": "https://kubernetes.io/docs/concepts/security/rbac-good-practices/"
+        },
+        {
+          "title": "kubectl create token",
+          "url": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_token/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "검증 환경 API 서버에서 RBAC 객체 생성, kubectl auth can-i, 발급 토큰을 쓴 실제 요청의 허용·거부를 실행해 확인했습니다."
+      },
+      "file": "content/labs/a-lab01.md",
+      "tags": [
+        "RBAC",
+        "Role",
+        "RoleBinding",
+        "ClusterRole",
+        "ServiceAccount",
+        "auth can-i",
+        "token",
+        "최소 권한"
+      ],
+      "checks": [
+        "a1-cani",
+        "a1-token"
+      ],
+      "yamlFiles": 1
+    },
+    {
+      "id": "a-lab02",
+      "level": "advanced",
+      "type": "lab",
+      "status": "published",
+      "required": true,
+      "title": "NetworkPolicy로 파드 간 통신 제한",
+      "summary": "정책을 실제로 집행하는 Calico CNI 프로필을 따로 만들고, 기본 차단 정책 위에 필요한 통신만 허용합니다.",
+      "purpose": "네트워크 정책이 어디서 집행되는지 이해하고 허용 목록 방식으로 설계합니다.",
+      "minutes": {
+        "concept": 30,
+        "handson": 60,
+        "review": 25
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "b-lab01"
+      ],
+      "env": "별도 minikube 프로필 k8s-lab-calico (--cni=calico)",
+      "components": [
+        {
+          "name": "NetworkPolicy (networking.k8s.io/v1)",
+          "kind": "core"
+        },
+        {
+          "name": "Calico CNI (minikube 내장 매니페스트)",
+          "kind": "ecosystem",
+          "version": "v3.32.2"
+        }
+      ],
+      "images": [
+        "nginx:1.30.6-alpine",
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "Network Policies",
+          "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+        },
+        {
+          "title": "Declare Network Policy (Task)",
+          "url": "https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/"
+        },
+        {
+          "title": "minikube: CNI 선택",
+          "url": "https://minikube.sigs.k8s.io/docs/handbook/network_policy/"
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "summary": "NetworkPolicy 객체는 검증 환경 API 서버에서 생성·검증했습니다. 검증 환경에 Calico를 설치할 수 없어 정책 집행(차단·허용) 결과는 검증하지 못했습니다."
+      },
+      "file": "content/labs/a-lab02.md",
+      "tags": [
+        "NetworkPolicy",
+        "Calico",
+        "CNI",
+        "default deny",
+        "ingress",
+        "egress",
+        "namespaceSelector"
+      ],
+      "checks": [
+        "a2-policy",
+        "a2-partner"
+      ],
+      "yamlFiles": 5
+    },
+    {
+      "id": "a-crd",
+      "level": "advanced",
+      "type": "lesson",
+      "status": "planned",
+      "required": true,
+      "title": "CRD와 Operator 개념",
+      "summary": "API를 확장하는 CustomResourceDefinition과, 사용자 정의 자원을 조정하는 컨트롤러(Operator) 패턴을 이해합니다.",
+      "purpose": "생태계 도구가 Kubernetes API 위에서 동작하는 방식을 이해합니다.",
+      "minutes": {
+        "concept": 40,
+        "handson": 40,
+        "review": 20
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "outline": [
+        "CRD 스키마와 검증(openAPIV3Schema, CEL)",
+        "버전과 변환",
+        "컨트롤러의 조정 루프",
+        "Operator 패턴과 성숙도",
+        "API 서버의 429 응답 처리(1.37 watchcache 변경)"
+      ],
+      "tags": [
+        "CRD",
+        "Operator",
+        "컨트롤러"
+      ]
+    },
+    {
+      "id": "a-upgrade",
+      "level": "advanced",
+      "type": "lab",
+      "status": "planned",
+      "required": false,
+      "title": "클러스터 업그레이드와 etcd 백업·복구",
+      "summary": "kubeadm 클러스터를 한 마이너 버전씩 업그레이드하고, etcd 스냅숏으로 복구하는 절차를 실습합니다.",
+      "purpose": "운영 클러스터의 수명 주기 관리를 경험합니다. (선택)",
+      "minutes": {
+        "concept": 40,
+        "handson": 90,
+        "review": 30
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "outline": [
+        "버전 차이 정책과 업그레이드 순서",
+        "kubeadm upgrade plan/apply",
+        "노드 drain·uncordon",
+        "etcdctl snapshot save/restore",
+        "cgroup v1 지원 종료(1.35~) 점검",
+        "containerd 2.x 요구(1.36~)"
+      ],
+      "envNote": "minikube는 컨트롤 플레인을 직접 다루기 어려워, 가상 머신 3대(Vagrant 또는 Multipass)에 kubeadm으로 구성한 별도 환경을 사용할 예정입니다.",
+      "tags": [
+        "업그레이드",
+        "kubeadm",
+        "etcd",
+        "백업",
+        "복구"
+      ]
+    },
+    {
+      "id": "a-cap",
+      "level": "advanced",
+      "type": "capstone",
+      "status": "published",
+      "required": true,
+      "title": "고급 종합 과제: 팀 네임스페이스 보안 기준선",
+      "summary": "Pod Security restricted 기준, 팀 전용 RBAC, 기본 차단 NetworkPolicy를 한 네임스페이스에 적용하고 기준을 통과하는 앱을 배포합니다.",
+      "purpose": "권한·보안·네트워크 정책을 하나의 운영 기준으로 묶습니다.",
+      "minutes": {
+        "concept": 0,
+        "handson": 80,
+        "review": 30
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "prereq": [
+        "a-lab01",
+        "a-lab02"
+      ],
+      "env": "minikube 프로필 k8s-lab-calico (NetworkPolicy 집행 필요)",
+      "components": [
+        {
+          "name": "Pod Security Admission · RBAC · NetworkPolicy · securityContext",
+          "kind": "core"
+        },
+        {
+          "name": "Calico CNI",
+          "kind": "ecosystem",
+          "version": "v3.32.2"
+        }
+      ],
+      "images": [
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "Pod Security Standards",
+          "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/"
+        },
+        {
+          "title": "Pod Security Admission",
+          "url": "https://kubernetes.io/docs/concepts/security/pod-security-admission/"
+        },
+        {
+          "title": "네임스페이스 라벨로 PSS 적용 (Task)",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-namespace-labels/"
+        },
+        {
+          "title": "Configure a Security Context",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/"
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "summary": "Pod Security 거부·허용, RBAC 판정, restricted 기준 앱 실행은 검증 환경에서 확인했습니다. NetworkPolicy 집행은 Calico가 없어 검증하지 못했습니다."
+      },
+      "file": "content/labs/a-cap.md",
+      "tags": [
+        "종합 과제",
+        "Pod Security",
+        "restricted",
+        "securityContext",
+        "RBAC",
+        "NetworkPolicy"
+      ],
+      "checks": [
+        "acap-psa",
+        "acap-final"
+      ],
+      "yamlFiles": 4
+    }
+  ]
+}
