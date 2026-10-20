@@ -4,7 +4,7 @@ Kubernetes 공식 문서를 근거로 기본·중급·고급 과정을 minikube 
 
 - 기준 버전: Kubernetes 1.37 · 1.36 · 1.35 (확인일 2026-10-15)
 - 실습 환경: minikube v1.39.0, docker 드라이버, 프로필 `k8s-lab` (NetworkPolicy 실습은 `k8s-lab-calico`)
-- 자매 사이트(실습 항해도): [도커](https://github.com/manjae96/Docker-Hands-On-Roadmap) · [리눅스](https://github.com/manjae96/OS-Linux-Hands-On-Roadmap) · [헬름](https://github.com/manjae96/Helm-Hands-On-Roadmap) · [CNI](https://github.com/manjae96/CNI-Hands-On-Roadmap) · [모니터링](https://github.com/manjae96/Grafana-Prometheus-Hands-On-Roadmap) · [Istio·Kiali](https://github.com/manjae96/Istio-Kiali-Hands-On-Roadmap)
+- 자매 사이트(실습 항해도): [리눅스](https://github.com/manjae96/OS-Linux-Hands-On-Roadmap) · [도커](https://github.com/manjae96/Docker-Hands-On-Roadmap) · [헬름](https://github.com/manjae96/Helm-Hands-On-Roadmap) · [CNI](https://github.com/manjae96/CNI-Hands-On-Roadmap) · [모니터링](https://github.com/manjae96/Grafana-Prometheus-Hands-On-Roadmap) · [Istio·Kiali](https://github.com/manjae96/Istio-Kiali-Hands-On-Roadmap) · [Falco](https://github.com/manjae96/Falco-Hands-On-Roadmap)
 
 ## 실행 방법
 
@@ -19,7 +19,7 @@ python3 -m http.server 8100
 - 인터넷 연결이 없으면 글꼴은 시스템 글꼴로 대체되고, 마크다운 라이브러리는 `vendor/marked.umd.js`(marked 18.0.14, MIT)를 사용합니다.
 - 진도(완료 체크, 실행 결과 확인, 마지막 학습 위치, 체크리스트)는 브라우저 `localStorage`의 `k8s-hangdo-v1` 키에 저장됩니다. 페이지 아래 「진도 초기화」로 지울 수 있습니다.
 - 정적 호스팅(GitHub Pages, S3, nginx 등)에 폴더째 올려도 됩니다.
-- 항해도 시리즈는 사이트 포트를 겹치지 않게 나눠 씁니다: 쿠버네티스 8100 · 도커 8110 · 리눅스 8120 · 헬름 8130 · CNI 8140 · 모니터링 8150 · Istio·Kiali 8160 (모두 실습에서 쓰는 포트와 겹치지 않음)
+- 항해도 시리즈는 사이트 포트를 겹치지 않게 나눠 씁니다: 쿠버네티스 8100 · 도커 8110 · 리눅스 8120 · 헬름 8130 · CNI 8140 · 모니터링 8150 · Istio·Kiali 8160 · Falco 8170 (모두 실습에서 쓰는 포트와 겹치지 않음)
 
 ## 폴더 구조
 
