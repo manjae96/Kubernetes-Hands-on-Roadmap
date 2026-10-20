@@ -319,6 +319,7 @@ a.term { color: inherit; text-decoration: underline dotted var(--chart); text-un
 <a class="skip" href="#main">본문으로 건너뛰기</a>
 <header class="topbar">
   <div class="topbar-inner">
+    <a class="hub-link" id="hubLink" href="/" style="display:none;align-items:center;gap:4px;font-size:.85rem;color:var(--muted);text-decoration:none;white-space:nowrap">← 전체 항해도</a>
     <a class="brand" href="#/" aria-label="쿠버네티스 실습 항해도 홈">
       <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 3v6M16 23v6M3 16h6M23 16h6M6.8 6.8l4.2 4.2M21 21l4.2 4.2M6.8 25.2l4.2-4.2M21 11l4.2-4.2"/></g></svg>
       <span>쿠버네티스 실습 항해도</span>
@@ -970,4 +971,10 @@ async function boot() {
 }
 boot().catch(e => { document.getElementById('main').innerHTML = '<h1>사이트를 시작하지 못했습니다</h1><p>' + String(e.message).replace(/</g, '&lt;') + '</p><p>로컬 파일을 직접 열었다면(file://) README의 실행 방법대로 <code>python3 -m http.server</code>로 열어 주세요.</p>'; });
 })();
+</script>
+<script>
+/* 실습 항해도 허브(Hands-On-Roadmap) 아래에서 열렸을 때만 '전체 항해도' 링크를 보여 줍니다. 단독 실행에서는 숨김. */
+fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(d => {
+  if (d && (d.roadmaps || []).some(x => x.id === 'k8s')) document.getElementById('hubLink').style.display = 'inline-flex';
+}).catch(() => {});
 </script>
