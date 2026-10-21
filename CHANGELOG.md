@@ -2,6 +2,14 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.0.1 — 2026-10-22
+
+자매 사이트·포트 안내에 도메인 항해도 추가
+
+- README 자매 사이트 목록과 시리즈 포트 안내(도메인 8240) 갱신
+
+공통 템플릿: deep-drawer v1.0.0 · hub-search v1.0.0 · deploy v1.0.0
+
 ## v1.0.0 — 2026-10-21
 
 형상관리 기준선
