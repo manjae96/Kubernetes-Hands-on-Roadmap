@@ -1,5 +1,5 @@
 #!/bin/sh
-# 실습 항해도 공통 배포 규칙 (Hands-On-Roadmap/templates에서 관리 — 항해도 저장소에서 직접 고치지 말 것)
+# 실습 항해도 공통 배포 규칙 deploy v1.0.0 (Hands-On-Roadmap/templates에서 관리 — 항해도 저장소에서 직접 고치지 말 것)
 # BASE_PATH(예: /locust)에 맞춰 nginx 설정을 만든다. 비우거나 /면 루트(/)에서 제공한다.
 # 게이트웨이는 경로를 잘라 내지 않고 그대로 넘긴다 (/locust/content/catalog.json → 이 컨테이너).
 # nginx 공식 이미지는 시작할 때 /docker-entrypoint.d/*.sh를 차례로 실행한다.
@@ -9,6 +9,7 @@ WWW_DIR=/tmp/www                                  # 하위 경로를 만들기 �
 CONF_OUT=/etc/nginx/conf.d/site.conf
 LISTEN="${LISTEN_PORT:-8080}"
 NAME="${SITE_NAME:-hangdo}"
+VER="$(cat "$SITE_DIR/VERSION" 2>/dev/null | tr -d '[:space:]' || true)"   # 저장소 VERSION 파일 (형상관리)
 
 bp="/$(echo "${BASE_PATH:-/}" | sed 's#^/*##; s#/*$##')"   # 앞 / 하나, 뒤 / 없음
 if [ "$bp" = "/" ]; then
@@ -18,7 +19,7 @@ else
   mkdir -p "$WWW_DIR$(dirname "$bp")"
   ln -sfn "$SITE_DIR" "$WWW_DIR$bp"               # /tmp/www/locust → 사이트 폴더
 fi
-health="{\"status\":\"ok\",\"site\":\"$NAME\",\"base\":\"$loc\"}"
+health="{\"status\":\"ok\",\"site\":\"$NAME\",\"version\":\"${VER:-unknown}\",\"base\":\"$loc\"}"
 
 {
 cat <<CONF
@@ -66,4 +67,4 @@ cat <<CONF
 }
 CONF
 } > "$CONF_OUT"
-echo "10-base-path.sh: $loc 경로로 제공 (포트 $LISTEN)"
+echo "10-base-path.sh: $NAME ${VER:-unknown} — $loc 경로로 제공 (포트 $LISTEN)"

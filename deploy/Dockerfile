@@ -1,11 +1,11 @@
-# 쿠버네티스 — 실습 항해도 시리즈 사이트 이미지 (공통 배포 규칙)
+# 쿠버네티스 — 실습 항해도 시리즈 사이트 이미지 (공통 배포 규칙 deploy v1.0.0)
 # (Hands-On-Roadmap/templates에서 관리 — 항해도 저장소에서 직접 고치지 말고 허브의 tools/apply_series.py로 갱신)
 #
 #   저장소 최상위에서:
 #   docker build -f deploy/Dockerfile -t hands-on-roadmap/k8s .
 #   docker run --rm -p 8100:8080 hands-on-roadmap/k8s      → http://localhost:8100/k8s/
 #
-# 규칙: 컨테이너 포트 8080 · BASE_PATH 경로로 제공(게이트웨이는 경로를 그대로 전달) · /healthz 상태 확인
+# 규칙: 컨테이너 포트 8080 · BASE_PATH 경로로 제공(게이트웨이는 경로를 그대로 전달) · /healthz 상태 확인(버전 포함) · <BASE_PATH>/VERSION
 FROM nginx:1.30.6-alpine
 
 COPY deploy/nginx/10-base-path.sh /docker-entrypoint.d/10-base-path.sh
@@ -15,6 +15,7 @@ RUN chmod +x /docker-entrypoint.d/10-base-path.sh && rm -f /etc/nginx/conf.d/def
 COPY index.html /usr/share/nginx/site/index.html
 COPY content/ /usr/share/nginx/site/content/
 COPY vendor/ /usr/share/nginx/site/vendor/
+COPY VERSION /usr/share/nginx/site/VERSION
 
 ENV BASE_PATH=/k8s \
     SITE_NAME=k8s-hangdo

@@ -978,7 +978,7 @@ fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null)
   if (d && (d.roadmaps || []).some(x => x.id === 'k8s')) document.getElementById('hubLink').style.display = 'inline-flex';
 }).catch(() => {});
 </script>
-<!-- deep-drawer:start — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
+<!-- deep-drawer:start v1.0.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .deep-scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .28); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 60; }
 .deep-scrim.open { opacity: 1; pointer-events: auto; }
@@ -1159,7 +1159,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- deep-drawer:end -->
-<!-- hub-search:start — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
+<!-- hub-search:start v1.0.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .hs-open { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); color: var(--muted, #566778);
   border-radius: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
