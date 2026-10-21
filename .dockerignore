@@ -1,0 +1,7 @@
+# 실습 항해도 공통 — 이미지 빌드 때 보내지 않을 파일 (Dockerfile은 index.html·content·vendor만 복사)
+.git
+.DS_Store
+tools/
+labkit/
+deploy/k8s/
+**/__pycache__/

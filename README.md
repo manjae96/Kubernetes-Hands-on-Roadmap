@@ -21,6 +21,16 @@ python3 -m http.server 8100
 - 정적 호스팅(GitHub Pages, S3, nginx 등)에 폴더째 올려도 됩니다.
 - 항해도 시리즈는 사이트 포트를 겹치지 않게 나눠 씁니다: 쿠버네티스 8100 · 도커 8110 · 리눅스 8120 · 헬름 8130 · CNI 8140 · 모니터링 8150 · Istio·Kiali 8160 · Falco 8170 · Locust 8180 · Harbor·Nexus 8210 · PV·PVC 8220 (모두 실습에서 쓰는 포트와 겹치지 않음)
 
+## 컨테이너로 실행
+
+```bash
+docker build -f deploy/Dockerfile -t hands-on-roadmap/k8s .
+docker run --rm -p 8100:8080 hands-on-roadmap/k8s   # → http://localhost:8100/k8s/
+```
+
+- 실습 항해도 공통 배포 규칙: 컨테이너 포트 8080, `BASE_PATH`(기본 `/k8s`) 경로로 제공, `/healthz` 상태 확인
+- 허브([Hands-On-Roadmap](https://github.com/manjae96/Hands-On-Roadmap))의 `docker compose`가 이 Dockerfile로 빌드합니다. `deploy/Dockerfile`·`deploy/nginx/10-base-path.sh`는 허브의 `templates/deploy`에서 관리합니다.
+
 ## 폴더 구조
 
 ```text
