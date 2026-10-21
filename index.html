@@ -1159,3 +1159,170 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- deep-drawer:end -->
+<!-- hub-search:start — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
+<style>
+.hs-open { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); color: var(--muted, #566778);
+  border-radius: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
+.hs-open:hover { border-color: var(--chart, #1d5bb8); color: var(--ink, #142231); }
+.hs-open kbd { font-family: var(--font-mono, ui-monospace, monospace); font-size: .75rem; border: 1px solid var(--rule, #d3dce4); border-radius: 4px; padding: 0 4px; }
+.hs-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / .35); z-index: 80; display: flex; justify-content: center; align-items: flex-start; padding: 10vh 16px 16px; }
+.hs-backdrop[hidden] { display: none; }
+.hs-panel { width: min(720px, 100%); max-height: 75vh; display: flex; flex-direction: column; background: var(--sheet, #fff); color: var(--ink, #142231);
+  border: 1px solid var(--rule, #d3dce4); border-radius: 10px; box-shadow: 0 24px 64px rgb(0 0 0 / .25); overflow: hidden; }
+.hs-input { border: 0; border-bottom: 1px solid var(--rule, #d3dce4); padding: 16px 18px; font: inherit; font-size: 1.05rem; background: transparent; color: inherit; outline: none; }
+.hs-status { padding: 6px 18px; font-size: .78rem; color: var(--muted, #566778); border-bottom: 1px solid var(--rule, #d3dce4); }
+.hs-list { list-style: none; margin: 0; padding: 6px; overflow: auto; }
+.hs-item a { display: block; padding: 9px 12px; border-radius: 6px; text-decoration: none; color: inherit; }
+.hs-item[aria-selected="true"] a, .hs-item a:hover { background: var(--chart-soft, #e3ecf8); }
+.hs-row { display: flex; align-items: center; gap: 8px; }
+.hs-kind { font-size: .7rem; padding: 1px 7px; border-radius: 999px; white-space: nowrap; background: var(--paper, #f2f5f7); border: 1px solid var(--rule, #d3dce4); }
+.hs-kind.deep { background: var(--ok-soft, #e4f2e7); border-color: transparent; }
+.hs-title { font-weight: 600; }
+.hs-where { margin-left: auto; font-size: .75rem; color: var(--muted, #566778); white-space: nowrap; }
+.hs-snip { font-size: .82rem; color: var(--muted, #566778); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hs-list mark { background: transparent; color: var(--chart, #1d5bb8); font-weight: 700; }
+.hs-empty { padding: 14px 16px; color: var(--muted, #566778); font-size: .9rem; }
+.hs-empty button { border: 1px solid var(--rule, #d3dce4); background: transparent; color: inherit; border-radius: 999px; padding: 1px 10px; margin: 3px 2px; cursor: pointer; font: inherit; font-size: .82rem; }
+.hs-foot { padding: 8px 18px; font-size: .75rem; color: var(--muted, #566778); border-top: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); }
+</style>
+<div class="hs-backdrop" id="hsBackdrop" hidden>
+  <div class="hs-panel" role="dialog" aria-modal="true" aria-label="실습 항해도 통합 검색">
+    <input class="hs-input" id="hsInput" type="search" placeholder="항해도 · 과정 · 용어 · 심화 노트 검색" autocomplete="off" aria-controls="hsList">
+    <div class="hs-status" id="hsStatus"></div>
+    <ul class="hs-list" id="hsList" role="listbox"></ul>
+    <div class="hs-foot">↑↓ 이동 · Enter 열기 · Esc 닫기</div>
+  </div>
+</div>
+<script>
+/* 통합 검색: 허브(/roadmaps.json)가 있을 때만 켜짐. 각 항해도·심화 노트가 내주는 catalog·glossary·index를 그 자리에서 모아 검색합니다. */
+(() => {
+  const $ = id => document.getElementById(id);
+  const backdrop = $('hsBackdrop'), input = $('hsInput'), list = $('hsList'), status = $('hsStatus');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const getJSON = u => fetch(u, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  const EXAMPLES = ['etcd', '롤백', 'PromQL', '프로브', 'StorageClass', '사이드카', '부하'];
+  let REG = null, DOCS = null, building = null, down = [], sel = 0, results = [], lastFocus = null;
+
+  const ready = getJSON('/roadmaps.json').then(d => {
+    if (!d || !d.roadmaps) return null;      // 단독 실행: 통합 검색 없음 (각 항해도 자체 검색 사용)
+    REG = d;
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'hs-open'; btn.id = 'hsOpen';
+    btn.innerHTML = `🔍 전체 검색 <kbd>${isMac ? '⌘K' : 'Ctrl K'}</kbd>`;
+    btn.addEventListener('click', open);
+    const slot = $('hsSlot'), hub = $('hubLink');
+    if (slot) slot.appendChild(btn); else if (hub) hub.insertAdjacentElement('afterend', btn);
+    else { btn.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:70'; document.body.appendChild(btn); }
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); backdrop.hidden ? open() : close(); }
+      else if (e.key === 'Escape' && !backdrop.hidden) { e.preventDefault(); e.stopPropagation(); close(); }
+    }, true);
+    return REG;
+  });
+
+  function build() {
+    if (building) return building;
+    building = (async () => {
+      const docs = []; down = [];
+      await Promise.all(REG.roadmaps.map(async r => {
+        const [cat, gl] = await Promise.all([getJSON(`/${r.id}/content/catalog.json`), getJSON(`/${r.id}/content/glossary.json`)]);
+        if (!cat) { down.push(r.title); return; }
+        (cat.items || []).filter(i => i.status === 'published').forEach(i => docs.push({
+          kind: '과정', where: r.title, title: i.title,
+          text: [i.summary, i.purpose, (i.outline || []).join(' · '), (i.tags || []).join(' ')].filter(Boolean).join(' — '),
+          href: `/${r.id}/#/item/${i.id}` }));
+        ((gl && (gl.terms || gl)) || []).forEach(t => docs.push({
+          kind: '용어', where: r.title, title: `${t.ko}${t.en && t.en !== t.ko ? ` (${t.en})` : ''}`,
+          text: t.desc || t.short || '', href: `/${r.id}/?deep=${encodeURIComponent(t.id)}` }));
+      }));
+      for (const s of REG.services || []) {
+        const idx = await getJSON(`/${s.id}/content/index.json`);
+        if (!idx) { down.push(s.title); continue; }
+        const notes = idx.groups.flatMap(g => g.notes).filter(n => n.status === 'ready');
+        await Promise.all(notes.map(async n => {
+          const md = await fetch(`/${s.id}/content/${n.id}.md`, { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
+          docs.push({ kind: '심화 노트', where: s.title, title: `${n.title} · ${n.ko}`,
+            text: `${n.summary} — ${md.replace(/```[\s\S]*?```/g, ' ').replace(/\[\[([\w-]+)\]\]/g, '$1').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#*|`>-]+/g, ' ').replace(/\s+/g, ' ')}`,
+            href: `/${s.id}/#/note/${n.id}` });
+        }));
+      }
+      docs.forEach(d => { d._t = d.title.toLowerCase(); d._x = d.text.toLowerCase(); d._w = d.where.toLowerCase(); });
+      DOCS = docs;
+    })();
+    return building;
+  }
+
+  function search(q) {
+    const toks = q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!toks.length) return [];
+    const W = { '심화 노트': 3, '과정': 2, '용어': 0 };
+    return DOCS.map(d => {
+      let score = 0;
+      for (const t of toks) {
+        if (d._t.includes(t)) score += d._t.startsWith(t) ? 12 : 8;
+        else if (d._x.includes(t)) score += 2;
+        else if (d._w.includes(t)) score += 1;
+        else return null;
+      }
+      return { d, score: score + W[d.kind] };
+    }).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 40).map(x => x.d);
+  }
+
+  const hl = (s, toks) => toks.reduce((out, t) => out.replace(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `\u0001${m}\u0002`), s);
+  const mark = (s, toks) => esc(hl(s, toks)).replace(/\u0001/g, '<mark>').replace(/\u0002/g, '</mark>');
+  function snippet(text, toks) {
+    const low = text.toLowerCase(); const i = Math.max(0, ...toks.map(t => low.indexOf(t)).filter(i => i >= 0).slice(0, 1));
+    const start = Math.max(0, i - 40);
+    return (start ? '… ' : '') + text.slice(start, start + 160);
+  }
+
+  function render() {
+    const q = input.value.trim(); const toks = q.toLowerCase().split(/\s+/).filter(Boolean);
+    status.textContent = DOCS ? `항해도 ${REG.roadmaps.length - down.filter(t => REG.roadmaps.some(r => r.title === t)).length}개 · 심화 노트 포함 ${DOCS.length}개 항목에서 검색` + (down.length ? ` · 응답 없음: ${down.join(', ')}` : '') : '검색 목록을 모으는 중…';
+    if (!q) {
+      results = [];
+      list.innerHTML = `<li class="hs-empty">예: ${EXAMPLES.map(x => `<button type="button" data-q="${esc(x)}">${esc(x)}</button>`).join('')}</li>`;
+      return;
+    }
+    results = DOCS ? search(q) : [];
+    sel = 0;
+    list.innerHTML = results.length ? results.map((d, i) => `<li class="hs-item" role="option" id="hs-${i}" aria-selected="${i === 0}">
+        <a href="${esc(d.href)}"><div class="hs-row"><span class="hs-kind ${d.kind === '심화 노트' ? 'deep' : ''}">${esc(d.kind)}</span>
+        <span class="hs-title">${mark(d.title, toks)}</span><span class="hs-where">${esc(d.where)}</span></div>
+        ${d.text ? `<div class="hs-snip">${mark(snippet(d.text, toks), toks)}</div>` : ''}</a></li>`).join('')
+      : `<li class="hs-empty">「${esc(q)}」에 맞는 결과가 없어요.</li>`;
+  }
+  function move(n) {
+    if (!results.length) return;
+    list.querySelector(`#hs-${sel}`)?.setAttribute('aria-selected', 'false');
+    sel = (sel + n + results.length) % results.length;
+    const li = list.querySelector(`#hs-${sel}`); li.setAttribute('aria-selected', 'true'); li.scrollIntoView({ block: 'nearest' });
+    input.setAttribute('aria-activedescendant', `hs-${sel}`);
+  }
+  function go(href) { close(); if (href) location.href = href; }
+
+  async function open() {
+    lastFocus = document.activeElement; backdrop.hidden = false; input.value = input.value || ''; input.focus(); input.select();
+    render(); await build(); render();
+  }
+  function close() { backdrop.hidden = true; lastFocus?.focus?.(); }
+
+  input.addEventListener('input', render);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+    else if (e.key === 'Enter' && results[sel]) { e.preventDefault(); go(results[sel].href); }
+  });
+  list.addEventListener('click', e => {
+    const b = e.target.closest('button[data-q]'); if (b) { input.value = b.dataset.q; input.focus(); render(); return; }
+    const a = e.target.closest('a'); if (a) { e.preventDefault(); go(a.getAttribute('href')); }
+  });
+  backdrop.addEventListener('mousedown', e => { if (e.target === backdrop) close(); });
+
+  // 확인용: ?hs=<검색어> 로 열면 검색창이 열린 채 시작
+  const preset = new URLSearchParams(location.search).get('hs');
+  if (preset) ready.then(r => { if (r) setTimeout(() => { input.value = preset; open(); }, 300); });
+})();
+</script>
+<!-- hub-search:end -->
