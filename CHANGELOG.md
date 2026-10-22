@@ -2,6 +2,16 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.2.0 — 2026-10-23
+
+읽을거리 「버전의 역사」 추가
+
+- 새 페이지 #/history: 1.0(2015)~1.37(2026) 마이너 38개를 시대 6개로 — 버전별 강조·사라짐·바뀜, 사라진 것 모아 보기(사용 중단→제거), 지원 기간(EOS) 표, 실습과의 연결
+- 근거: 버전별 kubernetes.io 릴리스 발표 글, GitHub 릴리스, website data/releases(eol·schedule), Deprecated API Migration Guide — 날짜 32개 자동 대조
+- 표 칸 줄바꿈 수정(짧은 값이 한 글자씩 꺾이던 문제), 통합 검색 hub-search v1.1.0
+
+공통 템플릿: deep-drawer v1.2.0 · hub-search v1.1.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.1.1 — 2026-10-23
 
 시리즈 목록 갱신 (Ingress 항해도 추가)

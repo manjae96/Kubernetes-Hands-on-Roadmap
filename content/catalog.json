@@ -40,6 +40,11 @@
       "file": "content/pages/versions.md"
     },
     {
+      "href": "#/history",
+      "title": "쿠버네티스 버전의 역사",
+      "file": "content/pages/history.md"
+    },
+    {
       "href": "#/verification",
       "title": "검증 보고서",
       "file": "content/pages/verification.md"

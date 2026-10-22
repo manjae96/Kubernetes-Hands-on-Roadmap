@@ -89,6 +89,9 @@ h1, h2 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.
 h3, h4 { font-weight: 700; }
 code, pre, kbd { font-family: var(--font-mono); font-size: 0.9em; }
 :not(pre) > code { background: var(--chart-soft); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; white-space: normal; }
+/* 표 칸은 단어 단위로 줄바꿈 (anywhere는 칸 최소 폭을 한 글자로 만들어 「1.32」·날짜까지 꺾임). 긴 코드는 위 규칙대로 어디서나 꺾임 */
+.prose td, .prose th { overflow-wrap: break-word; }
+.prose td:first-child strong { white-space: nowrap; }
 .skip { position: absolute; left: -999px; top: 0; background: var(--sheet); padding: 8px 12px; z-index: 50; }
 .skip:focus { left: max(16px, env(safe-area-inset-left, 0px)); top: calc(8px + env(safe-area-inset-top, 0px)); }
 
@@ -363,6 +366,7 @@ a.term { color: inherit; text-decoration: underline dotted var(--chart); text-un
       <a href="#/item/setup" data-nav="setup">환경 준비</a>
       <a href="#/labs" data-nav="labs">핸즈온 목록</a>
       <a href="#/versions" data-nav="versions">버전 비교</a>
+      <a href="#/history" data-nav="history">버전의 역사</a>
       <a href="#/glossary" data-nav="glossary">용어집</a>
       <a href="#/verification" data-nav="verification">검증 보고서</a>
     </nav>
@@ -702,6 +706,7 @@ function renderHome() {
       <a href="#/item/setup"><strong>환경 준비</strong><span>WSL2·macOS·Linux에서 minikube와 kubectl 설치 (최초 1회 약 ${fmtMin(ITEM.setup.minutes.handson + ITEM.setup.minutes.concept)})</span></a>
       <a href="#/labs"><strong>핸즈온 목록</strong><span>난이도·버전으로 실습을 골라 보기</span></a>
       <a href="#/versions"><strong>버전 비교</strong><span>${esc(C.versions.map(v => v.minor).join(', '))}의 주요 변경·폐기 API</span></a>
+      <a href="#/history"><strong>버전의 역사</strong><span>1.0부터 1.37까지 — 시대별 강조·사라짐·바뀜, 지원 종료 표</span></a>
       <a href="#/verification"><strong>검증 보고서</strong><span>예제를 실제로 실행한 환경과 결과, 검증하지 못한 범위</span></a>
     </div>`);
   $$('[data-pick]', m).forEach(b => b.addEventListener('click', () => { pickLevel(b.dataset.pick); location.hash = '#/level/' + b.dataset.pick; }));
@@ -966,6 +971,7 @@ async function route() {
       case 'setup': return await renderItem('setup');
       case 'labs': return renderLabs();
       case 'versions': return await renderDoc('content/pages/versions.md', 'versions', '버전 정보', 'Kubernetes 버전 비교', '지원 중인 최근 3개 마이너 버전의 주요 변경, 기능 단계, 지원 종료, 폐기·제거 API와 마이그레이션 방법입니다.');
+      case 'history': return await renderDoc('content/pages/history.md', 'history', '읽을거리', '쿠버네티스 버전의 역사', '1.0(2015)부터 1.37(2026)까지 마이너 버전 38개에서 무엇이 강조되고, 무엇이 사라지고(EOS·제거), 무엇이 바뀌어 지금에 이르렀는지 시대별로 정리합니다. 실습 없이 읽는 자료입니다.');
       case 'verification': return await renderDoc('content/pages/verification.md', 'verification', '품질 기록', '검증 보고서', '예제를 실제로 실행한 환경과 결과, 그리고 검증하지 못한 범위를 숨김없이 기록합니다.');
       case 'glossary': return renderGlossary(parts[1]);
       case 'search': return await renderSearch(parts.slice(1).join('/'));
@@ -1202,7 +1208,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- deep-drawer:end -->
-<!-- hub-search:start v1.0.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
+<!-- hub-search:start v1.1.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .hs-open { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); color: var(--muted, #566778);
   border-radius: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
@@ -1278,6 +1284,16 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
         ((gl && (gl.terms || gl)) || []).forEach(t => docs.push({
           kind: '용어', where: r.title, title: `${t.ko}${t.en && t.en !== t.ko ? ` (${t.en})` : ''}`,
           text: t.desc || t.short || '', href: `/${r.id}/?deep=${encodeURIComponent(t.id)}` }));
+        // 읽을거리 페이지(버전 비교·버전의 역사·검증 보고서 …): ## 절마다 하나씩 색인
+        await Promise.all((cat.pages || []).map(async pg => {
+          const md = await fetch(`/${r.id}/${pg.file}`, { cache: 'no-cache' }).then(x => x.ok ? x.text() : '').catch(() => '');
+          md.split(/^## /m).slice(1).forEach(sec => {
+            const head = sec.split('\n', 1)[0].replace(/\{#[^}]*\}/g, '').trim();
+            docs.push({ kind: '페이지', where: r.title, title: `${pg.title} · ${head}`,
+              text: sec.slice(head.length).replace(/```[\s\S]*?```/g, ' ').replace(/\[\[([\w-]+)(\|[^\]]*)?\]\]/g, '$1').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#*|`>:-]+/g, ' ').replace(/\s+/g, ' ').slice(0, 1500),
+              href: `/${r.id}/${pg.href}` });
+          });
+        }));
       }));
       for (const s of REG.services || []) {
         const idx = await getJSON(`/${s.id}/content/index.json`);
@@ -1299,7 +1315,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   function search(q) {
     const toks = q.toLowerCase().split(/\s+/).filter(Boolean);
     if (!toks.length) return [];
-    const W = { '심화 노트': 3, '과정': 2, '용어': 0 };
+    const W = { '심화 노트': 3, '과정': 2, '페이지': 1, '용어': 0 };
     return DOCS.map(d => {
       let score = 0;
       for (const t of toks) {
