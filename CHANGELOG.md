@@ -2,6 +2,15 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.0.2 — 2026-10-22
+
+시리즈 목록 갱신, 심화 노트 서랍 v1.1.0
+
+- README 자매 사이트·포트 목록에 vi 편집(8250)·CI/CD(8190) 추가
+- 심화 노트 서랍 deep-drawer v1.1.0: 노트의 roadmaps에 이 항해도가 있을 때만 용어에 노트 연결, 노트 안 링크는 노트 제목으로 표시
+
+공통 템플릿: deep-drawer v1.1.0 · hub-search v1.0.0 · deploy v1.0.0
+
 ## v1.0.1 — 2026-10-22
 
 자매 사이트·포트 안내에 도메인 항해도 추가

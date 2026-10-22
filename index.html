@@ -978,7 +978,7 @@ fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null)
   if (d && (d.roadmaps || []).some(x => x.id === 'k8s')) document.getElementById('hubLink').style.display = 'inline-flex';
 }).catch(() => {});
 </script>
-<!-- deep-drawer:start v1.0.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
+<!-- deep-drawer:start v1.1.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .deep-scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .28); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 60; }
 .deep-scrim.open { opacity: 1; pointer-events: auto; }
@@ -1047,14 +1047,18 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
    심화 노트 서비스(/deep/)는 선택 의존 — 꺼져 있거나 단독 실행이면 용어 설명만 보여 줍니다. */
 (() => {
   const DEEP = '/deep/';
+  const SITE = location.pathname.split('/')[1] || '';   // 허브·컨테이너에서는 항해도 id (예: /k8s/), 폴더 단독 실행이면 ''
   const $ = id => document.getElementById(id);
   const drawer = $('deepDrawer'), scrim = $('deepScrim'), peek = $('deepPeek');
   const gloss = fetch('content/glossary.json').then(r => r.json()).then(d => Object.fromEntries((d.terms || d).map(t => [t.id, t]))).catch(() => ({}));
   const index = fetch(DEEP + 'content/index.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null).then(d => {
     if (!d) return null;
-    const map = {};
-    d.groups.flatMap(g => g.notes).forEach(n => [n.id, ...(n.aliases || [])].forEach(k => { map[k] = n; }));
-    return map;
+    // all: 노트 안 링크·뒤로 가기용 전체 목록 · site: 이 항해도 용어에 붙일 노트만 (노트의 roadmaps에 이 항해도가 있을 때).
+    // 같은 용어 id가 항해도마다 다른 뜻일 수 있어서(리눅스 service = systemd, 도커 namespace = 커널) 항해도별로 거릅니다.
+    const all = {}, site = {};
+    d.groups.flatMap(g => g.notes).forEach(n => [n.id, ...(n.aliases || [])].forEach(k => {
+      all[k] = n; if (!SITE || !n.roadmaps || n.roadmaps.includes(SITE)) site[k] = n; }));
+    return { all, site };
   });
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const idOf = a => decodeURIComponent((a.getAttribute('href') || '').split('/glossary/')[1] || '');
@@ -1062,14 +1066,14 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   const history = []; let current = null, lastFocus = null;
 
   const mark = async () => { const idx = await index; if (!idx) return;
-    document.querySelectorAll('a.term').forEach(a => a.classList.toggle('has-deep', idx[idOf(a)]?.status === 'ready')); };
+    document.querySelectorAll('a.term').forEach(a => a.classList.toggle('has-deep', idx.site[idOf(a)]?.status === 'ready')); };
   new MutationObserver(mark).observe(document.body, { childList: true, subtree: true });
 
   // 미리보기 카드 (마우스 · 키보드 포커스)
   let peekTimer;
   const showPeek = a => { clearTimeout(peekTimer); peekTimer = setTimeout(async () => {
     const [g, idx] = await Promise.all([gloss, index]); const id = idOf(a); const t = g[id]; if (!t) return;
-    const n = idx && idx[id];
+    const n = idx && idx.site[id];
     peek.innerHTML = `<b>${esc(t.ko)}<small>${esc(t.en)}</small></b><p>${esc(t.desc || t.short || '')}</p>
       <span class="hint">${n?.status === 'ready' ? `🔎 심화 노트 약 ${n.minutes}분 — 클릭해서 열기` : '클릭해서 용어 설명 열기'}</span>`;
     const r = a.getBoundingClientRect();
@@ -1091,9 +1095,9 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 
   drawer.addEventListener('click', e => {
     const l = e.target.closest('a.deep-link'); if (!l) return;
-    e.preventDefault(); if (current) history.push(current); show(l.dataset.id, true);
+    e.preventDefault(); if (current) history.push(current); show(l.dataset.id, true, true);
   });
-  $('deepBack').onclick = () => { const prev = history.pop(); if (prev) show(prev, true); };
+  $('deepBack').onclick = () => { const prev = history.pop(); if (prev) show(prev, true, true); };
 
   function fold(html) {   // h2 단위로 접기 — 요약·동작 흐름만 펼침
     const box = document.createElement('div'); box.innerHTML = html;
@@ -1107,18 +1111,18 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     });
     return out.innerHTML;
   }
-  const linkify = (md, g) => md.replace(/\[\[([\w-]+)\]\]/g, (m, id) => `<a class="deep-link" data-id="${id}" href="#">${esc((g[id] || {}).en || id)}</a>`);
+  const linkify = (md, g, all) => md.replace(/\[\[([\w-]+)\]\]/g, (m, id) => `<a class="deep-link" data-id="${id}" href="#">${esc((g[id] || {}).en || (all[id] || {}).title || id)}</a>`);
 
-  async function show(id, keepFocus) {
+  async function show(id, keepFocus, fromNote) {
     const [g, idx] = await Promise.all([gloss, index]);
     current = id;
-    const note = idx && idx[id];
+    const note = idx && (fromNote ? idx.all : idx.site)[id];
     const t = g[id] || (note ? { ko: note.ko, en: note.title, desc: note.summary } : { ko: id, en: id, desc: '' });
     $('deepTitle').innerHTML = `${esc(t.ko)}<small>${esc(t.en)}</small>`;
     $('deepEyebrow').textContent = note?.status === 'ready' ? '용어 · 심화 노트' : '용어';
     const prev = history[history.length - 1];
     $('deepBack').className = 'deep-back' + (prev ? ' show' : '');
-    $('deepBack').textContent = prev ? `← ${(g[prev] || idx?.[prev] || {}).ko || prev}` : '';
+    $('deepBack').textContent = prev ? `← ${(g[prev] || idx?.all[prev] || {}).ko || prev}` : '';
     let html = `<div class="deep-gloss"><p>${esc(t.desc || t.short || '')}</p>${t.doc ? `<a href="${esc(t.doc)}" target="_blank" rel="noopener">공식 문서 ↗</a>` : ''}</div>`;
     let foot = g[id] ? `<a href="#/glossary/${esc(id)}" id="deepToGloss">용어집에서 보기</a>` : '';
     if (!idx) html += `<p class="deep-chip">심화 노트 서비스에 연결할 수 없어요 — 용어 설명만 표시</p>`;
@@ -1127,7 +1131,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     else {
       const md = await fetch(`${DEEP}content/${encodeURIComponent(note.id)}.md`, { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
       html += `<div class="deep-divider">🔎 심화 노트 <span>약 ${note.minutes}분 · ${(note.roadmaps || []).length}개 항해도에서 사용</span><button id="deepExpand">모두 펼치기</button></div>
-               <div class="deep-note">${fold(window.marked ? window.marked.parse(linkify(md, g)) : `<pre>${esc(md)}</pre>`)}</div>`;
+               <div class="deep-note">${fold(window.marked ? window.marked.parse(linkify(md, g, idx.all)) : `<pre>${esc(md)}</pre>`)}</div>`;
       foot = `<a href="${DEEP}#/note/${esc(note.id)}" target="_blank" rel="noopener">전체 화면으로 보기 ↗</a>` + foot;
     }
     $('deepBody').innerHTML = html; $('deepFoot').innerHTML = foot; $('deepBody').scrollTop = 0;
