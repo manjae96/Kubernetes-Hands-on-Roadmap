@@ -2,6 +2,14 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.1.1 — 2026-10-23
+
+시리즈 목록 갱신 (Ingress 항해도 추가)
+
+- README 자매 사이트·포트 목록에 Ingress(8260) 추가
+
+공통 템플릿: deep-drawer v1.2.0 · hub-search v1.0.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.1.0 — 2026-10-22
 
 테마 바꾸기, 서랍에서 흐름 그림 표시
