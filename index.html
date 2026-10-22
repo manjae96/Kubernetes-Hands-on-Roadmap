@@ -5,6 +5,39 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<!-- theme-toggle:start v1.0.0 — 실습 항해도 공통 「테마 바꾸기」 (Hands-On-Roadmap/templates/theme-toggle.html에서 관리, 직접 고치지 말 것) -->
+<style>
+.theme-toggle { position: fixed; left: 16px; bottom: 16px; z-index: 59; display: inline-flex; align-items: center; gap: 6px;
+  font: 500 .8rem/1 var(--font-body, system-ui, sans-serif); color: var(--ink, #142231); background: var(--sheet, #fff);
+  border: 1px solid var(--rule, #d3dce4); border-radius: 99px; padding: 7px 12px; cursor: pointer; box-shadow: 0 2px 10px rgb(0 0 0 / .08); }
+.theme-toggle:hover { border-color: var(--chart, #1d5bb8); }
+.theme-toggle:focus-visible { outline: 2px solid var(--chart, #1d5bb8); outline-offset: 2px; }
+@media print { .theme-toggle { display: none; } }
+</style>
+<script>
+/* 테마: 자동(시스템 설정) → 밝게 → 어둡게 순서로 바뀝니다. 선택은 브라우저에 저장되어 허브의 모든 항해도·포털·심화 노트가 같이 따릅니다.
+   페이지 CSS의 :root[data-theme="light|dark"] 규칙을 씁니다. 그리기 전에 적용하려고 <head>에 둡니다. */
+(() => {
+  const KEY = 'hangdo-theme', MODES = ['auto', 'light', 'dark'];
+  const LABEL = { auto: '🌓 자동', light: '☀️ 밝게', dark: '🌙 어둡게' };
+  const get = () => { try { const v = localStorage.getItem(KEY); return MODES.includes(v) ? v : 'auto'; } catch (e) { return 'auto'; } };
+  const apply = m => { if (m === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = m; };
+  apply(get());
+  addEventListener('storage', e => { if (e.key === KEY) { apply(get()); paint(); } });   // 다른 탭에서 바꾸면 따라감
+  let btn;
+  const paint = () => { if (!btn) return; const m = get();
+    btn.textContent = LABEL[m]; btn.title = `테마: ${LABEL[m].slice(3)} — 누르면 ${LABEL[MODES[(MODES.indexOf(m) + 1) % 3]].slice(3)}`;
+    btn.setAttribute('aria-label', btn.title); };
+  const mount = () => {
+    if (document.querySelector('.theme-toggle')) return;
+    btn = document.createElement('button'); btn.type = 'button'; btn.className = 'theme-toggle';
+    btn.onclick = () => { const m = MODES[(MODES.indexOf(get()) + 1) % 3]; try { localStorage.setItem(KEY, m); } catch (e) {} apply(m); paint(); };
+    document.body.appendChild(btn); paint();
+  };
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', mount) : mount();
+})();
+</script>
+<!-- theme-toggle:end -->
 <style>
 /* Layout concept: 해도(chart) 위의 항로. 상단 고정 항해 바, 왼쪽 수준별 항로(목차), 가운데 65자 폭 본문, 넓은 화면에서 오른쪽 이 페이지 목차. */
 :root {
@@ -978,7 +1011,7 @@ fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null)
   if (d && (d.roadmaps || []).some(x => x.id === 'k8s')) document.getElementById('hubLink').style.display = 'inline-flex';
 }).catch(() => {});
 </script>
-<!-- deep-drawer:start v1.1.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
+<!-- deep-drawer:start v1.2.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .deep-scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .28); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 60; }
 .deep-scrim.open { opacity: 1; pointer-events: auto; }
@@ -1131,10 +1164,11 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     else {
       const md = await fetch(`${DEEP}content/${encodeURIComponent(note.id)}.md`, { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
       html += `<div class="deep-divider">🔎 심화 노트 <span>약 ${note.minutes}분 · ${(note.roadmaps || []).length}개 항해도에서 사용</span><button id="deepExpand">모두 펼치기</button></div>
-               <div class="deep-note">${fold(window.marked ? window.marked.parse(linkify(md, g, idx.all)) : `<pre>${esc(md)}</pre>`)}</div>`;
+               <div class="deep-note">${fold(window.marked ? window.marked.parse(linkify(flowSlots(md), g, idx.all)) : `<pre>${esc(md)}</pre>`)}</div>`;
       foot = `<a href="${DEEP}#/note/${esc(note.id)}" target="_blank" rel="noopener">전체 화면으로 보기 ↗</a>` + foot;
     }
     $('deepBody').innerHTML = html; $('deepFoot').innerHTML = foot; $('deepBody').scrollTop = 0;
+    if ($('deepBody').querySelector('[data-flow]')) flow().then(F => F && F.render($('deepBody'), DEEP));   // 흐름 그림 (서랍 폭이면 타임라인)
     const tg = $('deepToGloss'); if (tg) tg.onclick = () => close();
     const ex = $('deepExpand'); if (ex) ex.onclick = () => { const all = [...drawer.querySelectorAll('.deep-note details')]; const openAll = all.some(d => !d.open); all.forEach(d => { d.open = openAll; }); ex.textContent = openAll ? '요약만 보기' : '모두 펼치기'; };
     drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false');
@@ -1142,6 +1176,11 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     if (!document.body.classList.contains('deep-pinned')) scrim.classList.add('open');
     if (!keepFocus) $('deepClose').focus();
   }
+  // ```flow 블록은 항해도의 코드 블록 렌더러를 거치지 않도록 미리 자리(div)로 바꿈 (flow.js의 prepare와 같은 규칙)
+  const flowSlots = md => md.replace(/^```flow[ \t]*\n\s*([\w-]+)\s*\n```[ \t]*$/gm, (m, id) => `\n<div class="dflow-slot" data-flow="${id}"></div>\n`);
+  let flowJs;   // 심화 노트 서비스의 그림 렌더러 — 그림이 있는 노트를 처음 열 때 한 번만 불러옴
+  const flow = () => flowJs = flowJs || new Promise(ok => { const s = document.createElement('script');
+    s.src = DEEP + 'vendor/flow.js'; s.onload = () => ok(window.DeepFlow); s.onerror = () => ok(null); document.head.appendChild(s); });
   function close() {
     drawer.classList.remove('open'); scrim.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('deep-pinned'); $('deepPin').setAttribute('aria-pressed', 'false');
