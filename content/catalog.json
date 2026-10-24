@@ -707,37 +707,73 @@
       "id": "i-lab03",
       "level": "intermediate",
       "type": "lab",
-      "status": "planned",
+      "status": "published",
       "required": true,
       "title": "PV·PVC와 StatefulSet으로 상태 저장 앱 운영",
-      "summary": "minikube 기본 StorageClass로 동적 프로비저닝을 확인하고, StatefulSet의 고정 이름·순서·전용 볼륨을 실습합니다.",
-      "purpose": "파드가 바뀌어도 데이터가 남는 구조를 이해합니다.",
+      "summary": "파드 안의 데이터가 파드와 함께 사라지는 것을 보고, 기본 StorageClass의 동적 프로비저닝으로 PVC를 받아 파드가 바뀌어도 데이터를 지킵니다. StatefulSet의 고정 이름·순서·파드별 볼륨(volumeClaimTemplates)과 Headless Service를 Deployment와 비교하고, PVC 삭제와 회수 정책을 확인합니다. 더 깊은 내용은 PV·PVC 실습 항해도로 이어집니다.",
+      "purpose": "파드가 바뀌어도 데이터가 남는 구조와, 파드마다 다른 데이터를 갖는 상태 저장 앱의 운영 방식을 이해합니다.",
       "minutes": {
-        "concept": 30,
-        "handson": 60,
-        "review": 20
+        "concept": 25,
+        "handson": 50,
+        "review": 15
       },
       "versions": [
         "1.37",
         "1.36",
         "1.35"
       ],
-      "outline": [
-        "PV·PVC·StorageClass와 바인딩",
-        "accessModes와 reclaimPolicy",
-        "StatefulSet: 안정적인 네트워크 ID, volumeClaimTemplates",
-        "Headless Service",
-        "maxUnavailable(1.37 기본 재활성화) 참고",
-        "PVC 마지막 사용 시각(1.37 Beta) 소개"
-      ],
-      "envNote": "minikube 기본 storage-provisioner(hostPath 기반)를 사용합니다. 다중 노드에서의 볼륨 이동은 다루지 않습니다.",
       "tags": [
         "PV",
         "PVC",
         "StorageClass",
+        "동적 프로비저닝",
+        "accessModes",
+        "회수 정책",
         "StatefulSet",
+        "volumeClaimTemplates",
         "Headless Service"
-      ]
+      ],
+      "prereq": [
+        "i-lab01"
+      ],
+      "env": "minikube 프로필 k8s-lab (기본 storage-provisioner)",
+      "components": [
+        {
+          "name": "PersistentVolume · PersistentVolumeClaim · StorageClass · StatefulSet · Headless Service",
+          "kind": "core"
+        }
+      ],
+      "images": [
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "Persistent Volumes",
+          "url": "https://kubernetes.io/docs/concepts/storage/persistent-volumes/"
+        },
+        {
+          "title": "Storage Classes",
+          "url": "https://kubernetes.io/docs/concepts/storage/storage-classes/"
+        },
+        {
+          "title": "StatefulSets",
+          "url": "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/"
+        },
+        {
+          "title": "StatefulSet 기초 (Tutorial)",
+          "url": "https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "minikube v1.38.1 · Kubernetes v1.37.0에서 emptyDir 유실, PVC 동적 프로비저닝·재사용, StatefulSet 고정 이름·파드별 PVC·DNS, 축소 후 PVC 유지, PVC 삭제 시 PV 삭제를 실행해 확인했습니다."
+      },
+      "file": "content/labs/i-lab03.md",
+      "checks": [
+        "i3-sts-identity",
+        "i3-pvc-per-pod"
+      ],
+      "yamlFiles": 3
     },
     {
       "id": "i-scale-zero",

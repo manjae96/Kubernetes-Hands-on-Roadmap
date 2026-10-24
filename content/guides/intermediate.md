@@ -23,7 +23,7 @@
 - requests·limits와 QoS 클래스를 설정하고, `Pending`(예약 부족)과 `OOMKilled`(상한 초과)를 구분합니다.
 - metrics-server 애드온을 설치·검증·삭제하고, HPA로 CPU 기준 자동 확장을 구성합니다.
 - `CreateContainerConfigError`, 프로브 실패, 셀렉터 오류, OOMKilled가 섞인 장애를 순서대로 진단해 고칩니다.
-- PV·PVC·StatefulSet으로 상태 저장 앱을 운영합니다. (예정 실습 공개 후)
+- PV·PVC·StatefulSet으로 상태 저장 앱을 운영합니다. 스토리지를 더 깊이 다루려면 시리즈의 PV·PVC 실습 항해도(허브 `/pv/`)로 이어집니다.
 
 ## ③ 권장 학습 순서
 

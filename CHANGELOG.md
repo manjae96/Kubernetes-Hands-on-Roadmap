@@ -2,6 +2,15 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.3.0 — 2026-10-24
+
+중급 3 「PV·PVC와 StatefulSet」 공개
+
+- 예정이던 중급 3 공개: emptyDir 유실 → PVC 동적 프로비저닝 → StatefulSet 고정 이름·파드별 볼륨·Headless Service → 회수 정책
+- PV·PVC 실습 항해도로 이어지는 「더 깊이」 연결
+
+공통 템플릿: deep-drawer v1.2.0 · hub-search v1.1.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.2.0 — 2026-10-23
 
 읽을거리 「버전의 역사」 추가
