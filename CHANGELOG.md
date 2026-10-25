@@ -2,6 +2,14 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.3.2 — 2026-10-25
+
+진도 동기화 템플릿 설치
+
+- progress-sync v1.0.0: 클라우드 허브에서 로그인한 계정별로 진도를 서버(D1)에 저장·다른 기기와 합침, 열람 기록. 로컬 허브·단독 실행에서는 동작하지 않음
+
+공통 템플릿: deep-drawer v1.2.0 · hub-search v1.1.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.3.1 — 2026-10-25
 
 자매 사이트 목록 갱신

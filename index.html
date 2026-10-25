@@ -1385,3 +1385,59 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- hub-search:end -->
+<!-- progress-sync:start v1.0.0 -->
+<script>
+/* 진도 동기화: 클라우드 허브(로그인 + /api)에서만 동작합니다. 로컬 허브(Docker)·단독 실행에는 /api가 없어 아무것도 하지 않습니다.
+   - 서버 → 브라우저: 다른 기기에서 한 진도를 가져와 합칩니다(완료·통과는 어느 쪽이든 유지).
+   - 브라우저 → 서버: 진도 저장 키(storageKey)가 바뀌면 2초 모아 올립니다.
+   - 열람 기록: 어느 화면(#/...)을 열었는지 남깁니다.  관리 화면: /admin/  */
+(() => {
+  if (location.protocol === 'file:') return;
+  const seg = location.pathname.split('/')[1] || '';
+  const PORTAL = seg === '' || seg === 'index.html';
+  const api = (p, o) => fetch(p, Object.assign({ credentials: 'same-origin', cache: 'no-store' }, o));
+  const post = (p, body) => api(p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
+  const read = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const merge = (a, b) => {
+    if (a === undefined || a === null) return b;
+    if (b === undefined || b === null) return a;
+    if (typeof a === 'boolean' && typeof b === 'boolean') return a || b;
+    if (Array.isArray(a) && Array.isArray(b)) return [...new Set([...a, ...b].map(x => JSON.stringify(x)))].map(x => JSON.parse(x));
+    if (typeof a === 'object' && typeof b === 'object') { const o = { ...b, ...a }; for (const k of Object.keys(o)) o[k] = merge(a[k], b[k]); return o; }
+    return a;
+  };
+  (async () => {
+    const me = await api('/api/me').then(r => r.ok ? r.json() : null).catch(() => null);
+    if (!me) return;
+    const reg = await fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => null);
+    const list = (reg && reg.roadmaps) || [];
+    const keys = PORTAL ? list.map(r => r.storageKey) : list.filter(r => r.id === seg).map(r => r.storageKey);
+    const server = await api('/api/progress').then(r => r.json()).catch(() => ({ items: [] }));
+    const srv = Object.fromEntries((server.items || []).map(i => [i.site, i.state]));
+    let changed = false;
+    for (const k of keys) {
+      const local = read(k), m = merge(local, srv[k]);
+      if (m && JSON.stringify(m) !== JSON.stringify(local)) { localStorage.setItem(k, JSON.stringify(m)); changed = true; }
+      if (m && JSON.stringify(m) !== JSON.stringify(srv[k])) post('/api/progress', { site: k, state: m });
+    }
+    if (changed && !sessionStorage.getItem('hangdo-synced-' + seg)) { sessionStorage.setItem('hangdo-synced-' + seg, '1'); location.reload(); return; }
+    const timers = {};
+    const orig = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) {
+      orig.call(this, k, v);
+      if (this === localStorage && keys.includes(k)) { clearTimeout(timers[k]); timers[k] = setTimeout(() => post('/api/progress', { site: k, state: read(k) || {} }), 2000); }
+    };
+    let last = '';
+    const view = () => { const r = location.hash || '/'; if (r !== last) { last = r; post('/api/view', { site: PORTAL ? '' : seg, route: r }); } };
+    view(); addEventListener('hashchange', view);
+    const b = document.createElement('div');
+    b.className = 'ps-badge';
+    b.innerHTML = `<span></span>${me.admin ? ' · <a href="/admin/">관리</a>' : ''} · <a href="/auth/logout">로그아웃</a>`;
+    b.firstChild.textContent = me.login;
+    const st = document.createElement('style');
+    st.textContent = '.ps-badge{position:fixed;right:12px;bottom:12px;z-index:70;font:12px/1.4 system-ui,sans-serif;padding:6px 10px;border-radius:999px;background:var(--paper,#f2f5f7);color:var(--muted,#566778);border:1px solid var(--rule,#d3dce4)}.ps-badge a{color:inherit}';
+    document.head.appendChild(st); document.body.appendChild(b);
+  })();
+})();
+</script>
+<!-- progress-sync:end -->
