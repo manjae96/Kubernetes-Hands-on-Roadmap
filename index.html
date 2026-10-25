@@ -1385,7 +1385,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- hub-search:end -->
-<!-- progress-sync:start v1.0.0 -->
+<!-- progress-sync:start v1.1.0 -->
 <script>
 /* 진도 동기화: 클라우드 허브(로그인 + /api)에서만 동작합니다. 로컬 허브(Docker)·단독 실행에는 /api가 없어 아무것도 하지 않습니다.
    - 서버 → 브라우저: 다른 기기에서 한 진도를 가져와 합칩니다(완료·통과는 어느 쪽이든 유지).
@@ -1432,7 +1432,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     view(); addEventListener('hashchange', view);
     const b = document.createElement('div');
     b.className = 'ps-badge';
-    b.innerHTML = `<span></span>${me.admin ? ' · <a href="/admin/">관리</a>' : ''} · <a href="/auth/logout">로그아웃</a>`;
+    b.innerHTML = `<span></span>${me.admin ? ` · <a href="/admin/">관리${me.pending ? ` <b>(대기 ${Number(me.pending)})</b>` : ''}</a>` : ''}${me.guest ? ' · 게스트(준비·기본)' : ''} · <a href="/auth/logout">로그아웃</a>`;
     b.firstChild.textContent = me.login;
     const st = document.createElement('style');
     st.textContent = '.ps-badge{position:fixed;right:12px;bottom:12px;z-index:70;font:12px/1.4 system-ui,sans-serif;padding:6px 10px;border-radius:999px;background:var(--paper,#f2f5f7);color:var(--muted,#566778);border:1px solid var(--rule,#d3dce4)}.ps-badge a{color:inherit}';
