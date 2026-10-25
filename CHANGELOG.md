@@ -2,6 +2,14 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.3.1 — 2026-10-25
+
+자매 사이트 목록 갱신
+
+- 자매 사이트 목록·시리즈 포트 안내를 22개 기준으로 갱신
+
+공통 템플릿: deep-drawer v1.2.0 · hub-search v1.1.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.3.0 — 2026-10-24
 
 중급 3 「PV·PVC와 StatefulSet」 공개
