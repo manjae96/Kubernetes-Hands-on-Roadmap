@@ -216,7 +216,7 @@
       "id": "prep-linux-container",
       "level": "prep",
       "type": "lesson",
-      "status": "planned",
+      "status": "published",
       "required": false,
       "title": "준비 과정: 리눅스와 컨테이너 복습",
       "summary": "프로세스·포트·환경 변수와 컨테이너 이미지·레지스트리를 Kubernetes 관점에서 다시 짚습니다.",
@@ -242,13 +242,40 @@
         "리눅스",
         "컨테이너",
         "docker"
-      ]
+      ],
+      "file": "content/labs/prep-linux-container.md",
+      "checks": [],
+      "prereq": [],
+      "env": "읽기 (직접 확인은 minikube 프로필 k8s-lab)",
+      "components": [
+        {
+          "name": "Pod 종료 순서 · 바인딩 주소 · env · 이미지 참조 · docker run↔Pod 대응",
+          "kind": "core"
+        }
+      ],
+      "images": [
+        "nginx:1.30.6-alpine"
+      ],
+      "docs": [
+        {
+          "title": "Pod Lifecycle: Termination of Pods",
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination"
+        },
+        {
+          "title": "Images",
+          "url": "https://kubernetes.io/docs/concepts/containers/images/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "minikube(containerd) · Kubernetes v1.37.0에서 게시된 명령·성공 판정을 처음부터 실행해 모두 통과했습니다(2026-10-26)."
+      }
     },
     {
       "id": "prep-yaml",
       "level": "prep",
       "type": "lesson",
-      "status": "planned",
+      "status": "published",
       "required": false,
       "title": "준비 과정: YAML과 매니페스트 읽기",
       "summary": "들여쓰기, 목록과 맵, 여러 문서(---) 구분 등 매니페스트를 읽고 쓰는 데 필요한 YAML 문법을 익힙니다.",
@@ -274,13 +301,41 @@
         "YAML",
         "매니페스트",
         "kubectl explain"
-      ]
+      ],
+      "file": "content/labs/prep-yaml.md",
+      "checks": [],
+      "prereq": [],
+      "env": "minikube 프로필 k8s-lab (읽기·dry-run만)",
+      "components": [
+        {
+          "name": "YAML · kubectl explain · KYAML",
+          "kind": "core"
+        }
+      ],
+      "docs": [
+        {
+          "title": "Objects In Kubernetes",
+          "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/"
+        },
+        {
+          "title": "kubectl explain",
+          "url": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_explain/"
+        },
+        {
+          "title": "YAML 1.2 Spec",
+          "url": "https://yaml.org/spec/1.2.2/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "minikube(containerd) · Kubernetes v1.37.0에서 게시된 명령·성공 판정을 처음부터 실행해 모두 통과했습니다(2026-10-26)."
+      }
     },
     {
       "id": "b-concepts",
       "level": "basic",
       "type": "lesson",
-      "status": "planned",
+      "status": "published",
       "required": true,
       "title": "쿠버네티스가 해결하는 문제와 클러스터 구성",
       "summary": "선언형 운영과 제어 루프, 컨트롤 플레인과 노드 구성 요소의 역할을 개념으로 정리합니다.",
@@ -306,7 +361,33 @@
         "아키텍처",
         "컨트롤 플레인",
         "노드"
-      ]
+      ],
+      "file": "content/labs/b-concepts.md",
+      "checks": [],
+      "prereq": [
+        "setup"
+      ],
+      "env": "읽기 (직접 확인은 minikube 프로필 k8s-lab)",
+      "components": [
+        {
+          "name": "kube-apiserver · etcd · scheduler · controller-manager · kubelet · kube-proxy · CoreDNS · CNI",
+          "kind": "core"
+        }
+      ],
+      "docs": [
+        {
+          "title": "Kubernetes Components",
+          "url": "https://kubernetes.io/docs/concepts/overview/components/"
+        },
+        {
+          "title": "Controllers",
+          "url": "https://kubernetes.io/docs/concepts/architecture/controller/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "minikube(containerd) · Kubernetes v1.37.0에서 게시된 명령·성공 판정을 처음부터 실행해 모두 통과했습니다(2026-10-26)."
+      }
     },
     {
       "id": "b-lab01",
@@ -463,7 +544,7 @@
       "id": "b-service-types",
       "level": "basic",
       "type": "lesson",
-      "status": "planned",
+      "status": "published",
       "required": false,
       "title": "Service 유형 심화: NodePort와 LoadBalancer",
       "summary": "클러스터 밖에서 앱에 접속하는 방법을 minikube service와 minikube tunnel로 비교합니다.",
@@ -488,7 +569,48 @@
         "NodePort",
         "LoadBalancer",
         "Gateway API"
-      ]
+      ],
+      "file": "content/labs/b-service-types.md",
+      "checks": [
+        "bsvc-types"
+      ],
+      "prereq": [
+        "b-lab01"
+      ],
+      "env": "minikube 프로필 k8s-lab",
+      "components": [
+        {
+          "name": "Service: ClusterIP · NodePort · LoadBalancer · ExternalName",
+          "kind": "core"
+        },
+        {
+          "name": "minikube service · minikube tunnel",
+          "kind": "ecosystem"
+        }
+      ],
+      "images": [
+        "nginx:1.30.6-alpine",
+        "curlimages/curl:8.17.0",
+        "busybox:1.37.0"
+      ],
+      "docs": [
+        {
+          "title": "Service",
+          "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+        },
+        {
+          "title": "minikube: Accessing apps",
+          "url": "https://minikube.sigs.k8s.io/docs/handbook/accessing/"
+        },
+        {
+          "title": "Gateway API",
+          "url": "https://gateway-api.sigs.k8s.io/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "minikube(containerd) · Kubernetes v1.37.0에서 게시된 명령·성공 판정을 처음부터 실행해 모두 통과했습니다(2026-10-26)."
+      }
     },
     {
       "id": "b-cap",

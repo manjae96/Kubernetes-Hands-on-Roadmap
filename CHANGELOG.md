@@ -2,6 +2,17 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.4.0 — 2026-10-26
+
+준비·기본 과정 예정 항목 공개
+
+- 준비: 리눅스·컨테이너 복습 (prep-linux-container)
+- 준비: YAML과 매니페스트 읽기 (prep-yaml)
+- 기본: 쿠버네티스 개념과 클러스터 구성 (b-concepts)
+- 기본: Service 유형 심화 (b-service-types)
+
+공통 템플릿: deep-drawer v1.2.0 · hub-search v1.1.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.3.3 — 2026-10-25
 
 진도 동기화 템플릿 v1.1.0
