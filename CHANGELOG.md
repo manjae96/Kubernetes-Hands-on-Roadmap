@@ -2,6 +2,14 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.5.0 — 2026-10-26
+
+중급 예정 항목 공개 (2차)
+
+- 중급: HPA로 0까지 축소 — External 지표·prometheus-adapter·ScaledToZero 조건 (i-scale-zero, Kubernetes 1.37 베타)
+
+공통 템플릿: deep-drawer v1.2.0 · hub-search v1.1.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.4.0 — 2026-10-26
 
 준비·기본 과정 예정 항목 공개

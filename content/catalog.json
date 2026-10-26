@@ -901,7 +901,7 @@
       "id": "i-scale-zero",
       "level": "intermediate",
       "type": "lesson",
-      "status": "planned",
+      "status": "published",
       "required": false,
       "title": "HPA로 0까지 축소하기 (scale to zero)",
       "summary": "외부·오브젝트 지표 기반 HPA에서 minReplicas: 0을 써서 유휴 시 레플리카를 0으로 줄입니다.",
@@ -924,12 +924,41 @@
         "ScaledToZero 조건 읽기",
         "수동으로 0을 만든 경우와의 구분"
       ],
-      "envNote": "External 지표를 제공하는 어댑터(외부 생태계 도구)를 별도로 설치해야 하므로 설치·검증·삭제 절차를 함께 제공할 예정입니다.",
       "tags": [
         "HPA",
         "scale to zero",
         "1.37"
-      ]
+      ],
+      "file": "content/labs/i-scale-zero.md",
+      "checks": [
+        "iszero-manual"
+      ],
+      "prereq": [
+        "i-lab02"
+      ],
+      "env": "minikube k8s-lab (Kubernetes 1.37 이상) · 네임스페이스 scale0·metrics-lab · Helm",
+      "docs": [
+        {
+          "title": "Kubernetes v1.37: Scale Workloads to Zero with HPA",
+          "url": "https://kubernetes.io/blog/2026/09/02/kubernetes-v1-37-hpa-scale-to-zero-beta/"
+        },
+        {
+          "title": "KEP-2021: HPA scale to/from zero",
+          "url": "https://www.kubernetes.dev/resources/keps/2021/"
+        },
+        {
+          "title": "HorizontalPodAutoscaler Walkthrough",
+          "url": "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/"
+        },
+        {
+          "title": "prometheus-adapter",
+          "url": "https://github.com/kubernetes-sigs/prometheus-adapter"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "minikube(Kubernetes v1.37.0, HPAScaleToZero 베타 기본 활성)에서 prometheus-adapter 5.3.0의 External 지표로 0↔N 축소·확대, 수동 0과의 구분까지 실행해 확인했습니다."
+      }
     },
     {
       "id": "i-cap",
