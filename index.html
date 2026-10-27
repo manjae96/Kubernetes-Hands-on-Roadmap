@@ -676,7 +676,7 @@ function renderHome() {
         <div><dt>대상</dt><dd>${esc(L.audience)}</dd></div>
         <div><dt>필요한 선수 지식</dt><dd><ul>${L.prereq.map(p => `<li>${esc(p)}</li>`).join('')}</ul></dd></div>
         <div><dt>학습 목표</dt><dd><ul>${L.goals.map(p => `<li>${esc(p)}</li>`).join('')}</ul></dd></div>
-        <div><dt>총 예상 시간 (현재 공개분)</dt><dd><strong style="font-family:var(--font-mono)">${fmtMin(sumT(s.tp))}</strong> <span style="color:var(--muted);font-size:.85rem">· 예정 포함 시 ${fmtMin(sumT(s.tall))}</span></dd></div>
+        <div><dt>총 예상 시간</dt><dd><strong style="font-family:var(--font-mono)">${fmtMin(sumT(s.tp))}</strong></dd></div>
         <div><dt>진도</dt><dd><div class="meter" role="img" aria-label="공개 콘텐츠 ${s.pub.length}개 중 ${s.done}개 완료"><span style="width:${pct}%"></span></div><span style="font-size:.85rem;color:var(--muted)">공개 콘텐츠 ${s.pub.length}개 중 ${s.done}개 완료</span></dd></div>
       </dl>
       <div class="actions">
@@ -753,7 +753,7 @@ async function renderLevel(lv) {
   if (state.level !== lv) { state.level = lv; save(); $('#levelSel').value = lv; }
   const s = levelSummary(lv);
   const md = await loadMd(L.guide);
-  const roadmap = `<p>필수 단계를 순서대로 진행하고, 「선택 심화」는 필요할 때 학습합니다. 점선 원은 아직 제작 중인 예정 콘텐츠입니다.</p>${stepList(s.items)}`;
+  const roadmap = `<p>필수 단계를 순서대로 진행하고, 「선택 심화」는 필요할 때 학습합니다.</p>${stepList(s.items)}`;
   const t = s.tp; const total = sumT(t); const setup = sumT(totals([ITEM.setup]));
   const days = per => Math.ceil(total / per);
   const plannedExtra = sumT(s.tall) - total;
@@ -1017,7 +1017,7 @@ fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null)
   if (d && (d.roadmaps || []).some(x => x.id === 'k8s')) document.getElementById('hubLink').style.display = 'inline-flex';
 }).catch(() => {});
 </script>
-<!-- deep-drawer:start v1.2.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
+<!-- deep-drawer:start v1.3.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .deep-scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .28); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 60; }
 .deep-scrim.open { opacity: 1; pointer-events: auto; }
@@ -1104,14 +1104,21 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   const OPEN_FIRST = ['한 줄 요약', '동작 흐름'];
   const history = []; let current = null, lastFocus = null;
 
-  const mark = async () => { const idx = await index; if (!idx) return;
+  // 용어 링크의 기본 title 툴팁은 미리보기 카드와 겹치므로 지우고, 같은 문장을 화면 낭독기용 설명(aria-label 보조)으로 옮김
+  const untitle = () => document.querySelectorAll('a.term[title]').forEach(a => {
+    a.dataset.tip = a.getAttribute('title'); a.removeAttribute('title');
+    if (!a.hasAttribute('aria-describedby')) a.setAttribute('aria-describedby', 'deepPeek'); });
+  const mark = async () => { untitle(); const idx = await index; if (!idx) return;
     document.querySelectorAll('a.term').forEach(a => a.classList.toggle('has-deep', idx.site[idOf(a)]?.status === 'ready')); };
   new MutationObserver(mark).observe(document.body, { childList: true, subtree: true });
 
   // 미리보기 카드 (마우스 · 키보드 포커스)
-  let peekTimer;
-  const showPeek = a => { clearTimeout(peekTimer); peekTimer = setTimeout(async () => {
+  let peekTimer, peekFor = null, quietFocus = false, resting = null;   // resting: 클릭한 용어 — 마우스가 한 번 벗어날 때까지 미리보기 쉼
+  const drawerOpen = () => drawer.classList.contains('open');
+  const showPeek = a => { if (drawerOpen()) return; clearTimeout(peekTimer); peekFor = a; peekTimer = setTimeout(async () => {
+    if (drawerOpen() || peekFor !== a) return;                     // 그사이 클릭해 서랍이 열렸거나 다른 용어로 옮겨 감
     const [g, idx] = await Promise.all([gloss, index]); const id = idOf(a); const t = g[id]; if (!t) return;
+    if (drawerOpen() || peekFor !== a) return;
     const n = idx && idx.site[id];
     peek.innerHTML = `<b>${esc(t.ko)}<small>${esc(t.en)}</small></b><p>${esc(t.desc || t.short || '')}</p>
       <span class="hint">${n?.status === 'ready' ? `🔎 심화 노트 약 ${n.minutes}분 — 클릭해서 열기` : '클릭해서 용어 설명 열기'}</span>`;
@@ -1119,16 +1126,20 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     peek.style.left = Math.max(8, Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - 336)) + 'px';
     peek.style.top = (window.scrollY + r.bottom + 8) + 'px';
     peek.classList.add('show'); }, 250); };
-  const hidePeek = () => { clearTimeout(peekTimer); peek.classList.remove('show'); };
-  document.addEventListener('mouseover', e => { const a = e.target.closest('a.term'); if (a && !drawer.contains(a)) showPeek(a); });
-  document.addEventListener('mouseout', e => { if (e.target.closest('a.term')) hidePeek(); });
-  document.addEventListener('focusin', e => { const a = e.target.closest && e.target.closest('a.term'); if (a && !drawer.contains(a)) showPeek(a); });
+  const hidePeek = () => { clearTimeout(peekTimer); peekFor = null; peek.classList.remove('show'); };
+  // 마우스는 올려 둘 때만, 터치는 미리보기 없이 누르면 바로 상세 서랍 (터치의 가짜 hover 무시)
+  document.addEventListener('pointerover', e => { if (e.pointerType !== 'mouse') return; const a = e.target.closest('a.term'); if (a && a !== resting && !drawer.contains(a)) showPeek(a); });
+  document.addEventListener('pointerout', e => { const a = e.target.closest('a.term'); if (a && !a.contains(e.relatedTarget)) { hidePeek(); if (a === resting && !drawerOpen()) resting = null; } });
+  document.addEventListener('focusin', e => { const a = e.target.closest && e.target.closest('a.term');
+    if (a && !drawer.contains(a) && !quietFocus && a.matches(':focus-visible')) showPeek(a); });   // 키보드(Tab)로 왔을 때만
   document.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('a.term')) hidePeek(); });
+  addEventListener('scroll', hidePeek, { passive: true });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && peek.classList.contains('show')) hidePeek(); });
 
   document.addEventListener('click', e => {
     const a = e.target.closest('a.term'); if (!a || drawer.contains(a)) return;
     const id = idOf(a); if (!id) return;
-    e.preventDefault(); e.stopPropagation(); hidePeek();
+    e.preventDefault(); e.stopPropagation(); hidePeek(); resting = a;
     history.length = 0; lastFocus = a; show(id);
   }, true);
 
@@ -1177,7 +1188,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     if ($('deepBody').querySelector('[data-flow]')) flow().then(F => F && F.render($('deepBody'), DEEP));   // 흐름 그림 (서랍 폭이면 타임라인)
     const tg = $('deepToGloss'); if (tg) tg.onclick = () => close();
     const ex = $('deepExpand'); if (ex) ex.onclick = () => { const all = [...drawer.querySelectorAll('.deep-note details')]; const openAll = all.some(d => !d.open); all.forEach(d => { d.open = openAll; }); ex.textContent = openAll ? '요약만 보기' : '모두 펼치기'; };
-    drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false');
+    hidePeek(); drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false');
     if (wantPin() && window.innerWidth >= 1100) setPin(true);
     if (!document.body.classList.contains('deep-pinned')) scrim.classList.add('open');
     if (!keepFocus) $('deepClose').focus();
@@ -1190,7 +1201,8 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   function close() {
     drawer.classList.remove('open'); scrim.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('deep-pinned'); $('deepPin').setAttribute('aria-pressed', 'false');
-    lastFocus?.focus();
+    hidePeek();
+    if (lastFocus) { quietFocus = true; lastFocus.focus(); setTimeout(() => { quietFocus = false; }, 0); }   // 닫은 뒤 원래 자리로 돌아가되 미리보기는 다시 띄우지 않음
   }
   const wantPin = () => { try { return localStorage.getItem('deep-pin') === '1'; } catch (e) { return false; } };
   function setPin(on, remember) {
@@ -1208,7 +1220,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- deep-drawer:end -->
-<!-- hub-search:start v1.1.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
+<!-- hub-search:start v1.2.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .hs-open { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); color: var(--muted, #566778);
   border-radius: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
@@ -1295,6 +1307,14 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
           });
         }));
       }));
+      const guide = await getJSON('/guide.json');           // 학습 가이드: 항해도마다 하나 + 전체 안내
+      if (guide) {
+        docs.push({ kind: '학습 가이드', where: '허브', title: '학습 가이드 — 공부 순서와 방법',
+          text: '권장 경로 선수 지식 학습 목표 권장 순서 이론 실습 완료 기준 공부하는 방법 ' + guide.stages.map(s => s.name).join(' '), href: '/guide.html' });
+        guide.roadmaps.forEach(g => docs.push({ kind: '학습 가이드', where: g.title, title: `${g.title} 학습 가이드`,
+          text: [g.summary, ...g.levels.flatMap(l => [l.name, l.tagline, ...l.prereq, ...l.goals, ...l.outcomes])].filter(Boolean).join(' · '),
+          href: `/guide.html#rm-${g.id}` }));
+      }
       for (const s of REG.services || []) {
         const idx = await getJSON(`/${s.id}/content/index.json`);
         if (!idx) { down.push(s.title); continue; }
@@ -1385,7 +1405,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- hub-search:end -->
-<!-- progress-sync:start v1.1.0 -->
+<!-- progress-sync:start v1.2.0 -->
 <script>
 /* 진도 동기화: 클라우드 허브(로그인 + /api)에서만 동작합니다. 로컬 허브(Docker)·단독 실행에는 /api가 없어 아무것도 하지 않습니다.
    - 서버 → 브라우저: 다른 기기에서 한 진도를 가져와 합칩니다(완료·통과는 어느 쪽이든 유지).
@@ -1412,27 +1432,30 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     const reg = await fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => null);
     const list = (reg && reg.roadmaps) || [];
     const keys = PORTAL ? list.map(r => r.storageKey) : list.filter(r => r.id === seg).map(r => r.storageKey);
+    // 조회자(viewer) 권한인 항해도는 진도를 서버에 저장하지 않음 (서버도 403으로 막음) — 브라우저에만 남김
+    const idOf = Object.fromEntries(list.map(r => [r.storageKey, r.id]));
+    const canSave = k => !me.roles || ['editor', 'admin'].includes(me.roles[idOf[k]]);
     const server = await api('/api/progress').then(r => r.json()).catch(() => ({ items: [] }));
     const srv = Object.fromEntries((server.items || []).map(i => [i.site, i.state]));
     let changed = false;
     for (const k of keys) {
       const local = read(k), m = merge(local, srv[k]);
       if (m && JSON.stringify(m) !== JSON.stringify(local)) { localStorage.setItem(k, JSON.stringify(m)); changed = true; }
-      if (m && JSON.stringify(m) !== JSON.stringify(srv[k])) post('/api/progress', { site: k, state: m });
+      if (m && canSave(k) && JSON.stringify(m) !== JSON.stringify(srv[k])) post('/api/progress', { site: k, state: m });
     }
     if (changed && !sessionStorage.getItem('hangdo-synced-' + seg)) { sessionStorage.setItem('hangdo-synced-' + seg, '1'); location.reload(); return; }
     const timers = {};
     const orig = Storage.prototype.setItem;
     Storage.prototype.setItem = function (k, v) {
       orig.call(this, k, v);
-      if (this === localStorage && keys.includes(k)) { clearTimeout(timers[k]); timers[k] = setTimeout(() => post('/api/progress', { site: k, state: read(k) || {} }), 2000); }
+      if (this === localStorage && keys.includes(k) && canSave(k)) { clearTimeout(timers[k]); timers[k] = setTimeout(() => post('/api/progress', { site: k, state: read(k) || {} }), 2000); }
     };
     let last = '';
     const view = () => { const r = location.hash || '/'; if (r !== last) { last = r; post('/api/view', { site: PORTAL ? '' : seg, route: r }); } };
     view(); addEventListener('hashchange', view);
     const b = document.createElement('div');
     b.className = 'ps-badge';
-    b.innerHTML = `<span></span>${me.admin ? ` · <a href="/admin/">관리${me.pending ? ` <b>(대기 ${Number(me.pending)})</b>` : ''}</a>` : ''}${me.guest ? ' · 게스트(준비·기본)' : ''} · <a href="/auth/logout">로그아웃</a>`;
+    b.innerHTML = `<span></span>${me.admin ? ` · <a href="/admin/">관리${me.pending ? ` <b>(대기 ${Number(me.pending)})</b>` : ''}</a>` : ''}${(me.manages || []).length ? ` · <a href="/manage/">권한 관리</a>` : ''}${me.guest ? ' · 게스트(준비·기본)' : (!PORTAL && me.roles && me.roles[seg] === 'viewer') ? ' · 조회 전용(진도는 이 브라우저에만)' : ''} · <a href="/auth/logout">로그아웃</a>`;
     b.firstChild.textContent = me.login;
     const st = document.createElement('style');
     st.textContent = '.ps-badge{position:fixed;right:12px;bottom:12px;z-index:70;font:12px/1.4 system-ui,sans-serif;padding:6px 10px;border-radius:999px;background:var(--paper,#f2f5f7);color:var(--muted,#566778);border:1px solid var(--rule,#d3dce4)}.ps-badge a{color:inherit}';

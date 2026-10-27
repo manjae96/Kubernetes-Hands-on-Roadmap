@@ -25,7 +25,6 @@
 - NetworkPolicy가 CNI에 의해 집행된다는 점을 이해하고, 기본 차단 위에 필요한 통신만 엽니다.
 - `namespaceSelector`·`podSelector`의 AND/OR 차이로 생기는 과다 허용을 찾아냅니다.
 - Pod Security의 restricted 기준을 네임스페이스에 적용하고, 기준을 통과하는 securityContext를 작성합니다.
-- 스케줄링 제어, CRD·Operator, 업그레이드·복구를 다룹니다. (예정 콘텐츠 공개 후)
 
 ## ③ 권장 학습 순서
 

@@ -2,6 +2,16 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.6.0 — 2026-10-28
+
+교육 중심 정리
+
+- 미공개 계획 항목을 사이트에서 빼고 docs/backlog.json으로 옮김, 「예정·준비 중」 문구 정리
+- 단계 목표 정리, HPA 0까지 축소 링크 연결
+- 공통 템플릿: 용어 미리보기·클릭 동작 정리(deep-drawer 1.3.0), 권한별 진도 저장(progress-sync 1.2.0), 검색에 학습 가이드(hub-search 1.2.0)
+
+공통 템플릿: deep-drawer v1.3.0 · hub-search v1.2.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.5.0 — 2026-10-26
 
 중급 예정 항목 공개 (2차)
