@@ -1220,7 +1220,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- deep-drawer:end -->
-<!-- hub-search:start v1.2.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
+<!-- hub-search:start v1.3.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .hs-open { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); color: var(--muted, #566778);
   border-radius: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
@@ -1289,19 +1289,22 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
       await Promise.all(REG.roadmaps.map(async r => {
         const [cat, gl] = await Promise.all([getJSON(`/${r.id}/content/catalog.json`), getJSON(`/${r.id}/content/glossary.json`)]);
         if (!cat) { down.push(r.title); return; }
+        const aka = (r.aliases || []).join(' ');           // 바뀌기 전 이름(예: 도메인 → DNS·HTTPS)으로도 찾게
+        docs.push({ kind: '항해도', where: r.title, aka, title: r.title + (aka ? ` (${aka})` : ''),
+          text: [r.summary, ...(r.owns || []), ...(r.areas || [])].filter(Boolean).join(' · '), href: `/${r.id}/` });
         (cat.items || []).filter(i => i.status === 'published').forEach(i => docs.push({
-          kind: '과정', where: r.title, title: i.title,
+          kind: '과정', where: r.title, aka, title: i.title,
           text: [i.summary, i.purpose, (i.outline || []).join(' · '), (i.tags || []).join(' ')].filter(Boolean).join(' — '),
           href: `/${r.id}/#/item/${i.id}` }));
         ((gl && (gl.terms || gl)) || []).forEach(t => docs.push({
-          kind: '용어', where: r.title, title: `${t.ko}${t.en && t.en !== t.ko ? ` (${t.en})` : ''}`,
+          kind: '용어', where: r.title, aka, title: `${t.ko}${t.en && t.en !== t.ko ? ` (${t.en})` : ''}`,
           text: t.desc || t.short || '', href: `/${r.id}/?deep=${encodeURIComponent(t.id)}` }));
         // 읽을거리 페이지(버전 비교·버전의 역사·검증 보고서 …): ## 절마다 하나씩 색인
         await Promise.all((cat.pages || []).map(async pg => {
           const md = await fetch(`/${r.id}/${pg.file}`, { cache: 'no-cache' }).then(x => x.ok ? x.text() : '').catch(() => '');
           md.split(/^## /m).slice(1).forEach(sec => {
             const head = sec.split('\n', 1)[0].replace(/\{#[^}]*\}/g, '').trim();
-            docs.push({ kind: '페이지', where: r.title, title: `${pg.title} · ${head}`,
+            docs.push({ kind: '페이지', where: r.title, aka, title: `${pg.title} · ${head}`,
               text: sec.slice(head.length).replace(/```[\s\S]*?```/g, ' ').replace(/\[\[([\w-]+)(\|[^\]]*)?\]\]/g, '$1').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#*|`>:-]+/g, ' ').replace(/\s+/g, ' ').slice(0, 1500),
               href: `/${r.id}/${pg.href}` });
           });
@@ -1311,7 +1314,9 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
       if (guide) {
         docs.push({ kind: '학습 가이드', where: '허브', title: '학습 가이드 — 공부 순서와 방법',
           text: '권장 경로 선수 지식 학습 목표 권장 순서 이론 실습 완료 기준 공부하는 방법 ' + guide.stages.map(s => s.name).join(' '), href: '/guide.html' });
-        guide.roadmaps.forEach(g => docs.push({ kind: '학습 가이드', where: g.title, title: `${g.title} 학습 가이드`,
+        (guide.tracks || []).forEach(t => docs.push({ kind: '학습 가이드', where: '학습 트랙', title: `${t.title} 트랙`,
+          text: [t.summary, t.audience, t.outcome, ...t.steps.map(s => s.roadmap)].join(' · '), href: '/guide.html#track-' + t.id }));
+        guide.roadmaps.forEach(g => docs.push({ kind: '학습 가이드', where: g.title, aka: (g.aliases || []).join(' '), title: `${g.title} 학습 가이드`,
           text: [g.summary, ...g.levels.flatMap(l => [l.name, l.tagline, ...l.prereq, ...l.goals, ...l.outcomes])].filter(Boolean).join(' · '),
           href: `/guide.html#rm-${g.id}` }));
       }
@@ -1326,7 +1331,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
             href: `/${s.id}/#/note/${n.id}` });
         }));
       }
-      docs.forEach(d => { d._t = d.title.toLowerCase(); d._x = d.text.toLowerCase(); d._w = d.where.toLowerCase(); });
+      docs.forEach(d => { d._t = d.title.toLowerCase(); d._x = d.text.toLowerCase(); d._w = `${d.where} ${d.aka || ''}`.toLowerCase(); });
       DOCS = docs;
     })();
     return building;
@@ -1335,7 +1340,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   function search(q) {
     const toks = q.toLowerCase().split(/\s+/).filter(Boolean);
     if (!toks.length) return [];
-    const W = { '심화 노트': 3, '과정': 2, '페이지': 1, '용어': 0 };
+    const W = { '항해도': 4, '심화 노트': 3, '과정': 2, '페이지': 1, '용어': 0, '학습 가이드': 1 };
     return DOCS.map(d => {
       let score = 0;
       for (const t of toks) {

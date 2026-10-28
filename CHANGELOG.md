@@ -2,6 +2,15 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.6.2 — 2026-10-28
+
+공통 템플릿 갱신: 통합 검색 1.3.0
+
+- 공통 템플릿: 통합 검색 hub-search 1.3.0 — 바뀌기 전 이름(aliases)으로도 검색, 항해도·학습 트랙 항목 추가, 학습 가이드 가중치 누락 수정
+- 자매 사이트 이름 갱신: Jenkins CI/CD · Terraform IaC · DNS·HTTPS · Harbor·Nexus 레지스트리
+
+공통 템플릿: deep-drawer v1.3.0 · hub-search v1.3.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.6.1 — 2026-10-28
 
 상황 문장 다듬기
