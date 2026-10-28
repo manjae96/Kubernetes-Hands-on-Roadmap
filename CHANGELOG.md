@@ -2,6 +2,14 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.6.1 — 2026-10-28
+
+상황 문장 다듬기
+
+- 고급 종합 과제 상황의 주어(플랫폼 팀) 정리
+
+공통 템플릿: deep-drawer v1.3.0 · hub-search v1.2.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.6.0 — 2026-10-28
 
 교육 중심 정리
