@@ -1623,3 +1623,89 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- progress-sync:end -->
+<!-- return-to:start v1.0.0 — 실습 항해도 공통 「이전 실습으로 돌아가기」 (Hands-On-Roadmap/templates/return-to.html에서 관리, 직접 고치지 말 것) -->
+<script>
+/* 이전 실습으로 돌아가기: 기본·중급·고급 실습 화면에서 준비 과정·선수 학습 링크(같은 항해도 또는 다른 항해도의 #/item/…)를 누르면
+   그 목적지 화면에 「이전 실습으로 돌아가기」(원래 항해도·과정 이름·돌아갈 경로)를 보여 줍니다.
+   - 기억하는 곳: sessionStorage(hangdo-return) — 이 탭에서만, 새로고침해도 유지, 탭을 닫으면 사라짐. 6시간이 지나면 버림.
+   - 주소로 직접 들어오면(기록 없음) 보이지 않습니다. 원래 실습으로 돌아오면(링크·뒤로 가기 모두) 기록을 지웁니다.
+   - 돌아갈 경로는 같은 사이트의 「/<항해도>/#/item/<id>」 형태만 허용합니다(외부 주소·//host·인코딩 우회·javascript: 모두 거부).
+   - 화면 주소·방문 기록은 건드리지 않아 브라우저 뒤로 가기와 충돌하지 않습니다. */
+(() => {
+  if (location.protocol === 'file:') return;
+  const KEY = 'hangdo-return', TTL = 6 * 3600e3;
+  const SRC_LEVELS = ['basic', 'intermediate', 'advanced', '기초', '기본', '중급', '고급'];
+  const PREP_LEVELS = ['prep', '준비'];
+  const ITEM_PATH = /^\/(?:[a-z0-9-]{1,40}\/)?(?:index\.html)?#\/item\/[A-Za-z0-9_.-]{1,80}$/;
+  const safePath = p => {                                  // 같은 사이트의 과정 화면 상대 경로만 (그 외는 null)
+    if (typeof p !== 'string' || p.length > 200 || !ITEM_PATH.test(p)) return null;
+    try { const u = new URL(p, location.origin); return u.origin === location.origin && u.pathname + u.hash === p ? p : null; } catch (e) { return null; }
+  };
+  const itemOf = hash => { const m = /^#\/item\/([A-Za-z0-9_.-]{1,80})(?:[?#].*)?$/.exec(hash || ''); return m ? m[1] : null; };
+  const here = () => { const id = itemOf(location.hash); return id ? safePath(location.pathname + '#/item/' + id) : null; };
+  const read = () => {
+    let s = null; try { s = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (!s || typeof s !== 'object' || !safePath(s.from) || !safePath(s.to) || !(Date.now() - s.ts < TTL)) { if (s) clear(); return null; }
+    return s;
+  };
+  const clear = () => { try { sessionStorage.removeItem(KEY); } catch (e) {} };
+  const firstTitle = (document.title || '').split(' — ').pop();
+  let ITEMS = null, RM = firstTitle;
+  fetch('content/catalog.json', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(c => {
+    if (!c || !Array.isArray(c.items)) return;
+    ITEMS = Object.fromEntries(c.items.map(i => [i.id, i]));
+    if (c.meta && c.meta.title) RM = c.meta.title;
+  }).catch(() => {});
+  const seg = location.pathname.split('/')[1] || '';
+  if (seg && seg !== 'index.html') fetch('/roadmaps.json', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(reg => {
+    const r = reg && (reg.roadmaps || []).find(x => x.id === seg); if (r && r.title) RM = r.title;
+  }).catch(() => {});
+
+  // 기본·중급·고급 실습 화면에서 준비·선수 학습 링크를 누를 때 기록 (이동 전에 동기로)
+  document.addEventListener('click', e => {
+    if (e.button !== 0 || !ITEMS) return;
+    const a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+    const src = ITEMS[itemOf(location.hash)]; if (!src || !SRC_LEVELS.includes(src.level)) return;
+    let u; try { u = new URL(a.getAttribute('href'), location.href); } catch (x) { return; }
+    if (u.origin !== location.origin) return;
+    const dest = itemOf(u.hash); if (!dest) return;
+    if (u.pathname === location.pathname) {
+      const d = ITEMS[dest];
+      if (dest === src.id || !d || !(PREP_LEVELS.includes(d.level) || (src.prereq || []).includes(dest) || dest === 'setup')) return;
+    } else if (!/^\/[a-z0-9-]{1,40}\/(?:index\.html)?$/.test(u.pathname)) return;   // 다른 항해도의 과정
+    const from = safePath(location.pathname + '#/item/' + src.id), to = safePath(u.pathname + '#/item/' + dest);
+    if (!from || !to || from === to) return;
+    try { sessionStorage.setItem(KEY, JSON.stringify({ from, to, roadmap: String(RM).slice(0, 80), item: String(src.title || src.id).slice(0, 120), ts: Date.now() })); } catch (x) {}
+  }, true);
+
+  // 목적지 화면에 안내 (돌아오면 기록 지움)
+  const show = () => {
+    const old = document.getElementById('hangdo-return'); if (old) old.remove();
+    const s = read(), cur = here();
+    if (!s || !cur) return;
+    if (cur === s.from) { clear(); return; }
+    if (cur !== s.to) return;
+    const nav = document.createElement('nav');
+    nav.id = 'hangdo-return'; nav.setAttribute('aria-label', '이전 실습으로 돌아가기');
+    nav.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:75;max-width:min(440px,calc(100vw - 24px));display:grid;gap:2px;padding:10px 40px 10px 14px;border-radius:12px;font:13px/1.45 system-ui,sans-serif;background:var(--paper,#fff);color:var(--ink,#1b2733);border:1px solid var(--chart,#2c6fb3);box-shadow:0 6px 20px rgba(0,0,0,.15)';
+    const link = document.createElement('a');
+    link.setAttribute('href', s.from); link.textContent = '↩ 이전 실습으로 돌아가기';
+    link.style.cssText = 'font-weight:700;color:var(--chart,#2c6fb3)';
+    link.addEventListener('click', clear);
+    const where = document.createElement('span');
+    where.textContent = `${s.roadmap} · ${s.item}`;
+    const path = document.createElement('code');
+    path.textContent = s.from; path.style.cssText = 'font-size:12px;color:var(--muted,#566778);overflow-wrap:anywhere';
+    const x = document.createElement('button');
+    x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', '돌아가기 안내 닫기');
+    x.style.cssText = 'position:absolute;right:6px;top:6px;width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer';
+    x.addEventListener('click', () => { clear(); nav.remove(); });
+    nav.append(link, where, path, x);
+    document.body.appendChild(nav);
+  };
+  addEventListener('hashchange', show);
+  addEventListener('pageshow', show);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();
+})();
+</script>
+<!-- return-to:end -->
