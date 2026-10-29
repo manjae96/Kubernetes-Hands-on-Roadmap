@@ -2,6 +2,19 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.7.0 — 2026-10-30
+
+VPA 추천 과정과 자원 계획 보강
+
+- 게스트 진도 영역 보호(오래된 탭 쓰기 차단)
+- 이전 실습으로 돌아가기
+- 과정별 피드백 양식
+- 중급: VPA로 requests 추천받기(i-vpa, 실행 검증) 추가
+- 자원 계획·HPA 계산 과정 보강
+- 준비: minikube containerd 런타임 명시
+
+공통 템플릿: deep-drawer v1.3.0 · hub-search v1.3.0 · theme-toggle v1.0.0 · deploy v1.0.0
+
 ## v1.6.2 — 2026-10-28
 
 공통 템플릿 갱신: 통합 검색 1.3.0
