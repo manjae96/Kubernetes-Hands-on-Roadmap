@@ -158,6 +158,10 @@ Client Version: v1.37.1
 Kustomize Version: v5.8.1
 ```
 
+:::note 설치한 바이너리가 맞는지
+`kubectl`·`minikube`가 여러 곳에 깔려 있으면 예전 것이 먼저 실행될 수 있습니다. `type -a kubectl`로 후보를, `uname -m`과 `file -L "$(command -v kubectl)"`로 아키텍처(amd64·arm64)가 맞는지 확인합니다. 체크섬·서명의 의미와 전체 점검표는 [리눅스 「환경 변수·PATH·셸 설정 파일」 개념 6](/linux/#/item/b-env)에 있습니다.
+:::
+
 ## 실습 클러스터 만들기
 
 여기서부터는 운영체제와 관계없이 같습니다. Windows 사용자는 WSL2 Ubuntu 셸에서 실행합니다.

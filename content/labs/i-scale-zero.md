@@ -265,6 +265,8 @@ ScaledToZero=False (NotScaledToZero)
 | 지표 지연 | 큐 → Prometheus 수집 → 어댑터 → HPA(기본 15초 주기)까지 수십 초. 이 실습도 몇십 초씩 걸림 |
 | 어댑터가 죽으면 | 지표를 못 읽어 HPA가 판단을 멈춤(`ScalingActive=False`). 0인 채로 머물 수 있으니 어댑터도 감시 대상 |
 | PodDisruptionBudget | `minAvailable: 1` 같은 PDB는 0과 맞지 않음 (자발적 중단 차단) |
+| 0에서 깨어날 때의 자리 | 0 → N으로 늘 때 새 파드의 requests만큼 노드 여유와 네임스페이스 ResourceQuota가 있어야 뜸. 모자라면 `Pending`이거나(노드) 아예 안 생김(쿼터) → [중급 2의 6~8단계](#/item/i-lab02) 계산·쿼터 |
+| 줄이는 속도 | 이 실습은 `stabilizationWindowSeconds: 0`으로 바로 줄임. 기본 300초의 뜻과 늘리기·줄이기 정책은 [중급 2의 6단계](#/item/i-lab02) |
 
 ## 성공 판정
 

@@ -752,11 +752,11 @@
       "status": "published",
       "required": true,
       "title": "자원 요청·제한과 HorizontalPodAutoscaler",
-      "summary": "requests·limits와 QoS 클래스를 확인하고, 메모리 초과로 인한 OOMKilled를 재현한 뒤 metrics-server와 HPA로 CPU 기반 자동 확장을 실습합니다.",
+      "summary": "requests·limits와 QoS 클래스를 확인하고, Pending·CPU 스로틀링·OOMKilled를 구분해 재현한 뒤 metrics-server와 HPA로 CPU 기반 자동 확장을 실습하고, HPA 레플리카·노드 용량을 계산하고 LimitRange·ResourceQuota로 네임스페이스 상한을 둡니다.",
       "purpose": "자원 설정이 스케줄링·종료·자동 확장에 어떻게 쓰이는지 연결합니다.",
       "minutes": {
-        "concept": 30,
-        "handson": 60,
+        "concept": 45,
+        "handson": 75,
         "review": 25
       },
       "versions": [
@@ -799,11 +799,27 @@
         {
           "title": "Resource metrics pipeline",
           "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/"
+        },
+        {
+          "title": "Horizontal Pod Autoscaling (Algorithm details · Default Behavior)",
+          "url": "https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/"
+        },
+        {
+          "title": "Reserve Compute Resources for System Daemons",
+          "url": "https://kubernetes.io/docs/tasks/administer-cluster/reserve-compute-resources/"
+        },
+        {
+          "title": "Limit Ranges",
+          "url": "https://kubernetes.io/docs/concepts/policy/limit-range/"
+        },
+        {
+          "title": "Resource Quotas",
+          "url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/"
         }
       ],
       "verification": {
         "status": "partial",
-        "summary": "requests·limits, QoS, OOMKilled 재현은 실행 검증했습니다. metrics-server를 설치할 수 없어 HPA는 객체 생성·스펙 검증까지만 하고 실제 확장 동작은 검증하지 못했습니다."
+        "summary": "requests·limits, QoS, OOMKilled 재현은 실행 검증했습니다. metrics-server를 설치할 수 없어 HPA는 객체 생성·스펙 검증까지만 하고 실제 확장 동작은 검증하지 못했습니다. 2026-10-29에 추가한 CPU 스로틀링·노드 할당 가능량·LimitRange·ResourceQuota 단계는 로컬 kind(Kubernetes v1.35.0)에서 실행해 출력을 기록했고, 계산 단계는 awk 결과를 macOS·Ubuntu에서 확인했습니다."
       },
       "file": "content/labs/i-lab02.md",
       "tags": [
@@ -814,13 +830,25 @@
         "HPA",
         "metrics-server",
         "kubectl top",
-        "autoscaling"
+        "autoscaling",
+        "Pending",
+        "스로틀링",
+        "throttling",
+        "HPA 계산",
+        "stabilization window",
+        "scaleUp",
+        "scaleDown",
+        "Allocatable",
+        "노드 용량",
+        "system-reserved",
+        "LimitRange",
+        "ResourceQuota"
       ],
       "checks": [
         "i2-oom",
         "i2-hpa"
       ],
-      "yamlFiles": 5
+      "yamlFiles": 7
     },
     {
       "id": "i-lab03",
@@ -924,7 +952,9 @@
       "tags": [
         "HPA",
         "scale to zero",
-        "1.37"
+        "1.37",
+        "ResourceQuota",
+        "노드 용량"
       ],
       "file": "content/labs/i-scale-zero.md",
       "checks": [
