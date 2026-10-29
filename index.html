@@ -1709,3 +1709,104 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- return-to:end -->
+<!-- feedback:start v1.0.0 — 실습 항해도 공통 「문제 신고·질문 보내기」 (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<script>
+/* 문제 신고·질문 보내기: 과정 화면(#/item/…)에서 관리자에게 피드백을 보냅니다 (사이트 안 비동기 피드백함, POST /api/feedback).
+   - 클라우드 허브에 로그인(회원·게스트)했을 때만 보입니다. 로컬·단독 실행에는 /api가 없어 나타나지 않습니다.
+   - 함께 보내는 것: 항해도 id · 과정 id · 지금 화면의 상대 경로. 보낸 사람·회원/게스트 구분·시각·콘텐츠 버전은 서버가 붙입니다.
+   - 보내지 않는 것: 쿠키 · 토큰 · localStorage · 클립보드 · 터미널 기록 · 환경 변수 (입력한 글과 붙여 넣은 오류 출력만) */
+(() => {
+  if (location.protocol === 'file:') return;
+  const KINDS = [['hard', '설명을 이해하기 어려움'], ['command', '명령이 실행되지 않음'], ['typo', '링크 또는 오탈자'], ['outdated', '내용이 오래됨'], ['access', '권한 또는 접근 문제'], ['other', '기타']];
+  const MAX = { message: 2000, errorOutput: 8000 };
+  const seg = location.pathname.split('/')[1] || '';
+  if (!/^[a-z0-9-]{1,40}$/.test(seg)) return;
+  const itemOf = () => { const m = /^#\/item\/([A-Za-z0-9_.-]{1,80})/.exec(location.hash); return m ? m[1] : ''; };
+  const here = () => { const id = itemOf(); return `/${seg}/` + (id ? `#/item/${id}` : ''); };
+  let me = null, btn = null, dlg = null;
+  const REASON = {
+    'empty-message': '내용을 입력하세요.', 'too-long': '글이 너무 깁니다. 줄여서 다시 보내 주세요.', 'too-large': '보낼 내용이 너무 큽니다. 오류 출력은 필요한 부분만 붙여 넣어 주세요.',
+    'bad-kind': '유형을 고르세요.', 'bad-origin': '이 화면에서 보낸 요청이 아니라 거부되었습니다. 새로고침한 뒤 다시 보내 주세요.', 'login-required': '로그인이 끝났습니다. 다시 로그인한 뒤 보내 주세요.',
+    'project-forbidden': '이 항해도에 피드백을 보낼 권한이 없습니다.',
+  };
+  const css = `#hangdo-fb-open{position:fixed;right:12px;bottom:52px;z-index:74;font:600 13px/1 system-ui,sans-serif;padding:9px 14px;border-radius:999px;border:1px solid var(--chart,#2c6fb3);background:var(--paper,#fff);color:var(--chart,#2c6fb3);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+#hangdo-fb-open:focus-visible,#hangdo-fb button:focus-visible,#hangdo-fb select:focus-visible,#hangdo-fb textarea:focus-visible{outline:2px solid var(--chart,#2c6fb3);outline-offset:2px}
+#hangdo-fb{width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 24px);border:1px solid var(--rule,#d3dce4);border-radius:14px;padding:18px 18px 14px;background:var(--paper,#fff);color:var(--ink,#1b2733);font:14px/1.5 system-ui,sans-serif}
+#hangdo-fb::backdrop{background:rgba(0,0,0,.45)}#hangdo-fb h2{font-size:1.05rem;margin:0 0 6px}#hangdo-fb label{display:block;font-weight:600;margin:10px 0 4px}
+#hangdo-fb select,#hangdo-fb textarea{width:100%;box-sizing:border-box;font:inherit;padding:7px 9px;border:1px solid var(--rule,#d3dce4);border-radius:8px;background:var(--paper,#fff);color:inherit}
+#hangdo-fb textarea{min-height:96px;resize:vertical}#hangdo-fb textarea.mono{font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:80px}
+#hangdo-fb .hint{font-size:12.5px;color:var(--muted,#566778);margin:4px 0 0}#hangdo-fb .warn{font-size:12.5px;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--warn-soft,#fdf1e2);color:var(--ink,#1b2733)}
+#hangdo-fb dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px;color:var(--muted,#566778);margin:10px 0 0}#hangdo-fb dd{margin:0;overflow-wrap:anywhere}
+#hangdo-fb .row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}#hangdo-fb .row button{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--rule,#d3dce4);background:var(--paper,#fff);color:inherit;cursor:pointer}
+#hangdo-fb .row button.primary{background:var(--chart,#2c6fb3);border-color:var(--chart,#2c6fb3);color:#fff}#hangdo-fb .msg{margin:10px 0 0;font-size:13px}#hangdo-fb .msg.err{color:var(--risk,#c2410c);font-weight:600}#hangdo-fb .msg.ok{color:var(--ok,#2f8f4e);font-weight:600}`;
+
+  function build() {
+    const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+    btn = document.createElement('button');
+    btn.type = 'button'; btn.id = 'hangdo-fb-open'; btn.textContent = '문제 신고·질문 보내기';
+    btn.setAttribute('aria-haspopup', 'dialog');
+    dlg = document.createElement('dialog');
+    dlg.id = 'hangdo-fb'; dlg.setAttribute('aria-labelledby', 'hangdo-fb-h');
+    dlg.innerHTML = `<form method="dialog" novalidate>
+      <h2 id="hangdo-fb-h">문제 신고·질문 보내기</h2>
+      <p class="hint">관리자에게 이 과정에 대한 의견을 보냅니다. 답은 실시간이 아니며, 확인한 뒤 과정 내용에 반영합니다.</p>
+      <label for="hangdo-fb-kind">유형</label>
+      <select id="hangdo-fb-kind" name="kind" required></select>
+      <label for="hangdo-fb-msg">내용 <span aria-hidden="true">(필수)</span></label>
+      <textarea id="hangdo-fb-msg" name="message" required maxlength="${MAX.message}" aria-describedby="hangdo-fb-msg-h"></textarea>
+      <p class="hint" id="hangdo-fb-msg-h">무엇이 어려웠는지, 어떤 단계에서 막혔는지 적어 주세요. 최대 ${MAX.message}자.</p>
+      <label for="hangdo-fb-err">오류 출력 <span class="hint" style="font-weight:400">(선택)</span></label>
+      <textarea id="hangdo-fb-err" class="mono" name="errorOutput" maxlength="${MAX.errorOutput}" aria-describedby="hangdo-fb-warn"></textarea>
+      <p class="warn" id="hangdo-fb-warn"><b>붙여 넣기 전에 비밀값을 지우세요.</b> 비밀번호·토큰·API 키·kubeconfig·인증서·개인 정보는 「***」로 바꿔 주세요. 오류가 난 부분만 최대 ${MAX.errorOutput}자.</p>
+      <dl aria-label="함께 보내는 정보"><dt>항해도</dt><dd data-f="roadmap"></dd><dt>과정</dt><dd data-f="item"></dd><dt>화면</dt><dd data-f="url"></dd><dt>보낸 사람</dt><dd data-f="who"></dd><dt>그 밖</dt><dd>보낸 시각·콘텐츠 버전은 서버가 붙입니다. 쿠키·브라우저 저장소·클립보드는 보내지 않습니다.</dd></dl>
+      <p class="msg" role="status" aria-live="polite" data-f="status"></p>
+      <div class="row"><button type="button" data-a="close">닫기</button><button type="submit" class="primary" data-a="send">보내기</button></div>
+    </form>`;
+    const sel = dlg.querySelector('select');
+    sel.innerHTML = KINDS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+    document.body.append(btn, dlg);
+    btn.addEventListener('click', open);
+    dlg.querySelector('[data-a=close]').addEventListener('click', () => dlg.close());
+    dlg.addEventListener('close', () => btn.focus());
+    dlg.querySelector('form').addEventListener('submit', send);
+  }
+  const say = (text, cls) => { const m = dlg.querySelector('[data-f=status]'); m.className = 'msg ' + (cls || ''); m.setAttribute('role', cls === 'err' ? 'alert' : 'status'); m.textContent = text; };
+  function open() {
+    dlg.querySelector('[data-f=roadmap]').textContent = seg;
+    dlg.querySelector('[data-f=item]').textContent = itemOf() || '(과정 화면이 아님)';
+    dlg.querySelector('[data-f=url]').textContent = here();
+    dlg.querySelector('[data-f=who]').textContent = me.guest ? '게스트' : '회원';
+    say('');
+    dlg.showModal();
+    dlg.querySelector('textarea[name=message]').focus();
+  }
+  let busy = false;
+  async function send(e) {
+    e.preventDefault();
+    if (busy) return;
+    const f = e.target, message = f.message.value.trim(), errorOutput = f.errorOutput.value;
+    if (!message) { say('내용을 입력하세요.', 'err'); f.message.setAttribute('aria-invalid', 'true'); f.message.focus(); return; }
+    if (message.length > MAX.message || errorOutput.length > MAX.errorOutput) { say(REASON['too-long'], 'err'); return; }
+    f.message.removeAttribute('aria-invalid');
+    busy = true; f.querySelector('[data-a=send]').disabled = true; say('보내는 중…');
+    try {
+      const r = await fetch('/api/feedback', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ kind: f.kind.value, message, errorOutput, roadmap: seg, item: itemOf(), url: here() }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) { f.message.value = ''; f.errorOutput.value = ''; say(`보냈습니다 (접수 번호 ${Number(d.id) || '-'}). 관리자가 확인한 뒤 과정 내용에 반영합니다.`, 'ok'); }
+      else if (r.status === 429) say(`잠시 뒤에 다시 보내 주세요 — 짧은 시간에 너무 많이 보냈습니다${d.retryAfterMinutes ? ` (최대 ${d.retryAfterMinutes}분 뒤)` : ''}.`, 'err');
+      else say(`보내지 못했습니다: ${REASON[d.error] || `서버 오류 (${r.status})`}`, 'err');
+    } catch (x) { say('보내지 못했습니다: 네트워크에 연결할 수 없습니다. 잠시 뒤 다시 시도하세요.', 'err'); }
+    finally { busy = false; f.querySelector('[data-a=send]').disabled = false; }
+  }
+  const sync = () => { if (btn) btn.hidden = !itemOf(); };   // 과정 화면에서만
+  fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => {
+    if (!d) return;
+    me = d;
+    const go = () => { build(); sync(); };
+    if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+  }).catch(() => {});
+  addEventListener('hashchange', sync);
+})();
+</script>
+<!-- feedback:end -->
