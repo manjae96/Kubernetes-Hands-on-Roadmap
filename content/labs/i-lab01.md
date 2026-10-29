@@ -84,7 +84,7 @@ base64는 암호화가 아니라는 것을 직접 확인합니다.
 kubectl get secret db-cred -n lab-i01 -o jsonpath='{.data.password}' | base64 -d; echo
 ```
 
-`S3cr3t-Pa55`가 그대로 나옵니다. macOS의 오래된 base64는 `-d` 대신 `-D`를 씁니다.
+`S3cr3t-Pa55`가 그대로 나옵니다. macOS의 오래된 base64는 `-d` 대신 `-D`를 씁니다. 인코딩·해시·암호화·서명·TLS·봉투 암호화(KMS)의 차이는 심화 노트 [[encryption|암호화·복호화 기초]]에 정리되어 있습니다.
 
 ## 2단계: ConfigMap 만들기
 

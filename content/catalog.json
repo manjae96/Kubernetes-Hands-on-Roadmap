@@ -988,6 +988,83 @@
       }
     },
     {
+      "id": "i-vpa",
+      "level": "intermediate",
+      "type": "lesson",
+      "status": "published",
+      "required": false,
+      "title": "VPA로 requests 추천받기 (Vertical Pod Autoscaler)",
+      "summary": "VPA를 고정 버전으로 설치하고 추천만 받는 Off 모드로 실제 사용량에 맞는 requests를 읽은 뒤, Initial 모드로 새 파드에만 반영하고 HPA와의 충돌·적용하면 안 되는 경우를 정리합니다.",
+      "purpose": "HPA(개수)와 짝이 되는 VPA(크기)를 언제 쓰고 언제 쓰지 말아야 하는지 판단합니다. (선택)",
+      "minutes": {
+        "concept": 25,
+        "handson": 40,
+        "review": 10
+      },
+      "versions": [
+        "1.37",
+        "1.36",
+        "1.35"
+      ],
+      "versionNotes": {
+        "1.35": "VPA 1.8.x의 호환 범위는 Kubernetes 1.36–1.38이라 1.35에서는 VPA 1.7.3(vertical-pod-autoscaler-1.7.3 태그)을 씁니다. 명령은 같지만 1.7.3 조합은 실행 검증하지 않았습니다."
+      },
+      "outline": [
+        "VPA 세 구성 요소와 갱신 모드(Off·Initial·Recreate·InPlaceOrRecreate, Auto 폐기 예정)",
+        "버전 고정과 설치(hack/vpa-up.sh)",
+        "추천만 받기: target·lowerBound·upperBound 읽기",
+        "Initial: 새 파드에만 반영, requests 변경은 파드 재생성",
+        "HPA와 충돌하는 조합, 적용하면 안 되는 상황",
+        "정리: vpa-down.sh"
+      ],
+      "tags": [
+        "VPA",
+        "Vertical Pod Autoscaler",
+        "requests 추천",
+        "updateMode",
+        "Off",
+        "Initial",
+        "Recreate",
+        "HPA 충돌",
+        "선택 심화"
+      ],
+      "file": "content/labs/i-vpa.md",
+      "prereq": [
+        "i-lab02"
+      ],
+      "env": "minikube k8s-lab · metrics-server 애드온 · VPA 1.8.1(1.35는 1.7.3) · 네임스페이스 lab-vpa",
+      "docs": [
+        {
+          "title": "Vertical Pod Autoscaler (kubernetes/autoscaler)",
+          "url": "https://github.com/kubernetes/autoscaler/tree/vertical-pod-autoscaler-1.8.1/vertical-pod-autoscaler"
+        },
+        {
+          "title": "VPA Installation (호환 표·vpa-up.sh)",
+          "url": "https://github.com/kubernetes/autoscaler/blob/vertical-pod-autoscaler-1.8.1/vertical-pod-autoscaler/docs/installation.md"
+        },
+        {
+          "title": "VPA Quick start (updateMode)",
+          "url": "https://github.com/kubernetes/autoscaler/blob/vertical-pod-autoscaler-1.8.1/vertical-pod-autoscaler/docs/quickstart.md"
+        },
+        {
+          "title": "VPA Known limitations",
+          "url": "https://github.com/kubernetes/autoscaler/blob/vertical-pod-autoscaler-1.8.1/vertical-pod-autoscaler/docs/known-limitations.md"
+        },
+        {
+          "title": "Kubernetes: Vertical Pod Autoscaling",
+          "url": "https://kubernetes.io/docs/concepts/workloads/autoscaling/vertical-pod-autoscale/"
+        }
+      ],
+      "verification": {
+        "status": "runtime",
+        "summary": "minikube v1.38.1(docker 런타임) · Kubernetes v1.37.0에 VPA 1.8.1을 태그 고정으로 설치해, 추천(Off: target·lowerBound·upperBound·uncappedTarget), Off에서 파드·requests 불변, Initial 재생성 반영, 메모리 전용 정책의 서버 dry-run, 성공 판정, 정리까지 게시된 명령을 실행해 통과했습니다(2026-10-30). Recreate 축출, Kubernetes 1.36, 1.35용 VPA 1.7.3은 실행하지 않았습니다."
+      },
+      "checks": [
+        "vpa-recommend"
+      ],
+      "yamlFiles": 1
+    },
+    {
       "id": "i-cap",
       "level": "intermediate",
       "type": "capstone",

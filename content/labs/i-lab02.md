@@ -472,6 +472,8 @@ maxReplicas 5 적용 → 최종 5개
 
 정책 기본값은 [공식 문서: Default Behavior](https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/#default-behavior)에 있습니다.
 
+requests 값 자체를 사용량 기록으로 추천받는 방법은 선택 심화 [VPA로 requests 추천받기](#/item/i-vpa)에 있습니다. 같은 CPU 지표로 HPA와 VPA를 함께 쓰면 안 되는 이유도 거기서 다룹니다.
+
 :::note 실제 값은 측정해서 정합니다
 위 숫자는 계산 연습용 입력입니다. 「requests는 얼마, 목표는 몇 %」에 정답은 없습니다. 부하 시험과 `kubectl top`·모니터링으로 **평소·최대 사용량을 측정**해 requests를 정하고, 목표 사용률은 늘어나는 동안(새 파드가 뜨는 수십 초) 남은 파드가 버틸 여유를 보고 정합니다.
 :::

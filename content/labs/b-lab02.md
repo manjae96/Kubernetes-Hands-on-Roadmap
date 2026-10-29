@@ -349,6 +349,8 @@ criteria: 출력에 「DB_HOST」가 포함됨
 | `logs`에 아무것도 없음 | `kubectl logs ... --previous`, `describe`의 Last State | 앱이 파일에만 로그를 쓰거나, 재시작 전 로그입니다. 앱은 표준 출력으로 로그를 남기도록 설정하는 것이 원칙입니다. |
 | 이벤트가 보이지 않음 | `kubectl get events -n lab-b02` | 이벤트는 기본 1시간 뒤 삭제됩니다. 오래된 문제는 로그·모니터링으로 추적합니다. |
 
+증상별(CrashLoopBackOff·ImagePullBackOff·Pending·OOMKilled·PVC Pending·EndpointSlice 없음 등)로 가장 저렴한 확인부터 재발 방지까지 정리한 색인은 심화 노트 [[troubleshooting|트러블슈팅 인덱스]]에 있습니다.
+
 ## 응용 과제
 
 **과제 1.** `maxSurge: 0`, `maxUnavailable: 1`로 바꾸고 이미지를 `nginx:1.30.6-alpine`으로 되돌려 apply하세요. 업데이트 중 준비된 파드 수가 어떻게 달라지나요? 이 설정에서 태그 오타를 배포하면 어떤 일이 생길까요?
