@@ -11,7 +11,7 @@
 - 이 과정은 **선택 심화**입니다. VPA는 쿠버네티스 본체가 아니라 [kubernetes/autoscaler](https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler) 저장소의 **애드온**이라, 설치·버전 관리를 직접 합니다.
 
 :::note 검증 범위
-**Kubernetes v1.37.0 + VPA 1.8.1** 조합에서 설치 → 추천(`Off`) → `Initial` 반영 → 정리까지 실제로 실행했고, 출력 블록은 그 결과입니다(2026-10-30, minikube v1.38.1). Kubernetes **1.36**은 VPA 1.8.1의 호환 범위지만 실행하지 않았고, **1.35용 VPA 1.7.3**도 실행하지 않았습니다 — 명령은 같지만 출력·기본값이 다를 수 있습니다. 추천 숫자는 PC 성능과 측정 시간에 따라 달라집니다.
+**Kubernetes v1.37.0 + VPA 1.8.1** 조합에서 설치 → 추천(`Off`) → `Initial` 반영 → 정리까지 실제로 실행했고, 출력 블록은 그 결과입니다(2026-10-30, minikube v1.38.1). Kubernetes **1.36**은 VPA 1.8.1의 호환 범위지만 실행하지 않았고, **1.35용 VPA 1.7.3**도 실행하지 않았습니다 — 명령은 같지만 출력·기본값이 다를 수 있습니다. 추천 숫자는 PC 성능과 측정 시간에 따라 달라집니다. 검증 클러스터는 [준비 과정](#/item/setup)의 containerd가 아니라 docker 런타임이었지만, 이 과정은 `kubectl exec`를 쓰지 않아 런타임 차이의 영향을 받지 않습니다.
 :::
 
 ## 개념: 개수(HPA)가 아니라 크기(VPA)
@@ -187,7 +187,8 @@ Pod resources updated by vpa-demo: container 0: cpu request, memory request, cpu
 ```
 
 - 모드를 바꿔도 **실행 중인 파드는 그대로**입니다. 새로 만들어진 파드에만 admission controller가 추천값을 넣었고, 파드 주석 `vpaUpdates`에 그 기록이 남습니다. Deployment 템플릿(`50m`)은 바뀌지 않았습니다 — 값은 파드가 만들어지는 순간 웹훅이 바꿉니다.
-- limits도 원래 비율(requests 50m : limits 1 = 1:20)을 지키며 함께 커졌습니다(`controlledValues: RequestsAndLimits`가 기본). 비율이 큰 limits는 이렇게 노드 크기를 넘어설 수 있어, `resourcePolicy`로 최대값(`maxAllowed`)을 두는 것이 안전합니다.
+- limits도 원래 비율(requests 50m : limits 1 = 1:20)을 지키며 함께 커졌습니다(`controlledValues: RequestsAndLimits`가 기본): 587m × 20 = **11740m(약 11.7코어)**. 비율이 큰 limits는 이렇게 노드 크기를 넘어설 수 있어, `resourcePolicy`로 최대값(`maxAllowed`)을 두거나 limits는 그대로 두는 `controlledValues: RequestsOnly`를 고려합니다.
+- 587m·11740m은 **몇 분 관찰한 실습 결과일 뿐 운영 권장값이 아닙니다.** 운영 값은 며칠치 기록과 부하 시험으로 정합니다(아래 「환경의 한계」).
 - 검증 때 `sleep 35` 없이 바로 조회하면 종료 중인 옛 파드(50m) 2개가 함께 보였습니다. 새 파드(587m)와 옛 파드가 섞여 보여도 정상입니다.
 - `Recreate`(기본값)로 두면 updater가 1분마다 보고, 추천과 크게 다른 파드를 **축출**해 같은 방식으로 다시 만들게 합니다. VPA 1.8.1 기본 설정(`--min-replicas=2`)에서는 복제본이 2개 미만인 워크로드를 축출하지 않습니다. 이 과정은 `Recreate` 축출을 실행해 보지는 않았습니다.
 

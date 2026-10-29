@@ -167,17 +167,22 @@ Kustomize Version: v5.8.1
 여기서부터는 운영체제와 관계없이 같습니다. Windows 사용자는 WSL2 Ubuntu 셸에서 실행합니다.
 
 ```bash shell="실습 터미널 (WSL2 Ubuntu 셸 · macOS 터미널 · Linux 터미널)"
-minikube start -p k8s-lab --driver=docker --kubernetes-version=v1.37.0 --cpus=2 --memory=4096
+minikube start -p k8s-lab --driver=docker --container-runtime=containerd --kubernetes-version=v1.37.0 --cpus=2 --memory=4096
 ```
 
 | 옵션 | 의미 |
 |---|---|
 | `-p k8s-lab` | 프로필(클러스터) 이름. kubectl 컨텍스트 이름도 `k8s-lab`이 됩니다. |
 | `--driver=docker` | 노드를 Docker 컨테이너로 실행합니다. |
+| `--container-runtime=containerd` | 노드 안에서 컨테이너를 돌리는 런타임. 이 시리즈의 실행 검증은 containerd로 했습니다. |
 | `--kubernetes-version=v1.37.0` | 클러스터 버전. 1.36은 `v1.36.4`, 1.35는 `v1.35.8`을 씁니다. |
 | `--cpus=2 --memory=4096` | 노드 컨테이너에 줄 CPU 수와 메모리(MB). HPA 실습까지 고려한 값입니다. |
 
 처음 실행하면 노드 이미지와 Kubernetes 구성 요소를 내려받느라 수 분이 걸립니다.
+
+:::warn 런타임을 지정하는 이유
+minikube v1.38.1에서 런타임을 지정하지 않으면 docker 런타임(cri-dockerd)으로 만들어지고, 이 조합과 Kubernetes v1.37.0에서 `kubectl exec`가 `server gave HTTP response to HTTPS client`로 실패하는 것을 2026-10-30 검증 중 확인했습니다(파드 생성·로그·`kubectl top`은 정상). 여러 실습이 `kubectl exec`를 쓰므로 containerd로 만듭니다. 이미 다른 런타임으로 만든 `k8s-lab`에서 같은 오류가 나면 `minikube delete -p k8s-lab` 후 위 명령으로 다시 만듭니다(클러스터 안의 실습 자원은 사라짐). minikube 버전마다 기본 런타임이 다를 수 있습니다.
+:::
 
 ```output kind=example
 😄  [k8s-lab] minikube v1.39.0 on Ubuntu 24.04
@@ -245,7 +250,7 @@ kubectl config use-context k8s-lab
 
 ```bash shell="실습 터미널"
 minikube delete -p k8s-lab
-minikube start -p k8s-lab --driver=docker --kubernetes-version=v1.36.4 --cpus=2 --memory=4096
+minikube start -p k8s-lab --driver=docker --container-runtime=containerd --kubernetes-version=v1.36.4 --cpus=2 --memory=4096
 ```
 
 kubectl v1.37.1은 버전 차이 정책에 따라 1.36·1.38 클러스터와 함께 쓸 수 있습니다. 1.35 클러스터는 마이너 2 차이라 지원 범위 밖이므로, 1.35로 학습할 때는 kubectl v1.35.9 또는 v1.36.5를 설치하거나 minikube에 포함된 kubectl을 씁니다.
