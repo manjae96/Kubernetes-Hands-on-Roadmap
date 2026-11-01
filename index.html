@@ -7,12 +7,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<!-- site-head:start v1.0.0 — 실습 항해도 공통 머리 정보 (Hands-On-Roadmap/templates/site-head.html에서 관리, 직접 고치지 말 것) -->
+<!-- site-head:start v1.1.0 — 실습 항해도 공통 머리 정보 (Hands-On-Roadmap/templates/site-head.html에서 관리, 직접 고치지 말 것) -->
 <!-- favicon: 원본은 허브 portal/assets/favicon.svg. 클라우드 허브(Worker)·로컬 게이트웨이·단독 실행(deploy nginx) 모두 사이트 루트에서 로그인 없이 내줌 -->
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script>
+/* CSP(script-src-attr 'none'): 폼의 인라인 onsubmit 속성 대신, data-hangdo-nosubmit 표시가 있는 검색·필터 폼의 제출(새로고침)을 여기서 막음 */
+document.addEventListener('submit', e => { if (e.target instanceof HTMLFormElement && e.target.hasAttribute('data-hangdo-nosubmit')) e.preventDefault(); }, true);
+</script>
 <!-- site-head:end -->
-<!-- progress-scope:start v1.0.0 — 실습 항해도 공통 「진도 영역」 (Hands-On-Roadmap/templates/progress-scope.html에서 관리, 직접 고치지 말 것) -->
+<!-- progress-scope:start v1.0.1 — 실습 항해도 공통 「진도 영역」 (Hands-On-Roadmap/templates/progress-scope.html에서 관리, 직접 고치지 말 것) -->
 <script>
 /* 진도 영역: 같은 브라우저를 여러 사람(게스트 이용권·회원)이 써도 진도가 섞이지 않게 합니다. <head>에서 앱보다 먼저 실행됩니다.
    - 클라우드 허브가 HTML을 내줄 때 쿠키 hangdo_scope에 이 사람·이용권의 진도 영역(추측할 수 없는 값, 게스트 g…·회원 m…)을 알려 줍니다.
@@ -75,7 +79,11 @@
       const d = document.createElement('div');
       d.id = 'hangdo-scope-alert'; d.setAttribute('role', 'alert');
       d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483000;max-width:min(560px,calc(100vw - 32px));padding:12px 16px;border-radius:12px;font:14px/1.5 system-ui,sans-serif;background:#fff4d6;color:#3d2c00;border:1px solid #e0b84a;box-shadow:0 6px 24px rgba(0,0,0,.18)';
-      d.innerHTML = '<b>사용자 또는 세션 상태가 변경되었습니다.</b><div>다른 탭에서 로그인·로그아웃했거나 세션이 만료되어 이 탭은 진도를 더 저장하지 않습니다(이미 저장된 진도는 지우지 않았습니다). 새로고침하면 지금 상태로 이어집니다.</div><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-a="reload" style="font:inherit;padding:4px 12px;border-radius:8px;border:1px solid #b08a1e;background:#fff;cursor:pointer">새로고침</button><a href="/" style="padding:4px 12px;border-radius:8px;border:1px solid #b08a1e;color:inherit;text-decoration:none;background:#fff">현재 사용자 화면(포털)으로</a></div>';
+      d.innerHTML = '<b>사용자 또는 세션 상태가 변경되었습니다.</b><div>다른 탭에서 로그인·로그아웃했거나 세션이 만료되어 이 탭은 진도를 더 저장하지 않습니다(이미 저장된 진도는 지우지 않았습니다). 새로고침하면 지금 상태로 이어집니다.</div><div data-p="row"><button type="button" data-a="reload">새로고침</button><a href="/">현재 사용자 화면(포털)으로</a></div>';
+      // CSP: style 속성 대신 CSSOM으로 같은 모양 (style-src는 속성의 인라인 스타일을 막음)
+      d.querySelector('[data-p=row]').style.cssText = 'margin-top:8px;display:flex;gap:8px;flex-wrap:wrap';
+      d.querySelector('[data-a=reload]').style.cssText = 'font:inherit;padding:4px 12px;border-radius:8px;border:1px solid #b08a1e;background:#fff;cursor:pointer';
+      d.querySelector('a[href="/"]').style.cssText = 'padding:4px 12px;border-radius:8px;border:1px solid #b08a1e;color:inherit;text-decoration:none;background:#fff';
       d.querySelector('[data-a=reload]').onclick = () => location.reload();
       document.body.appendChild(d);
     };
@@ -508,7 +516,7 @@ a.term { color: inherit; text-decoration: underline dotted var(--chart); text-un
 <a class="skip" href="#main">본문으로 건너뛰기</a>
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="hub-link" id="hubLink" href="/" style="display:none;align-items:center;gap:4px;font-size:.85rem;color:var(--muted);text-decoration:none;white-space:nowrap">← 전체 항해도</a>
+    <a class="hub-link" id="hubLink" href="/" hidden>← 전체 항해도</a>
     <a class="brand" href="#/" aria-label="쿠버네티스 실습 항해도 홈">
       <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 3v6M16 23v6M3 16h6M23 16h6M6.8 6.8l4.2 4.2M21 21l4.2 4.2M6.8 25.2l4.2-4.2M21 11l4.2-4.2"/></g></svg>
       <span>쿠버네티스 실습 항해도</span>
@@ -540,7 +548,7 @@ a.term { color: inherit; text-decoration: underline dotted var(--chart); text-un
 </div>
 <footer class="site-foot"><div id="foot">콘텐츠 근거: kubernetes.io 공식 문서 (CC BY 4.0). 진도는 이 브라우저에만 저장됩니다.</div></footer>
 
-<script src="https://cdn.jsdelivr.net/npm/marked@18.0.14/lib/marked.umd.js"></script>
+<script src="vendor/marked.umd.js"></script>
 <script>
 (() => {
 'use strict';
@@ -1019,7 +1027,7 @@ function renderLabs() {
   setNav('labs'); setSide(null);
   if (!labFilter.version) labFilter.version = state.version;
   const m = setMain(`<div class="page-head"><div class="eyebrow">핸즈온</div><h1>핸즈온 목록</h1><p class="lede">실습과 종합 과제를 난이도와 Kubernetes 버전으로 골라 봅니다. 선택한 버전에서 진행할 수 없는 항목은 이유와 함께 표시합니다.</p></div>
-    <form class="filters" id="labForm" role="search" onsubmit="return false">
+    <form class="filters" id="labForm" role="search" data-hangdo-nosubmit>
       <div class="field"><label for="fq">검색</label><input id="fq" type="search" value="${esc(labFilter.q)}" placeholder="예: HPA, Secret, rollout"></div>
       <div class="field"><label for="fl">난이도</label><select id="fl"><option value="all">전체</option>${C.levels.map(L => `<option value="${L.id}">${esc(L.marker + ' ' + L.name)}</option>`).join('')}</select></div>
       <div class="field"><label for="fv">버전</label><select id="fv"><option value="all">전체</option>${C.versions.map(v => `<option value="${v.minor}">${v.minor} 에서 가능</option>`).join('')}</select></div>
@@ -1069,7 +1077,7 @@ function renderGlossary(anchor) {
   setNav('glossary'); setSide(null);
   const cats = [...new Set(G.map(g => g.cat))];
   const m = setMain(`<div class="page-head"><div class="eyebrow">용어집 · ${G.length}개</div><h1>용어집</h1><p class="lede">강의에서 처음 등장하는 용어를 한국어 설명과 영어 원어로 정리했습니다. 「Kubernetes 기능」과 「외부 생태계 도구」를 구분해 표시합니다.</p></div>
-    <form class="filters" role="search" onsubmit="return false"><div class="field"><label for="gq">용어 찾기</label><input id="gq" type="search" placeholder="한국어 또는 영어"></div>
+    <form class="filters" role="search" data-hangdo-nosubmit><div class="field"><label for="gq">용어 찾기</label><input id="gq" type="search" placeholder="한국어 또는 영어"></div>
     <div class="field"><label for="gc">분류</label><select id="gc"><option value="all">전체</option>${cats.map(c => `<option>${esc(c)}</option>`).join('')}</select></div><span class="count" id="gcount"></span></form>
     <div class="gloss-list" id="glist"></div>`);
   const draw = () => {
@@ -1167,7 +1175,10 @@ boot().catch(e => { document.getElementById('main').innerHTML = '<h1>사이트�
 <script>
 /* 실습 항해도 허브(Hands-On-Roadmap) 아래에서 열렸을 때만 '전체 항해도' 링크를 보여 줍니다. 단독 실행에서는 숨김. */
 fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(d => {
-  if (d && (d.roadmaps || []).some(x => x.id === 'k8s')) document.getElementById('hubLink').style.display = 'inline-flex';
+  if (!d || !(d.roadmaps || []).some(x => x.id === 'k8s')) return;
+  const a = document.getElementById('hubLink');
+  a.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-size:.85rem;color:var(--muted);text-decoration:none;white-space:nowrap';
+  a.hidden = false;
 }).catch(() => {});
 </script>
 <!-- deep-drawer:start v1.3.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
@@ -1563,7 +1574,11 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- hub-search:end -->
-<!-- progress-sync:start v1.3.0 -->
+<!-- progress-sync:start v1.3.1 -->
+<style>
+/* 로그인 배지 (CSP: 정적 <style>) */
+.ps-badge{position:fixed;right:12px;bottom:12px;z-index:70;font:12px/1.4 system-ui,sans-serif;padding:6px 10px;border-radius:999px;background:var(--paper,#f2f5f7);color:var(--muted,#566778);border:1px solid var(--rule,#d3dce4)}.ps-badge a{color:inherit}
+</style>
 <script>
 /* 진도 동기화: 클라우드 허브(로그인 + /api)에서만 동작합니다. 로컬 허브(Docker)·단독 실행에는 /api가 없어 아무것도 하지 않습니다.
    - 서버 → 브라우저: 다른 기기에서 한 진도를 가져와 합칩니다(완료·통과는 어느 쪽이든 유지).
@@ -1623,9 +1638,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     b.className = 'ps-badge';
     b.innerHTML = `<span></span>${me.admin ? ` · <a href="/admin/">관리${me.pending ? ` <b>(대기 ${Number(me.pending)})</b>` : ''}</a>` : ''}${(me.manages || []).length ? ` · <a href="/manage/">권한 관리</a>` : ''}${me.guest ? ' · 게스트(준비·기본)' : (!PORTAL && me.roles && me.roles[seg] === 'viewer') ? ' · 조회 전용(진도는 이 브라우저에만)' : ''} · <a href="/auth/logout">로그아웃</a>`;
     b.firstChild.textContent = me.login;
-    const st = document.createElement('style');
-    st.textContent = '.ps-badge{position:fixed;right:12px;bottom:12px;z-index:70;font:12px/1.4 system-ui,sans-serif;padding:6px 10px;border-radius:999px;background:var(--paper,#f2f5f7);color:var(--muted,#566778);border:1px solid var(--rule,#d3dce4)}.ps-badge a{color:inherit}';
-    document.head.appendChild(st); document.body.appendChild(b);
+    document.body.appendChild(b);
   })();
 })();
 </script>
@@ -1716,7 +1729,21 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- return-to:end -->
-<!-- feedback:start v1.0.0 — 실습 항해도 공통 「문제 신고·질문 보내기」 (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<!-- feedback:start v1.0.1 — 실습 항해도 공통 「문제 신고·질문 보내기」 (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<style>
+/* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>을 만들지 않음 */
+#hangdo-fb-open{position:fixed;right:12px;bottom:52px;z-index:74;font:600 13px/1 system-ui,sans-serif;padding:9px 14px;border-radius:999px;border:1px solid var(--chart,#2c6fb3);background:var(--paper,#fff);color:var(--chart,#2c6fb3);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+#hangdo-fb-open:focus-visible,#hangdo-fb button:focus-visible,#hangdo-fb select:focus-visible,#hangdo-fb textarea:focus-visible{outline:2px solid var(--chart,#2c6fb3);outline-offset:2px}
+#hangdo-fb{width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 24px);border:1px solid var(--rule,#d3dce4);border-radius:14px;padding:18px 18px 14px;background:var(--paper,#fff);color:var(--ink,#1b2733);font:14px/1.5 system-ui,sans-serif}
+#hangdo-fb::backdrop{background:rgba(0,0,0,.45)}#hangdo-fb h2{font-size:1.05rem;margin:0 0 6px}#hangdo-fb label{display:block;font-weight:600;margin:10px 0 4px}
+#hangdo-fb select,#hangdo-fb textarea{width:100%;box-sizing:border-box;font:inherit;padding:7px 9px;border:1px solid var(--rule,#d3dce4);border-radius:8px;background:var(--paper,#fff);color:inherit}
+#hangdo-fb textarea{min-height:96px;resize:vertical}#hangdo-fb textarea.mono{font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:80px}
+#hangdo-fb .hint{font-size:12.5px;color:var(--muted,#566778);margin:4px 0 0}#hangdo-fb .warn{font-size:12.5px;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--warn-soft,#fdf1e2);color:var(--ink,#1b2733)}
+#hangdo-fb dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px;color:var(--muted,#566778);margin:10px 0 0}#hangdo-fb dd{margin:0;overflow-wrap:anywhere}
+#hangdo-fb .row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}#hangdo-fb .row button{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--rule,#d3dce4);background:var(--paper,#fff);color:inherit;cursor:pointer}
+#hangdo-fb .row button.primary{background:var(--chart,#2c6fb3);border-color:var(--chart,#2c6fb3);color:#fff}#hangdo-fb .msg{margin:10px 0 0;font-size:13px}#hangdo-fb .msg.err{color:var(--risk,#c2410c);font-weight:600}#hangdo-fb .msg.ok{color:var(--ok,#2f8f4e);font-weight:600}
+#hangdo-fb .hint-inline{font-weight:400}
+</style>
 <script>
 /* 문제 신고·질문 보내기: 과정 화면(#/item/…)에서 관리자에게 피드백을 보냅니다 (사이트 안 비동기 피드백함, POST /api/feedback).
    - 클라우드 허브에 로그인(회원·게스트)했을 때만 보입니다. 로컬·단독 실행에는 /api가 없어 나타나지 않습니다.
@@ -1736,19 +1763,8 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     'bad-kind': '유형을 고르세요.', 'bad-origin': '이 화면에서 보낸 요청이 아니라 거부되었습니다. 새로고침한 뒤 다시 보내 주세요.', 'login-required': '로그인이 끝났습니다. 다시 로그인한 뒤 보내 주세요.',
     'project-forbidden': '이 항해도에 피드백을 보낼 권한이 없습니다.',
   };
-  const css = `#hangdo-fb-open{position:fixed;right:12px;bottom:52px;z-index:74;font:600 13px/1 system-ui,sans-serif;padding:9px 14px;border-radius:999px;border:1px solid var(--chart,#2c6fb3);background:var(--paper,#fff);color:var(--chart,#2c6fb3);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)}
-#hangdo-fb-open:focus-visible,#hangdo-fb button:focus-visible,#hangdo-fb select:focus-visible,#hangdo-fb textarea:focus-visible{outline:2px solid var(--chart,#2c6fb3);outline-offset:2px}
-#hangdo-fb{width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 24px);border:1px solid var(--rule,#d3dce4);border-radius:14px;padding:18px 18px 14px;background:var(--paper,#fff);color:var(--ink,#1b2733);font:14px/1.5 system-ui,sans-serif}
-#hangdo-fb::backdrop{background:rgba(0,0,0,.45)}#hangdo-fb h2{font-size:1.05rem;margin:0 0 6px}#hangdo-fb label{display:block;font-weight:600;margin:10px 0 4px}
-#hangdo-fb select,#hangdo-fb textarea{width:100%;box-sizing:border-box;font:inherit;padding:7px 9px;border:1px solid var(--rule,#d3dce4);border-radius:8px;background:var(--paper,#fff);color:inherit}
-#hangdo-fb textarea{min-height:96px;resize:vertical}#hangdo-fb textarea.mono{font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:80px}
-#hangdo-fb .hint{font-size:12.5px;color:var(--muted,#566778);margin:4px 0 0}#hangdo-fb .warn{font-size:12.5px;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--warn-soft,#fdf1e2);color:var(--ink,#1b2733)}
-#hangdo-fb dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px;color:var(--muted,#566778);margin:10px 0 0}#hangdo-fb dd{margin:0;overflow-wrap:anywhere}
-#hangdo-fb .row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}#hangdo-fb .row button{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--rule,#d3dce4);background:var(--paper,#fff);color:inherit;cursor:pointer}
-#hangdo-fb .row button.primary{background:var(--chart,#2c6fb3);border-color:var(--chart,#2c6fb3);color:#fff}#hangdo-fb .msg{margin:10px 0 0;font-size:13px}#hangdo-fb .msg.err{color:var(--risk,#c2410c);font-weight:600}#hangdo-fb .msg.ok{color:var(--ok,#2f8f4e);font-weight:600}`;
 
   function build() {
-    const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
     btn = document.createElement('button');
     btn.type = 'button'; btn.id = 'hangdo-fb-open'; btn.textContent = '문제 신고·질문 보내기';
     btn.setAttribute('aria-haspopup', 'dialog');
@@ -1762,7 +1778,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
       <label for="hangdo-fb-msg">내용 <span aria-hidden="true">(필수)</span></label>
       <textarea id="hangdo-fb-msg" name="message" required maxlength="${MAX.message}" aria-describedby="hangdo-fb-msg-h"></textarea>
       <p class="hint" id="hangdo-fb-msg-h">무엇이 어려웠는지, 어떤 단계에서 막혔는지 적어 주세요. 최대 ${MAX.message}자.</p>
-      <label for="hangdo-fb-err">오류 출력 <span class="hint" style="font-weight:400">(선택)</span></label>
+      <label for="hangdo-fb-err">오류 출력 <span class="hint hint-inline">(선택)</span></label>
       <textarea id="hangdo-fb-err" class="mono" name="errorOutput" maxlength="${MAX.errorOutput}" aria-describedby="hangdo-fb-warn"></textarea>
       <p class="warn" id="hangdo-fb-warn"><b>붙여 넣기 전에 비밀값을 지우세요.</b> 비밀번호·토큰·API 키·kubeconfig·인증서·개인 정보는 「***」로 바꿔 주세요. 오류가 난 부분만 최대 ${MAX.errorOutput}자.</p>
       <dl aria-label="함께 보내는 정보"><dt>항해도</dt><dd data-f="roadmap"></dd><dt>과정</dt><dd data-f="item"></dd><dt>화면</dt><dd data-f="url"></dd><dt>보낸 사람</dt><dd data-f="who"></dd><dt>그 밖</dt><dd>보낸 시각·콘텐츠 버전은 서버가 붙입니다. 쿠키·브라우저 저장소·클립보드는 보내지 않습니다.</dd></dl>
