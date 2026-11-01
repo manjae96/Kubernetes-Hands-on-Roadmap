@@ -16,7 +16,7 @@
 document.addEventListener('submit', e => { if (e.target instanceof HTMLFormElement && e.target.hasAttribute('data-hangdo-nosubmit')) e.preventDefault(); }, true);
 </script>
 <!-- site-head:end -->
-<!-- progress-scope:start v1.0.1 — 실습 항해도 공통 「진도 영역」 (Hands-On-Roadmap/templates/progress-scope.html에서 관리, 직접 고치지 말 것) -->
+<!-- progress-scope:start v1.1.0 — 실습 항해도 공통 「진도 영역」 (Hands-On-Roadmap/templates/progress-scope.html에서 관리, 직접 고치지 말 것) -->
 <script>
 /* 진도 영역: 같은 브라우저를 여러 사람(게스트 이용권·회원)이 써도 진도가 섞이지 않게 합니다. <head>에서 앱보다 먼저 실행됩니다.
    - 클라우드 허브가 HTML을 내줄 때 쿠키 hangdo_scope에 이 사람·이용권의 진도 영역(추측할 수 없는 값, 게스트 g…·회원 m…)을 알려 줍니다.
@@ -35,7 +35,8 @@ document.addEventListener('submit', e => { if (e.target instanceof HTMLFormEleme
   const MIG = 'hangdo-progress-migration', MIG_V = '1', BACKUP = 'hangdo-backup:v1:';
   const GUEST_LOCKED = ['intermediate', 'advanced', '중급', '고급'];   // tools/build_static.py GUEST_LOCKED_LEVELS와 같음
   const isApp = k => /^[a-z0-9-]+-hangdo-v1$/.test(k);
-  const isProgress = k => isApp(k) || k === 'hangdo-portal-recent' || k === 'hangdo-portal-track';
+  // 레벨테스트 결과(hangdo-level-test)도 사람·이용권별 — 허브와 항해도가 한 출처(localStorage 공유)라 모든 화면의 이 목록이 같아야 함
+  const isProgress = k => isApp(k) || k === 'hangdo-portal-recent' || k === 'hangdo-portal-track' || k === 'hangdo-level-test';
   let want = 'local';
   try { const m = document.cookie.match(/(?:^|;\s*)hangdo_scope=([A-Za-z0-9_-]{8,40})(?:;|$)/); if (m) want = m[1]; } catch (e) {}
   let ls; try { ls = localStorage; } catch (e) { return; }   // 저장소를 쓸 수 없는 환경: 아무것도 하지 않음
