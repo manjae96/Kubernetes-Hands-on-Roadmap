@@ -1,5 +1,5 @@
 #!/bin/sh
-# 실습 항해도 공통 배포 규칙 deploy v1.0.0 (Hands-On-Roadmap/templates에서 관리 — 항해도 저장소에서 직접 고치지 말 것)
+# 실습 항해도 공통 배포 규칙 deploy v1.1.0 (Hands-On-Roadmap/templates에서 관리 — 항해도 저장소에서 직접 고치지 말 것)
 # BASE_PATH(예: /locust)에 맞춰 nginx 설정을 만든다. 비우거나 /면 루트(/)에서 제공한다.
 # 게이트웨이는 경로를 잘라 내지 않고 그대로 넘긴다 (/locust/content/catalog.json → 이 컨테이너).
 # nginx 공식 이미지는 시작할 때 /docker-entrypoint.d/*.sh를 차례로 실행한다.
@@ -42,6 +42,9 @@ server {
 
     # 상태 확인 (게이트웨이·쿠버네티스 프로브용). 경로 앞붙임과 상관없이 둘 다 응답
     location = /healthz { default_type application/json; return 200 '$health'; }
+    # favicon (원본: 허브 portal/assets/favicon.svg — tools/apply_series.py가 채움). 단독 실행에서도 콘솔 404가 나지 않게
+    location = /favicon.svg { default_type image/svg+xml; add_header Cache-Control "public, max-age=86400"; add_header X-Content-Type-Options nosniff; return 200 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="실습 항해도"><rect width="32" height="32" rx="7" fill="#1d5bb8"/><circle cx="16" cy="16" r="9.5" fill="none" stroke="#fff" stroke-width="2.2"/><path d="M16 8.5l3.2 7.5L16 23.5 12.8 16z" fill="#fff"/><path d="M16 8.5l3.2 7.5h-6.4z" fill="#ffd166"/></svg>'; }
+    location = /favicon.ico { return 302 /favicon.svg; }
 CONF
 if [ "$bp" != "/" ]; then
 cat <<CONF
