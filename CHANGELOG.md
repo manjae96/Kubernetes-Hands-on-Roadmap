@@ -2,6 +2,16 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.7.1 — 2026-11-02
+
+공통 템플릿: favicon·lang·CSP 대응·레벨테스트 결과 사람별 분리
+
+- 공통 favicon 링크와 html lang=ko
+- CSP 대응: 인라인 이벤트·style 속성 제거, marked 자체 호스팅
+- 진도 영역 1.1.0: 레벨테스트 결과를 사람·이용권별로 분리
+
+공통 템플릿: deep-drawer v1.3.0 · hub-search v1.3.0 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.7.0 — 2026-10-30
 
 VPA 추천 과정과 자원 계획 보강
