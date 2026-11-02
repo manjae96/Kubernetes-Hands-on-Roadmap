@@ -425,7 +425,7 @@ criteria: 두 DNS 모두 .211, eu Gslb Unhealthy
 ```bash shell="실습 터미널" run=skip
 cd ~/k8gb-lab && export KUBECONFIG=$PWD/kubeconfig
 kind delete cluster --name gslb-eu; kind delete cluster --name gslb-us
-docker rm -f k8gb-edge; docker network rm k8gb-net
+docker rm -f -v k8gb-edge; docker network rm k8gb-net   # -v: BIND 이미지가 만든 익명 볼륨까지 (검증 중 빼먹어 남은 것을 확인)
 cd ~ && rm -rf ~/k8gb-lab                  # TSIG 키·kubeconfig·값 파일
 ```
 
