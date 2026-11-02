@@ -245,7 +245,7 @@ wget: can't connect to remote host (192.168.58.200): No route to host
 |---|---|---|
 | `EXTERNAL-IP <pending>` | MetalLB 미설치 · 풀 없음 · 풀 바닥(`AllocationFailed`) · 서비스가 고른 풀 이름 오타 | `kubectl get events`의 `AllocationFailed`, `kubectl get ipaddresspool -A` |
 | 주소는 있는데 접속·ARP 실패 | L2Advertisement 없음 · control-plane만 있고 exclude 레이블 · speaker 없음 · 풀이 다른 대역 | `kubectl get servicel2statuses -A`가 비면 알리는 노드 없음 → `kubectl -n metallb-system logs ds/speaker` |
-| macOS·Windows에서 브라우저로 안 열림 | docker 드라이버의 노드 네트워크는 호스트에서 직접 닿지 않음 (리눅스 호스트는 닿음) | 같은 Docker 네트워크 컨테이너로 시험, 또는 `minikube tunnel -p k8s-lab` |
+| macOS·Windows에서 브라우저로 안 열림 | Docker Desktop은 docker 드라이버의 노드 네트워크에 호스트에서 직접 닿지 않음 (리눅스 호스트는 닿음, OrbStack은 검증 PC에서 닿는 것을 확인) | 같은 Docker 네트워크 컨테이너로 시험, 또는 `minikube tunnel -p k8s-lab` |
 | 가끔 다른 장비로 가거나 끊김 | 풀 주소를 다른 장비(공유기 DHCP 등)도 씀 — 같은 IP에 두 MAC | 풀을 DHCP 범위 밖으로, `arping`에 응답 MAC이 둘이면 충돌 |
 | 클라이언트 IP가 노드 주소로 보임 | `externalTrafficPolicy: Cluster`의 SNAT | `Local`로 바꾸고 파드가 있는 노드만 알리는지 확인 |
 | 웹훅 오류 `failed calling webhook "ipaddresspoolvalidationwebhook"` | controller가 아직 준비 안 됨 | `kubectl -n metallb-system wait --for=condition=Available deploy/controller` 뒤 다시 |

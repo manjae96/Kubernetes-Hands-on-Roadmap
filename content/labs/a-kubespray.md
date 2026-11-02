@@ -12,7 +12,7 @@
 - 이 과정은 **선택 심화**입니다. 필수 과정·캡스톤 진행에 필요하지 않습니다.
 
 :::note 검증 범위
-**Kubespray v2.32.0(태그, 커밋 `9751ea6f`) · 공식 이미지 `quay.io/kubespray/kubespray:v2.32.0`(ansible-core 2.19.13)** 으로 아래 명령을 실행했고, 출력 블록은 그 결과입니다(2026-11-02). **실제 노드에 클러스터를 설치(`cluster.yml` 실행)하지 않았습니다** — VM 5대가 필요하고, 이 항해도의 원칙상 이미 쓰고 있는 VM은 쓰지 않습니다. 그래서 이 과정의 판정은 「인벤토리·변수·플레이북이 올바른가」까지이며, 설치·HA 동작·업그레이드는 **정적 설명**입니다.
+**Kubespray v2.32.0(태그, 커밋 `9751ea6f`) · 공식 이미지 `quay.io/kubespray/kubespray:v2.32.0`(ansible-core 2.19.13) · macOS(Apple 실리콘) OrbStack(Docker Engine 29.8.2, amd64 에뮬레이션)** 으로 아래 명령을 실행했고, 출력 블록은 그 결과입니다(2026-11-02). **실제 노드에 클러스터를 설치(`cluster.yml` 실행)하지 않았습니다** — VM 5대가 필요하고, 이 항해도의 원칙상 이미 쓰고 있는 VM은 쓰지 않습니다. 그래서 이 과정의 판정은 「인벤토리·변수·플레이북이 올바른가」까지이며, 설치·HA 동작·업그레이드는 **정적 설명**입니다.
 :::
 
 ## 실습 환경 점검
@@ -22,7 +22,7 @@ docker version --format '{{.Server.Version}} {{.Server.Arch}}'
 docker pull -q quay.io/kubespray/kubespray:v2.32.0 >/dev/null && docker image inspect --format '{{.Os}}/{{.Architecture}}' quay.io/kubespray/kubespray:v2.32.0
 ```
 
-공식 이미지는 **amd64만** 있습니다. 애플 실리콘(arm64) Mac에서는 Docker Desktop이 에뮬레이션으로 실행하므로(경고가 한 줄 나옴) 느리지만 이 실습의 검사에는 충분합니다. 이미지는 약 730MB입니다.
+공식 이미지는 **amd64만** 있습니다. 애플 실리콘(arm64) Mac에서는 Docker 엔진(Docker Desktop·OrbStack)이 에뮬레이션으로 실행하므로(경고가 한 줄 나옴) 느리지만 이 실습의 검사에는 충분합니다. 검증은 OrbStack(Docker Engine 29.8.2)에서 했습니다. 이미지는 약 730MB입니다.
 
 로컬 Python으로 설치해도 되지만, Kubespray v2.32.0의 `requirements.txt`는 `ansible==12.3.0`이라 **Python 3.11 이상**이 필요합니다(macOS 기본 `python3`는 3.9라 설치되지 않음). 버전 충돌을 피하려고 이 실습은 이미지로 합니다.
 
