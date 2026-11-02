@@ -2,6 +2,21 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.8.0 — 2026-11-03
+
+선택 심화 과정 6개(MetalLB·Vault·kubeadm·Kubespray·k8gb·KubeVirt)와 접근 가능한 SVG
+
+- MetalLB L2로 베어메탈 LoadBalancer (a-metallb, 부분 검증)
+- Vault와 Kubernetes ServiceAccount 인증 (a-vault, 부분 검증)
+- kubeadm 구조 보기와 패치 업그레이드 (a-kubeadm, 부분 검증)
+- Kubespray 인벤토리와 플레이북 검사 (a-kubespray, 정적 검증)
+- k8gb로 두 클러스터 DNS 장애 전환 (a-k8gb, 부분 검증)
+- KubeVirt 설치와 KVM 없는 노드의 한계 (a-kubevirt, 부분 검증)
+- 텍스트 그림을 접근 가능한 SVG로 (원래 텍스트는 「글로 보기」로 유지)
+- b-service-types에서 MetalLB 실습으로 짧은 링크
+
+공통 템플릿: deep-drawer v1.4.0 · hub-search v1.3.0 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.7.1 — 2026-11-02
 
 공통 템플릿: favicon·lang·CSP 대응·레벨테스트 결과 사람별 분리
