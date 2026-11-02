@@ -1,0 +1,104 @@
+{
+ "id": "pvc-lifecycle",
+ "title": "PVC의 상태 변화와 회수 정책",
+ "desc": "PVC를 만들면 Pending이었다가 StorageClass가 PV를 만들어 묶으면 Bound가 되고 파드가 마운트해 씁니다. PVC를 지우면 회수 정책에 따라 Delete는 PV와 데이터를 지우고, Retain은 PV를 Released 상태로 남깁니다.",
+ "embed": {
+  "file": "content/labs/i-lab03.md",
+  "anchor": "PVC 생성 ─▶ Pending ─(StorageClass가 PV를 만들어 묶음)─▶ Bound ─▶ 파드가 마운트해 사용"
+ },
+ "nodes": [
+  {
+   "id": "c",
+   "label": "PVC 생성",
+   "at": [
+    0,
+    0
+   ],
+   "tone": "muted"
+  },
+  {
+   "id": "p",
+   "label": "Pending",
+   "at": [
+    0,
+    1
+   ],
+   "tone": "warn"
+  },
+  {
+   "id": "b",
+   "label": "Bound",
+   "at": [
+    0,
+    2
+   ],
+   "tone": "ok"
+  },
+  {
+   "id": "u",
+   "label": "파드가 마운트해 사용",
+   "at": [
+    0,
+    3
+   ]
+  },
+  {
+   "id": "d",
+   "label": "PVC 삭제",
+   "at": [
+    1,
+    2
+   ],
+   "tone": "muted"
+  },
+  {
+   "id": "del",
+   "label": "Delete",
+   "at": [
+    2,
+    1
+   ],
+   "sub": "PV와 데이터 삭제",
+   "tone": "danger"
+  },
+  {
+   "id": "ret",
+   "label": "Retain",
+   "at": [
+    2,
+    3
+   ],
+   "sub": "PV 남음 (Released)",
+   "tone": "accent"
+  }
+ ],
+ "edges": [
+  {
+   "from": "c",
+   "to": "p"
+  },
+  {
+   "from": "p",
+   "to": "b",
+   "label": "StorageClass가 PV를 만들어 묶음"
+  },
+  {
+   "from": "b",
+   "to": "u"
+  },
+  {
+   "from": "b",
+   "to": "d"
+  },
+  {
+   "from": "d",
+   "to": "del",
+   "label": "회수 정책"
+  },
+  {
+   "from": "d",
+   "to": "ret",
+   "label": "회수 정책"
+  }
+ ]
+}

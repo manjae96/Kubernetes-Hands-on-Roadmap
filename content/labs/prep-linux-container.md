@@ -15,6 +15,15 @@
 
 [[pod|Pod]] 안의 컨테이너도 결국 **리눅스 프로세스**입니다. 쿠버네티스가 Pod를 지울 때(롤링 업데이트, 스케일 다운, 노드 비우기) 순서는 이렇습니다.
 
+<!-- visual:pod-termination start — 생성: tools/visuals.py, 원본 content/visuals/src/pod-termination.json -->
+<figure class="visual" id="visual-pod-termination">
+<div class="visual-scroll"><a href="content/visuals/svg/pod-termination.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/pod-termination.svg" alt="파드가 끝날 때의 순서 — 파드 삭제 요청이 오면 ① Service 엔드포인트에서 빠지고 ② preStop 훅이 있으면 실행하고 ③ 컨테이너 PID 1에 SIGTERM을 보내 앱이 연결을 마무리하게 하며 ④ terminationGracePeriodSeconds(기본 30초)가 지나도 살아 있으면 SIGKILL로 끝냅니다." width="291" loading="lazy" decoding="async"></a></div>
+<figcaption><b>파드가 끝날 때의 순서</b> — 파드 삭제 요청이 오면 ① Service 엔드포인트에서 빠지고 ② preStop 훅이 있으면 실행하고 ③ 컨테이너 PID 1에 SIGTERM을 보내 앱이 연결을 마무리하게 하며 ④ terminationGracePeriodSeconds(기본 30초)가 지나도 살아 있으면 SIGKILL로 끝냅니다. <span class="visual-links"><a href="content/visuals/svg/pod-termination.svg" target="_blank" rel="noopener">크게 보기</a> · <a href="content/visuals/svg/pod-termination.svg" download="pod-termination.svg">SVG 받기</a></span></figcaption>
+</figure>
+<!-- visual:pod-termination end -->
+
+<details class="visual-text"><summary>그림 내용을 글로 보기</summary>
+
 ```text
 Pod 삭제 요청
  ├─ ① Service 엔드포인트에서 빠짐 (새 요청이 안 오게)
@@ -22,6 +31,8 @@ Pod 삭제 요청
  ├─ ③ 컨테이너의 PID 1에 SIGTERM  ── 앱: 연결 마무리·저장 후 종료
  └─ ④ terminationGracePeriodSeconds(기본 30초) 지나도 살아 있으면 SIGKILL
 ```
+
+</details>
 
 | 증상 | 원인 | 해결 |
 |---|---|---|

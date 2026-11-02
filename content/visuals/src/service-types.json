@@ -1,0 +1,75 @@
+{
+ "id": "service-types",
+ "title": "Service 유형의 포함 관계",
+ "desc": "ClusterIP는 클러스터 안의 가상 IP, NodePort는 모든 노드의 IP:30000~32767을 더하고(ClusterIP 포함), LoadBalancer는 클라우드 LB의 외부 IP를 더합니다(NodePort 포함). 세 유형 모두 kube-proxy가 selector로 고른 파드로 전달합니다. ExternalName은 프록시 없이 바깥 DNS 이름으로 CNAME만 돌려줍니다.",
+ "embed": {
+  "file": "content/labs/b-service-types.md",
+  "anchor": "ExternalName  ─ 클러스터 안의 이름 → 바깥 DNS 이름 (프록시 없음, CNAME)"
+ },
+ "nodes": [
+  {
+   "id": "lb",
+   "label": "LoadBalancer",
+   "at": [
+    0,
+    0
+   ],
+   "sub": "클라우드 LB의 외부 IP (NodePort 포함)",
+   "tone": "accent"
+  },
+  {
+   "id": "np",
+   "label": "NodePort",
+   "at": [
+    1,
+    0
+   ],
+   "sub": "모든 노드 IP:30000~32767 (ClusterIP 포함)"
+  },
+  {
+   "id": "ci",
+   "label": "ClusterIP",
+   "at": [
+    2,
+    0
+   ],
+   "sub": "클러스터 안의 가상 IP:포트"
+  },
+  {
+   "id": "pods",
+   "label": "Pod들",
+   "at": [
+    3,
+    0
+   ],
+   "sub": "selector로 고름",
+   "tone": "ok"
+  },
+  {
+   "id": "en",
+   "label": "ExternalName",
+   "at": [
+    0,
+    1
+   ],
+   "sub": "클러스터 안 이름 → 바깥 DNS 이름 (CNAME, 프록시 없음)",
+   "tone": "muted"
+  }
+ ],
+ "edges": [
+  {
+   "from": "lb",
+   "to": "np"
+  },
+  {
+   "from": "np",
+   "to": "ci"
+  },
+  {
+   "from": "ci",
+   "to": "pods",
+   "label": "kube-proxy가 전달"
+  }
+ ],
+ "gap": 60
+}

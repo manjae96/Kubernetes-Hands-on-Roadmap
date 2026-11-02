@@ -1,0 +1,71 @@
+{
+ "id": "reconcile-loop",
+ "title": "제어 루프: 원하는 상태와 현재 상태를 맞추기",
+ "desc": "컨트롤러는 현재 상태를 관찰해 원하는 상태(spec: replicas 3)와 비교하고, 차이(실행 중 2 → 1개 부족)가 있으면 행동(1개 만들기)합니다. 이 루프를 끝없이 반복합니다.",
+ "embed": {
+  "file": "content/labs/b-concepts.md",
+  "anchor": "┌──────────── 관찰 ─────────────┐"
+ },
+ "nodes": [
+  {
+   "id": "want",
+   "label": "원하는 상태",
+   "at": [
+    0,
+    0
+   ],
+   "sub": "spec: replicas 3",
+   "tone": "accent"
+  },
+  {
+   "id": "cmp",
+   "label": "비교",
+   "at": [
+    0,
+    1
+   ],
+   "sub": "1개 부족",
+   "tone": "warn"
+  },
+  {
+   "id": "act",
+   "label": "행동",
+   "at": [
+    0,
+    2
+   ],
+   "sub": "1개 만들기",
+   "tone": "ok"
+  },
+  {
+   "id": "cur",
+   "label": "현재 상태",
+   "at": [
+    1,
+    1
+   ],
+   "sub": "status: 실행 중 2"
+  }
+ ],
+ "edges": [
+  {
+   "from": "want",
+   "to": "cmp"
+  },
+  {
+   "from": "cmp",
+   "to": "act"
+  },
+  {
+   "from": "act",
+   "to": "cur",
+   "label": "바뀜"
+  },
+  {
+   "from": "cur",
+   "to": "cmp",
+   "label": "관찰 (끝없이 반복)"
+  }
+ ],
+ "gap": 70
+}

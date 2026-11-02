@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<!-- site-head:start v1.1.0 — 실습 항해도 공통 머리 정보 (Hands-On-Roadmap/templates/site-head.html에서 관리, 직접 고치지 말 것) -->
+<!-- site-head:start v1.2.0 — 실습 항해도 공통 머리 정보 (Hands-On-Roadmap/templates/site-head.html에서 관리, 직접 고치지 말 것) -->
 <!-- favicon: 원본은 허브 portal/assets/favicon.svg. 클라우드 허브(Worker)·로컬 게이트웨이·단독 실행(deploy nginx) 모두 사이트 루트에서 로그인 없이 내줌 -->
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -15,6 +15,17 @@
 /* CSP(script-src-attr 'none'): 폼의 인라인 onsubmit 속성 대신, data-hangdo-nosubmit 표시가 있는 검색·필터 폼의 제출(새로고침)을 여기서 막음 */
 document.addEventListener('submit', e => { if (e.target instanceof HTMLFormElement && e.target.hasAttribute('data-hangdo-nosubmit')) e.preventDefault(); }, true);
 </script>
+<style>
+/* 교보재 그림(SVG, tools/visuals.py가 만듦): 본문 폭에 맞추고, 좁은 화면에서는 읽을 수 있는 크기로 가로 스크롤 */
+figure.visual { margin: 16px 0 6px; }
+figure.visual .visual-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+figure.visual img { display: block; max-width: 100%; height: auto; border: 1px solid rgba(127, 127, 127, .35); border-radius: 10px; background: #f8fafc; }
+figure.visual figcaption { font-size: .86rem; margin-top: 6px; overflow-wrap: anywhere; }
+figure.visual .visual-links { white-space: nowrap; }
+details.visual-text { margin: 0 0 16px; }
+details.visual-text > summary { cursor: pointer; font-size: .85rem; }
+@media (max-width: 640px) { figure.visual img { max-width: none; width: max(100%, 560px); } }
+</style>
 <!-- site-head:end -->
 <!-- progress-scope:start v1.1.0 — 실습 항해도 공통 「진도 영역」 (Hands-On-Roadmap/templates/progress-scope.html에서 관리, 직접 고치지 말 것) -->
 <script>
@@ -1182,7 +1193,7 @@ fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null)
   a.hidden = false;
 }).catch(() => {});
 </script>
-<!-- deep-drawer:start v1.3.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
+<!-- deep-drawer:start v1.4.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .deep-scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .28); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 60; }
 .deep-scrim.open { opacity: 1; pointer-events: auto; }
@@ -1346,7 +1357,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     else {
       const md = await fetch(`${DEEP}content/${encodeURIComponent(note.id)}.md`, { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
       html += `<div class="deep-divider">🔎 심화 노트 <span>약 ${note.minutes}분 · ${(note.roadmaps || []).length}개 항해도에서 사용</span><button id="deepExpand">모두 펼치기</button></div>
-               <div class="deep-note">${fold(window.marked ? window.marked.parse(linkify(flowSlots(md), g, idx.all)) : `<pre>${esc(md)}</pre>`)}</div>`;
+               <div class="deep-note">${fold(window.marked ? visualPaths(window.marked.parse(linkify(flowSlots(md), g, idx.all))) : `<pre>${esc(md)}</pre>`)}</div>`;
       foot = `<a href="${DEEP}#/note/${esc(note.id)}" target="_blank" rel="noopener">전체 화면으로 보기 ↗</a>` + foot;
     }
     $('deepBody').innerHTML = html; $('deepFoot').innerHTML = foot; $('deepBody').scrollTop = 0;
@@ -1359,6 +1370,8 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     if (!keepFocus) $('deepClose').focus();
   }
   // ```flow 블록은 항해도의 코드 블록 렌더러를 거치지 않도록 미리 자리(div)로 바꿈 (flow.js의 prepare와 같은 규칙)
+  // 심화 노트의 그림(content/visuals/…)은 노트 기준 상대 주소 → 서랍은 다른 항해도 화면 안이므로 심화 노트 주소로 바꿈
+  const visualPaths = html => html.replace(/(src|href)="content\/visuals\//g, `$1="${DEEP}content/visuals/`);
   const flowSlots = md => md.replace(/^```flow[ \t]*\n\s*([\w-]+)\s*\n```[ \t]*$/gm, (m, id) => `\n<div class="dflow-slot" data-flow="${id}"></div>\n`);
   let flowJs;   // 심화 노트 서비스의 그림 렌더러 — 그림이 있는 노트를 처음 열 때 한 번만 불러옴
   const flow = () => flowJs = flowJs || new Promise(ok => { const s = document.createElement('script');

@@ -1,0 +1,163 @@
+{
+ "id": "k8s-architecture",
+ "title": "쿠버네티스 구성: 컨트롤 플레인과 노드",
+ "desc": "컨트롤 플레인에는 모든 구성 요소의 유일한 창구인 kube-apiserver, 모든 객체를 저장하는 etcd, 새 Pod를 둘 노드를 고르는 scheduler, 제어 루프 모음인 controller-manager가 있습니다. 노드마다 kubelet(Pod 실행·상태 보고), 컨테이너 런타임(containerd → runc), kube-proxy(Service 주소 → Pod)가 있고 모두 API로 보고·지시를 받습니다.",
+ "embed": {
+  "file": "content/labs/b-concepts.md",
+  "anchor": "┌──────────────────── 컨트롤 플레인 ────────────────────┐"
+ },
+ "nodes": [
+  {
+   "id": "kubectl",
+   "label": "kubectl",
+   "at": [
+    0,
+    1
+   ],
+   "tone": "muted"
+  },
+  {
+   "id": "etcd",
+   "label": "etcd",
+   "at": [
+    1,
+    0
+   ],
+   "sub": "모든 객체를 저장하는 키-값 DB"
+  },
+  {
+   "id": "api",
+   "label": "kube-apiserver",
+   "at": [
+    1,
+    1
+   ],
+   "sub": "모든 구성 요소의 유일한 창구",
+   "tone": "accent"
+  },
+  {
+   "id": "sch",
+   "label": "scheduler",
+   "at": [
+    1,
+    2
+   ],
+   "sub": "새 Pod를 둘 노드 결정"
+  },
+  {
+   "id": "cm",
+   "label": "controller-manager",
+   "at": [
+    2,
+    2
+   ],
+   "sub": "Deployment·ReplicaSet·노드 … 제어 루프"
+  },
+  {
+   "id": "link",
+   "label": "API로 보고·지시 받기",
+   "at": [
+    3,
+    1
+   ],
+   "tone": "muted"
+  },
+  {
+   "id": "kl",
+   "label": "kubelet",
+   "at": [
+    4,
+    0
+   ],
+   "sub": "Pod를 띄우고 상태 보고"
+  },
+  {
+   "id": "rt",
+   "label": "컨테이너 런타임",
+   "at": [
+    4,
+    1
+   ],
+   "sub": "containerd → runc"
+  },
+  {
+   "id": "kp",
+   "label": "kube-proxy",
+   "at": [
+    4,
+    2
+   ],
+   "sub": "Service 주소 → Pod"
+  },
+  {
+   "id": "pods",
+   "label": "[Pod] [Pod] [Pod]",
+   "at": [
+    5,
+    1
+   ],
+   "tone": "ok"
+  }
+ ],
+ "edges": [
+  {
+   "from": "kubectl",
+   "to": "api"
+  },
+  {
+   "from": "api",
+   "to": "etcd",
+   "both": true
+  },
+  {
+   "from": "sch",
+   "to": "api",
+   "label": "watch"
+  },
+  {
+   "from": "cm",
+   "to": "api",
+   "label": "watch"
+  },
+  {
+   "from": "link",
+   "to": "api"
+  },
+  {
+   "from": "kl",
+   "to": "link"
+  },
+  {
+   "from": "kp",
+   "to": "link"
+  },
+  {
+   "from": "kl",
+   "to": "rt"
+  },
+  {
+   "from": "rt",
+   "to": "pods"
+  }
+ ],
+ "groups": [
+  {
+   "label": "컨트롤 플레인",
+   "nodes": [
+    "api",
+    "etcd",
+    "sch",
+    "cm"
+   ]
+  },
+  {
+   "label": "노드 (여러 대)",
+   "nodes": [
+    "kl",
+    "rt",
+    "kp",
+    "pods"
+   ]
+  }
+ ]
+}

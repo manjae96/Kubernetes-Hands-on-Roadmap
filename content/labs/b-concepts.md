@@ -36,6 +36,15 @@
 
 ## 개념 3: 원하는 상태와 제어 루프
 
+<!-- visual:reconcile-loop start — 생성: tools/visuals.py, 원본 content/visuals/src/reconcile-loop.json -->
+<figure class="visual" id="visual-reconcile-loop">
+<div class="visual-scroll"><a href="content/visuals/svg/reconcile-loop.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/reconcile-loop.svg" alt="제어 루프: 원하는 상태와 현재 상태를 맞추기 — 컨트롤러는 현재 상태를 관찰해 원하는 상태(spec: replicas 3)와 비교하고, 차이(실행 중 2 → 1개 부족)가 있으면 행동(1개 만들기)합니다. 이 루프를 끝없이 반복합니다." width="525" loading="lazy" decoding="async"></a></div>
+<figcaption><b>제어 루프: 원하는 상태와 현재 상태를 맞추기</b> — 컨트롤러는 현재 상태를 관찰해 원하는 상태(spec: replicas 3)와 비교하고, 차이(실행 중 2 → 1개 부족)가 있으면 행동(1개 만들기)합니다. 이 루프를 끝없이 반복합니다. <span class="visual-links"><a href="content/visuals/svg/reconcile-loop.svg" target="_blank" rel="noopener">크게 보기</a> · <a href="content/visuals/svg/reconcile-loop.svg" download="reconcile-loop.svg">SVG 받기</a></span></figcaption>
+</figure>
+<!-- visual:reconcile-loop end -->
+
+<details class="visual-text"><summary>그림 내용을 글로 보기</summary>
+
 ```text
            ┌──────────── 관찰 ─────────────┐
            ▼                               │
@@ -45,9 +54,20 @@
                 (이 루프를 끝없이 반복)
 ```
 
+</details>
+
 [[deployment|Deployment]] 컨트롤러, [[replicaset|ReplicaSet]] 컨트롤러, 노드 컨트롤러 … 쿠버네티스의 대부분은 이런 **작은 제어 루프들**의 모음입니다. 우리는 `spec`(원하는 상태)만 쓰고, 컨트롤러가 `status`(현재 상태)를 그쪽으로 끌고 갑니다.
 
 ## 개념 4: 클러스터 구성
+
+<!-- visual:k8s-architecture start — 생성: tools/visuals.py, 원본 content/visuals/src/k8s-architecture.json -->
+<figure class="visual" id="visual-k8s-architecture">
+<div class="visual-scroll"><a href="content/visuals/svg/k8s-architecture.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/k8s-architecture.svg" alt="쿠버네티스 구성: 컨트롤 플레인과 노드 — 컨트롤 플레인에는 모든 구성 요소의 유일한 창구인 kube-apiserver, 모든 객체를 저장하는 etcd, 새 Pod를 둘 노드를 고르는 scheduler, 제어 루프 모음인 controller-manager가 있습니다. 노드마다 kubelet(Pod 실행·상태 보고), 컨테이너 런타임(containerd → runc), kube-proxy(Service 주소 → Pod)가 있고 모두 API로 보고·지시를 받습니다." width="849" loading="lazy" decoding="async"></a></div>
+<figcaption><b>쿠버네티스 구성: 컨트롤 플레인과 노드</b> — 컨트롤 플레인에는 모든 구성 요소의 유일한 창구인 kube-apiserver, 모든 객체를 저장하는 etcd, 새 Pod를 둘 노드를 고르는 scheduler, 제어 루프 모음인 controller-manager가 있습니다. 노드마다 kubelet(Pod 실행·상태 보고), 컨테이너 런타임(containerd → runc), kube-proxy(Service 주소 → Pod)가 있고 모두 API로 보고·지시를 받습니다. <span class="visual-links"><a href="content/visuals/svg/k8s-architecture.svg" target="_blank" rel="noopener">크게 보기</a> · <a href="content/visuals/svg/k8s-architecture.svg" download="k8s-architecture.svg">SVG 받기</a></span></figcaption>
+</figure>
+<!-- visual:k8s-architecture end -->
+
+<details class="visual-text"><summary>그림 내용을 글로 보기</summary>
 
 ```text
 ┌──────────────────── 컨트롤 플레인 ────────────────────┐
@@ -66,6 +86,8 @@
 │ [Pod] [Pod] [Pod]                    │
 └──────────────────────┘
 ```
+
+</details>
 
 | 구성 요소 | 어디 | 하는 일 | 고장 나면 |
 |---|---|---|---|

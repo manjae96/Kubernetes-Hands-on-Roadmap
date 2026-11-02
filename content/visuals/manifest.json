@@ -1,0 +1,65 @@
+{
+ "generator": "Hands-On-Roadmap/tools/visuals.py",
+ "visuals": [
+  {
+   "id": "hpa-external-metric",
+   "title": "큐 길이로 0까지 줄이기: 외부 메트릭 HPA 경로",
+   "desc": "HPA 컨트롤러가 external.metrics.k8s.io에 묻고, prometheus-adapter가 PromQL로 Prometheus에 질의합니다. Prometheus는 Pushgateway를 scrape해 queue_messages_ready{queue=\"orders\"} 값을 얻고(실습에서는 큐 대신 Pushgateway에 직접 기록), HPA가 그 값으로 큐 작업자를 늘리거나 줄입니다.",
+   "file": "content/labs/i-scale-zero.md",
+   "svg": "content/visuals/svg/hpa-external-metric.svg",
+   "width": 1087,
+   "height": 249,
+   "sha256": "4f255418d12e83e625aa85389d413b772da52ff7a9b9b7d06117e0afff7a2ccf"
+  },
+  {
+   "id": "k8s-architecture",
+   "title": "쿠버네티스 구성: 컨트롤 플레인과 노드",
+   "desc": "컨트롤 플레인에는 모든 구성 요소의 유일한 창구인 kube-apiserver, 모든 객체를 저장하는 etcd, 새 Pod를 둘 노드를 고르는 scheduler, 제어 루프 모음인 controller-manager가 있습니다. 노드마다 kubelet(Pod 실행·상태 보고), 컨테이너 런타임(containerd → runc), kube-proxy(Service 주소 → Pod)가 있고 모두 API로 보고·지시를 받습니다.",
+   "file": "content/labs/b-concepts.md",
+   "svg": "content/visuals/svg/k8s-architecture.svg",
+   "width": 849,
+   "height": 740,
+   "sha256": "b50045488163f5c47560aaeab0f57ced7316254b149d295d3eb9a6159d3b4c09"
+  },
+  {
+   "id": "pod-termination",
+   "title": "파드가 끝날 때의 순서",
+   "desc": "파드 삭제 요청이 오면 ① Service 엔드포인트에서 빠지고 ② preStop 훅이 있으면 실행하고 ③ 컨테이너 PID 1에 SIGTERM을 보내 앱이 연결을 마무리하게 하며 ④ terminationGracePeriodSeconds(기본 30초)가 지나도 살아 있으면 SIGKILL로 끝냅니다.",
+   "file": "content/labs/prep-linux-container.md",
+   "svg": "content/visuals/svg/pod-termination.svg",
+   "width": 291,
+   "height": 508,
+   "sha256": "6f181652590d948c65ce1483908624ceb859a1a343da7a2f7ff29aa5a9a7f518"
+  },
+  {
+   "id": "pvc-lifecycle",
+   "title": "PVC의 상태 변화와 회수 정책",
+   "desc": "PVC를 만들면 Pending이었다가 StorageClass가 PV를 만들어 묶으면 Bound가 되고 파드가 마운트해 씁니다. PVC를 지우면 회수 정책에 따라 Delete는 PV와 데이터를 지우고, Retain은 PV를 Released 상태로 남깁니다.",
+   "file": "content/labs/i-lab03.md",
+   "svg": "content/visuals/svg/pvc-lifecycle.svg",
+   "width": 862,
+   "height": 310,
+   "sha256": "28501c607c23c032958ea5c5b224f15ebb10aaf852f61e4763c52ea6bcf39d86"
+  },
+  {
+   "id": "reconcile-loop",
+   "title": "제어 루프: 원하는 상태와 현재 상태를 맞추기",
+   "desc": "컨트롤러는 현재 상태를 관찰해 원하는 상태(spec: replicas 3)와 비교하고, 차이(실행 중 2 → 1개 부족)가 있으면 행동(1개 만들기)합니다. 이 루프를 끝없이 반복합니다.",
+   "file": "content/labs/b-concepts.md",
+   "svg": "content/visuals/svg/reconcile-loop.svg",
+   "width": 525,
+   "height": 232,
+   "sha256": "8558864de7fabd4dddda2cb27d04d758e703a0030caf5d25c16aeec409c293e3"
+  },
+  {
+   "id": "service-types",
+   "title": "Service 유형의 포함 관계",
+   "desc": "ClusterIP는 클러스터 안의 가상 IP, NodePort는 모든 노드의 IP:30000~32767을 더하고(ClusterIP 포함), LoadBalancer는 클라우드 LB의 외부 IP를 더합니다(NodePort 포함). 세 유형 모두 kube-proxy가 selector로 고른 파드로 전달합니다. ExternalName은 프록시 없이 바깥 DNS 이름으로 CNAME만 돌려줍니다.",
+   "file": "content/labs/b-service-types.md",
+   "svg": "content/visuals/svg/service-types.svg",
+   "width": 581,
+   "height": 506,
+   "sha256": "0e7dcc00cbcece9117b7aacd0eb2603dbd52e208842ca814684c81ab9c07ec41"
+  }
+ ]
+}

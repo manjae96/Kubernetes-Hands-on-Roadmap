@@ -59,11 +59,22 @@ spec.metrics: Forbidden: must specify at least one Object or External metric to 
 
 HPA 컨트롤러는 Prometheus를 직접 모릅니다. `external.metrics.k8s.io`·`custom.metrics.k8s.io` 같은 **집계 API**(APIService)에 묻고, 그 뒤에서 **어댑터**가 실제 지표 저장소에 질의합니다. 어댑터는 쿠버네티스 본체가 아니라 생태계 도구라 따로 설치합니다.
 
+<!-- visual:hpa-external-metric start — 생성: tools/visuals.py, 원본 content/visuals/src/hpa-external-metric.json -->
+<figure class="visual" id="visual-hpa-external-metric">
+<div class="visual-scroll"><a href="content/visuals/svg/hpa-external-metric.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/hpa-external-metric.svg" alt="큐 길이로 0까지 줄이기: 외부 메트릭 HPA 경로 — HPA 컨트롤러가 external.metrics.k8s.io에 묻고, prometheus-adapter가 PromQL로 Prometheus에 질의합니다. Prometheus는 Pushgateway를 scrape해 queue_messages_ready{queue=&quot;orders&quot;} 값을 얻고(실습에서는 큐 대신 Pushgateway에 직접 기록), HPA가 그 값으로 큐 작업자를 늘리거나 줄입니다." width="1087" loading="lazy" decoding="async"></a></div>
+<figcaption><b>큐 길이로 0까지 줄이기: 외부 메트릭 HPA 경로</b> — HPA 컨트롤러가 external.metrics.k8s.io에 묻고, prometheus-adapter가 PromQL로 Prometheus에 질의합니다. Prometheus는 Pushgateway를 scrape해 queue_messages_ready{queue=&quot;orders&quot;} 값을 얻고(실습에서는 큐 대신 Pushgateway에 직접 기록), HPA가 그 값으로 큐 작업자를 늘리거나 줄입니다. <span class="visual-links"><a href="content/visuals/svg/hpa-external-metric.svg" target="_blank" rel="noopener">크게 보기</a> · <a href="content/visuals/svg/hpa-external-metric.svg" download="hpa-external-metric.svg">SVG 받기</a></span></figcaption>
+</figure>
+<!-- visual:hpa-external-metric end -->
+
+<details class="visual-text"><summary>그림 내용을 글로 보기</summary>
+
 ```text
  큐 작업자 (예: 주문 처리)          queue_messages_ready{queue="orders"} = 25
        ▲ 늘리기/줄이기                      │ push (이 실습에서는 큐 대신 Pushgateway에 직접 기록)
  HPA 컨트롤러 ──묻기──▶ external.metrics.k8s.io ──▶ prometheus-adapter ──PromQL──▶ Prometheus ──scrape──▶ Pushgateway
 ```
+
+</details>
 
 | 어댑터 | 특징 |
 |---|---|

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 862 310" width="862" height="310" role="img" aria-labelledby="t d" font-family="Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif">
+<title id="t">PVC의 상태 변화와 회수 정책</title>
+<desc id="d">PVC를 만들면 Pending이었다가 StorageClass가 PV를 만들어 묶으면 Bound가 되고 파드가 마운트해 씁니다. PVC를 지우면 회수 정책에 따라 Delete는 PV와 데이터를 지우고, Retain은 PV를 Released 상태로 남깁니다.</desc>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker></defs>
+<rect width="862" height="310" rx="12" fill="#f8fafc"/>
+<path d="M114 45.5 L194.2 45.5" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M284.2 45.5 L526 45.5" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="302.4" y="25.5" width="205.5" height="18" fill="#f8fafc" opacity="0.92"/>
+<text x="405.1" y="38" font-size="12.5" text-anchor="middle" fill="#334155">StorageClass가 PV를 만들어 묶음</text>
+<path d="M616 45.5 L680 45.5" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M571 67 L571 123" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M556 166 L556 189.5 L239.2 189.5 L239.2 222" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="366.8" y="169.5" width="61.8" height="18" fill="#f8fafc" opacity="0.92"/>
+<text x="397.6" y="182" font-size="12.5" text-anchor="middle" fill="#334155">회수 정책</text>
+<path d="M586 166 L586 198.5 L759.2 198.5 L759.2 222" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="641.7" y="178.5" width="61.8" height="18" fill="#f8fafc" opacity="0.92"/>
+<text x="672.6" y="191" font-size="12.5" text-anchor="middle" fill="#334155">회수 정책</text>
+<rect x="24" y="24" width="90" height="43" rx="9" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="1 3"/>
+<text x="69" y="52" font-size="14" font-weight="700" text-anchor="middle" fill="#334155">PVC 생성</text>
+<rect x="194.2" y="24" width="90" height="43" rx="9" fill="#fff4e5" stroke="#b45309" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="239.2" y="52" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">Pending</text>
+<rect x="526" y="24" width="90" height="43" rx="9" fill="#e7f6ec" stroke="#15803d" stroke-width="1.6"/>
+<text x="571" y="52" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">Bound</text>
+<rect x="680" y="24" width="158.4" height="43" rx="9" fill="#ffffff" stroke="#64748b" stroke-width="1.6"/>
+<text x="759.2" y="52" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">파드가 마운트해 사용</text>
+<rect x="526" y="123" width="90" height="43" rx="9" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="1 3"/>
+<text x="571" y="151" font-size="14" font-weight="700" text-anchor="middle" fill="#334155">PVC 삭제</text>
+<rect x="178" y="222" width="122.5" height="64" rx="9" fill="#fdecec" stroke="#b91c1c" stroke-width="1.6" stroke-dasharray="3 3"/>
+<text x="239.2" y="250" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">Delete</text>
+<text x="239.2" y="271" font-size="12.5" text-anchor="middle" fill="#334155">PV와 데이터 삭제</text>
+<rect x="689.1" y="222" width="140.2" height="64" rx="9" fill="#e6efff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="759.2" y="250" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">Retain</text>
+<text x="759.2" y="271" font-size="12.5" text-anchor="middle" fill="#334155">PV 남음 (Released)</text>
+</svg>

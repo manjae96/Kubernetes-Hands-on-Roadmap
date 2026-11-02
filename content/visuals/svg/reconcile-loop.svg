@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 525 232" width="525" height="232" role="img" aria-labelledby="t d" font-family="Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif">
+<title id="t">제어 루프: 원하는 상태와 현재 상태를 맞추기</title>
+<desc id="d">컨트롤러는 현재 상태를 관찰해 원하는 상태(spec: replicas 3)와 비교하고, 차이(실행 중 2 → 1개 부족)가 있으면 행동(1개 만들기)합니다. 이 루프를 끝없이 반복합니다.</desc>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker></defs>
+<rect width="525" height="232" rx="12" fill="#f8fafc"/>
+<path d="M144.8 56 L233 56" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M323 56 L411.2 56" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<path d="M456.2 88 L456.2 111.5 L299.1 111.5 L299.1 144" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="361.2" y="91.5" width="33" height="18" fill="#f8fafc" opacity="0.92"/>
+<text x="377.7" y="104" font-size="12.5" text-anchor="middle" fill="#334155">바뀜</text>
+<path d="M256.9 144 L256.9 120.5 L278 120.5 L278 88" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ah)"/>
+<rect x="209" y="100.5" width="117" height="18" fill="#f8fafc" opacity="0.92"/>
+<text x="267.5" y="113" font-size="12.5" text-anchor="middle" fill="#334155">관찰 (끝없이 반복)</text>
+<rect x="24" y="24" width="120.8" height="64" rx="9" fill="#e6efff" stroke="#1d4ed8" stroke-width="1.6"/>
+<text x="84.4" y="52" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">원하는 상태</text>
+<text x="84.4" y="73" font-size="12.5" text-anchor="middle" fill="#334155">spec: replicas 3</text>
+<rect x="233" y="24" width="90" height="64" rx="9" fill="#fff4e5" stroke="#b45309" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="278" y="52" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">비교</text>
+<text x="278" y="73" font-size="12.5" text-anchor="middle" fill="#334155">1개 부족</text>
+<rect x="411.2" y="24" width="90" height="64" rx="9" fill="#e7f6ec" stroke="#15803d" stroke-width="1.6"/>
+<text x="456.2" y="52" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">행동</text>
+<text x="456.2" y="73" font-size="12.5" text-anchor="middle" fill="#334155">1개 만들기</text>
+<rect x="214.8" y="144" width="126.5" height="64" rx="9" fill="#ffffff" stroke="#64748b" stroke-width="1.6"/>
+<text x="278" y="172" font-size="14" font-weight="700" text-anchor="middle" fill="#0f172a">현재 상태</text>
+<text x="278" y="193" font-size="12.5" text-anchor="middle" fill="#334155">status: 실행 중 2</text>
+</svg>
