@@ -1599,6 +1599,171 @@
       "yamlFiles": 0
     },
     {
+      "id": "a-k8gb",
+      "level": "advanced",
+      "type": "lab",
+      "status": "published",
+      "required": false,
+      "title": "k8gb로 두 클러스터 DNS 장애 전환 (GSLB)",
+      "summary": "로컬 BIND(example.com 권한 서버)·kind 클러스터 두 개·MetalLB에 k8gb v1.0.1을 올려 cloud.example.com을 두 CoreDNS에 위임하고, failover 전략으로 앱 장애·클러스터 전체 장애·복구 때 DNS 답이 바뀌는 시간을 잽니다. TSIG 키가 틀렸을 때의 증상도 재현합니다.",
+      "purpose": "클러스터 밖에서 「다른 곳으로 보내기」를 DNS로 하는 구조와 그 한계(TTL·남는 NS)를 직접 확인합니다. (선택)",
+      "minutes": {
+        "concept": 25,
+        "handson": 60,
+        "review": 15
+      },
+      "versions": [
+        "1.35"
+      ],
+      "versionNotes": {
+        "1.37": "kind 노드 이미지 v1.35.0으로만 확인했습니다.",
+        "1.36": "실행하지 않았습니다."
+      },
+      "outline": [
+        "DNS 위임으로 클러스터를 고르는 구조",
+        "엣지 DNS(BIND)와 직접 만든 TSIG 키",
+        "kind 클러스터 두 개와 겹치지 않는 MetalLB 풀",
+        "k8gb 설치와 위임(NS·glue) 확인",
+        "failover Gslb, 두 CoreDNS의 같은 답",
+        "앱 장애 → 전환 → 복귀 시간",
+        "클러스터 전체 장애와 남는 NS",
+        "TSIG 키 오류"
+      ],
+      "tags": [
+        "k8gb",
+        "GSLB",
+        "멀티 클러스터",
+        "DNS",
+        "위임",
+        "failover",
+        "CoreDNS",
+        "external-dns",
+        "RFC 2136",
+        "TSIG",
+        "BIND",
+        "kind",
+        "선택 심화"
+      ],
+      "file": "content/labs/a-k8gb.md",
+      "prereq": [
+        "a-metallb"
+      ],
+      "env": "kind v0.32.0 클러스터 2개(kindest/node:v1.35.0) · Docker 네트워크 k8gb-net(172.31.250.0/24) · BIND 9.21 컨테이너 · MetalLB v0.16.0 · k8gb v1.0.1 · 메모리 약 3GB",
+      "docs": [
+        {
+          "title": "k8gb 문서",
+          "url": "https://www.k8gb.io/"
+        },
+        {
+          "title": "k8gb: Local playground",
+          "url": "https://github.com/k8gb-io/k8gb/blob/v1.0.1/docs/local.md"
+        },
+        {
+          "title": "k8gb: LoadBalancer Service integration",
+          "url": "https://github.com/k8gb-io/k8gb/blob/v1.0.1/docs/lbservice-integration.md"
+        },
+        {
+          "title": "k8gb: RFC 2136 provider",
+          "url": "https://github.com/k8gb-io/k8gb/blob/v1.0.1/docs/provider_rfc2136.md"
+        },
+        {
+          "title": "k8gb chart v1.0.1 values",
+          "url": "https://github.com/k8gb-io/k8gb/blob/v1.0.1/chart/k8gb/values.yaml"
+        },
+        {
+          "title": "BIND 9: dynamic update",
+          "url": "https://bind9.readthedocs.io/en/latest/chapter6.html#dynamic-update"
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "summary": "macOS(Apple 실리콘) OrbStack에서 kind 클러스터 2개·BIND·MetalLB v0.16.0·k8gb v1.0.1로 위임·failover(전환 12초·복귀 12초)·클러스터 전체 장애(전환 8초·복구 51초)·TSIG 오류를 게시된 명령으로 처음부터 실행해 통과했습니다(2026-11-02). 공용 DNS 연동, 리졸버 캐시를 거친 체감 전환, roundRobin·geoip, 클러스터 3개 이상, Ingress·Gateway API 연동은 실행하지 않았습니다."
+      },
+      "checks": [
+        "k8gb-delegation",
+        "k8gb-failover"
+      ],
+      "yamlFiles": 2
+    },
+    {
+      "id": "a-kubevirt",
+      "level": "advanced",
+      "type": "lab",
+      "status": "published",
+      "required": false,
+      "title": "KubeVirt 설치와 KVM 없는 노드의 한계 (부분 실습)",
+      "summary": "KubeVirt v1.9.1을 태그·체크섬으로 설치하고, 노드의 가상화 자원과 KVM이 없을 때 VM이 스케줄에서 막히는 과정, 에뮬레이션을 켰을 때 arm64에서 생기는 실패를 이벤트로 확인합니다. VM 부팅·노출·라이브 마이그레이션은 조건만 정리합니다(정적).",
+      "purpose": "VM을 쿠버네티스로 다루는 구조와, 그것이 노드의 하드웨어 가상화에 기대는 지점을 이해합니다. (선택)",
+      "minutes": {
+        "concept": 20,
+        "handson": 35,
+        "review": 10
+      },
+      "versions": [
+        "1.35"
+      ],
+      "versionNotes": {
+        "1.37": "kind 노드 이미지 v1.35.0으로만 확인했습니다.",
+        "1.36": "실행하지 않았습니다."
+      },
+      "outline": [
+        "VM과 컨테이너, KubeVirt 구성 요소",
+        "/dev/kvm 확인",
+        "태그·체크섬 설치",
+        "노드의 devices.kubevirt.io/kvm",
+        "KVM 없이 VM → ErrorUnschedulable",
+        "useEmulation과 arm64의 한계",
+        "KVM 노드에서의 부팅·노출·라이브 마이그레이션 조건(정적)"
+      ],
+      "tags": [
+        "KubeVirt",
+        "VM",
+        "가상 머신",
+        "KVM",
+        "중첩 가상화",
+        "에뮬레이션",
+        "라이브 마이그레이션",
+        "하이브리드 워크로드",
+        "선택 심화"
+      ],
+      "file": "content/labs/a-kubevirt.md",
+      "prereq": [
+        "i-lab02"
+      ],
+      "env": "kind v0.32.0 클러스터(kindest/node:v1.35.0) · KubeVirt v1.9.1 · cirros 데모 디스크 v1.9.1 · 메모리 약 2GB",
+      "docs": [
+        {
+          "title": "KubeVirt user guide",
+          "url": "https://kubevirt.io/user-guide/"
+        },
+        {
+          "title": "KubeVirt: Installation (hardware virtualization, emulation)",
+          "url": "https://kubevirt.io/user-guide/cluster_admin/installation/#validate-hardware-virtualization-support"
+        },
+        {
+          "title": "KubeVirt v1.9.1 release",
+          "url": "https://github.com/kubevirt/kubevirt/releases/tag/v1.9.1"
+        },
+        {
+          "title": "KubeVirt: Live migration",
+          "url": "https://kubevirt.io/user-guide/compute/live_migration/"
+        },
+        {
+          "title": "KubeVirt: Disks and volumes",
+          "url": "https://kubevirt.io/user-guide/storage/disks_and_volumes/"
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "summary": "Apple 실리콘(M5 Pro)·OrbStack의 kind 클러스터에 KubeVirt v1.9.1을 설치해 kvm 자원 0, ErrorUnschedulable, useEmulation 뒤 arm64의 SyncFailed(host-passthrough)·웹훅 거절까지 실행했습니다(2026-11-02). /dev/kvm이 없어 VM 부팅·콘솔·Service 노출·라이브 마이그레이션은 실행하지 못했습니다(정적). amd64 노드 에뮬레이션 시도는 컨트롤 플레인이 뜨지 않아 실패했습니다."
+      },
+      "checks": [
+        "kubevirt-installed",
+        "kubevirt-why"
+      ],
+      "yamlFiles": 1
+    },
+    {
       "id": "a-cap",
       "level": "advanced",
       "type": "capstone",

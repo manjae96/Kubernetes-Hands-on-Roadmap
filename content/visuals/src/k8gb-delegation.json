@@ -1,0 +1,109 @@
+{
+ "id": "k8gb-delegation",
+ "title": "k8gb: 존 위임과 failover",
+ "desc": "엣지 DNS(example.com 권한)가 cloud.example.com을 eu·us 두 클러스터의 CoreDNS에 위임하고, 각 클러스터의 external-dns가 그 NS·glue를 TSIG로 서명한 RFC 2136 업데이트로 씁니다. 두 CoreDNS는 서로의 상태를 DNS로 묻고, failover(primary eu)에서는 eu가 건강하면 둘 다 eu 앱 주소로, eu가 아프면 둘 다 us 앱 주소로 답합니다.",
+ "embed": {
+  "file": "content/labs/a-k8gb.md",
+  "anchor": "엣지 DNS (example.com 권한) ── cloud.example.com NS → gslb-ns-eu · gslb-ns-us (glue: 각 CoreDNS 주소)"
+ },
+ "nodes": [
+  {
+   "id": "edge",
+   "label": "엣지 DNS (example.com 권한)",
+   "sub": "cloud.example.com NS → gslb-ns-eu · gslb-ns-us",
+   "at": [
+    0,
+    0
+   ],
+   "span": 2,
+   "tone": "accent",
+   "maxw": 420
+  },
+  {
+   "id": "eudns",
+   "label": "eu: k8gb + CoreDNS",
+   "sub": "LB .200",
+   "at": [
+    1,
+    0
+   ]
+  },
+  {
+   "id": "usdns",
+   "label": "us: k8gb + CoreDNS",
+   "sub": "LB .210",
+   "at": [
+    1,
+    1
+   ]
+  },
+  {
+   "id": "euweb",
+   "label": "eu web 앱",
+   "sub": "LB .201 (primary)",
+   "at": [
+    2,
+    0
+   ],
+   "tone": "ok"
+  },
+  {
+   "id": "usweb",
+   "label": "us web 앱",
+   "sub": "LB .211 (eu 장애 때)",
+   "at": [
+    2,
+    1
+   ],
+   "tone": "warn"
+  }
+ ],
+ "edges": [
+  {
+   "from": "eudns",
+   "to": "edge",
+   "label": "NS·glue 쓰기 (RFC 2136 · TSIG)"
+  },
+  {
+   "from": "usdns",
+   "to": "edge",
+   "label": "NS·glue 쓰기"
+  },
+  {
+   "from": "eudns",
+   "to": "usdns",
+   "label": "서로 상태 질의",
+   "both": true
+  },
+  {
+   "from": "eudns",
+   "to": "euweb",
+   "label": "평소 답"
+  },
+  {
+   "from": "usdns",
+   "to": "usweb",
+   "label": "eu 장애 때 답",
+   "style": "dashed"
+  }
+ ],
+ "groups": [
+  {
+   "label": "클러스터 eu",
+   "nodes": [
+    "eudns",
+    "euweb"
+   ],
+   "tone": "muted"
+  },
+  {
+   "label": "클러스터 us",
+   "nodes": [
+    "usdns",
+    "usweb"
+   ],
+   "tone": "muted"
+  }
+ ],
+ "rowgap": 84
+}
