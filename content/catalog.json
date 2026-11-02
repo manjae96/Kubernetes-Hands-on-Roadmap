@@ -1272,6 +1272,333 @@
       "yamlFiles": 5
     },
     {
+      "id": "a-metallb",
+      "level": "advanced",
+      "type": "lab",
+      "status": "published",
+      "required": false,
+      "title": "MetalLB로 베어메탈 LoadBalancer 만들기 (L2 모드)",
+      "summary": "클라우드 없는 클러스터에서 LoadBalancer가 <pending>인 이유를 확인하고, MetalLB v0.16.0을 태그 고정으로 설치해 IPAddressPool·L2Advertisement로 주소를 할당·알린 뒤 ARP 응답·externalTrafficPolicy·장애 다섯 가지를 직접 재현합니다.",
+      "purpose": "「주소 할당」과 「주소 알리기」를 나눠 보고, 접속이 안 될 때 어느 쪽 문제인지 좁힙니다. (선택)",
+      "minutes": {
+        "concept": 20,
+        "handson": 45,
+        "review": 10
+      },
+      "versions": [
+        "1.37"
+      ],
+      "versionNotes": {
+        "1.36": "실행하지 않았습니다. 명령은 같지만 출력은 다를 수 있습니다.",
+        "1.35": "실행하지 않았습니다."
+      },
+      "outline": [
+        "클라우드 LB와 베어메탈의 차이, controller와 speaker",
+        "태그 고정 설치와 sha256 확인",
+        "IPAddressPool·L2Advertisement, ARP 응답이 노드 MAC인 이유",
+        "control-plane exclude 레이블과 단일 노드",
+        "externalTrafficPolicy Cluster·Local",
+        "장애: 풀 바닥·알리기 없음·speaker 중단·다른 대역",
+        "BGP 모드(개념)·kube-proxy·CNI·Ingress와 역할",
+        "제거"
+      ],
+      "tags": [
+        "MetalLB",
+        "LoadBalancer",
+        "베어메탈",
+        "L2 모드",
+        "ARP",
+        "NDP",
+        "IPAddressPool",
+        "L2Advertisement",
+        "BGP",
+        "externalTrafficPolicy",
+        "speaker",
+        "선택 심화"
+      ],
+      "file": "content/labs/a-metallb.md",
+      "prereq": [
+        "b-service-types"
+      ],
+      "env": "minikube k8s-lab · MetalLB v0.16.0 (L2) · 네임스페이스 lab-mlb · busybox:1.36 클라이언트 컨테이너",
+      "docs": [
+        {
+          "title": "MetalLB: Concepts",
+          "url": "https://metallb.io/concepts/"
+        },
+        {
+          "title": "MetalLB v0.16.0 manifests",
+          "url": "https://github.com/metallb/metallb/tree/v0.16.0/config/manifests"
+        },
+        {
+          "title": "MetalLB: Layer 2 configuration",
+          "url": "https://metallb.io/configuration/_advanced_l2_configuration/"
+        },
+        {
+          "title": "MetalLB: Usage (externalTrafficPolicy)",
+          "url": "https://metallb.io/usage/"
+        },
+        {
+          "title": "Kubernetes: Service type LoadBalancer",
+          "url": "https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer"
+        },
+        {
+          "title": "Well-known label node.kubernetes.io/exclude-from-external-load-balancers",
+          "url": "https://kubernetes.io/docs/reference/labels-annotations-taints/#node-kubernetes-io-exclude-from-external-load-balancers"
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "summary": "minikube v1.38.1(docker 드라이버·containerd) · Kubernetes v1.37.0에 MetalLB v0.16.0을 태그 고정으로 설치해 L2 모드의 할당·ARP 응답·트래픽·externalTrafficPolicy·장애 다섯 가지·제거까지 게시된 명령을 실행해 통과했습니다(2026-11-02). BGP 모드(실습 라우터 없음)와 L2Advertisement 인터페이스 선택, Kubernetes 1.36·1.35는 실행하지 않았습니다."
+      },
+      "checks": [
+        "metallb-l2-ip",
+        "metallb-l2-traffic"
+      ],
+      "yamlFiles": 1
+    },
+    {
+      "id": "a-vault",
+      "level": "advanced",
+      "type": "lab",
+      "status": "published",
+      "required": false,
+      "title": "Vault와 Kubernetes ServiceAccount 인증",
+      "summary": "dev 모드가 아닌 Vault 2.2.1(Raft)을 띄워 init·unseal하고, Pod가 audience를 지정한 ServiceAccount 토큰으로 로그인해 최소 권한 policy와 60초 토큰으로 비밀 하나만 읽게 합니다. 잘못된 role·SA·audience, 만료, 봉인을 재현하고 audit 로그에 비밀값이 HMAC으로만 남는 것을 확인합니다.",
+      "purpose": "비밀을 파드에 「넣는」 대신 신원으로 「받게」 하고, 실패 메시지로 어디가 틀렸는지 구분합니다. (선택)",
+      "minutes": {
+        "concept": 15,
+        "handson": 50,
+        "review": 10
+      },
+      "versions": [
+        "1.37"
+      ],
+      "versionNotes": {
+        "1.36": "실행하지 않았습니다. 명령은 같지만 출력은 다를 수 있습니다.",
+        "1.35": "실행하지 않았습니다."
+      },
+      "outline": [
+        "dev 모드와 운영 구성의 차이",
+        "Raft 저장소로 띄우기, init·unseal, root 토큰은 파일에만",
+        "audit·kv v2·최소 권한 policy",
+        "Kubernetes auth와 role(SA·네임스페이스·audience)",
+        "Pod에서 로그인해 비밀 읽기, policy 밖 403",
+        "토큰 만료·잘못된 role·SA·audience·봉인",
+        "audit 로그의 HMAC, root 토큰 폐기",
+        "정리"
+      ],
+      "tags": [
+        "Vault",
+        "비밀 관리",
+        "ServiceAccount",
+        "audience",
+        "projected token",
+        "TokenReview",
+        "policy",
+        "TTL",
+        "unseal",
+        "audit",
+        "Raft",
+        "선택 심화"
+      ],
+      "file": "content/labs/a-vault.md",
+      "prereq": [
+        "a-lab01"
+      ],
+      "env": "minikube k8s-lab · Vault 2.2.1 (hashicorp/vault:2.2.1, Raft 1노드, TLS 끔) · 네임스페이스 lab-vault·lab-app · 로컬 jq·openssl",
+      "docs": [
+        {
+          "title": "Vault: Kubernetes auth method",
+          "url": "https://developer.hashicorp.com/vault/docs/auth/kubernetes"
+        },
+        {
+          "title": "Vault: Seal/Unseal",
+          "url": "https://developer.hashicorp.com/vault/docs/concepts/seal"
+        },
+        {
+          "title": "Vault: Audit devices",
+          "url": "https://developer.hashicorp.com/vault/docs/audit"
+        },
+        {
+          "title": "Vault: Policies",
+          "url": "https://developer.hashicorp.com/vault/docs/concepts/policies"
+        },
+        {
+          "title": "Vault: Production hardening",
+          "url": "https://developer.hashicorp.com/vault/docs/concepts/production-hardening"
+        },
+        {
+          "title": "Kubernetes: ServiceAccount token volume projection",
+          "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#serviceaccount-token-volume-projection"
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "summary": "minikube v1.38.1(docker 드라이버·containerd) · Kubernetes v1.37.0에서 Vault 2.2.1(Raft 1노드, dev 모드 아님)을 띄워 init·unseal·Kubernetes 인증·policy·비밀 읽기·403·토큰 만료·잘못된 role·SA·audience·재시작 후 봉인·audit HMAC·root 토큰 폐기·정리까지 게시된 명령을 처음부터 실행해 통과했습니다(2026-11-02). TLS·Raft 3노드·자동 봉인 해제·Vault Agent Injector·CSI 드라이버, Kubernetes 1.36·1.35는 실행하지 않았습니다."
+      },
+      "checks": [
+        "vault-k8s-read",
+        "vault-audit-hmac"
+      ],
+      "yamlFiles": 2
+    },
+    {
+      "id": "a-kubeadm",
+      "level": "advanced",
+      "type": "lab",
+      "status": "published",
+      "required": false,
+      "title": "kubeadm 구조 보기와 패치 업그레이드",
+      "summary": "이 실습만을 위한 임시 minikube 프로필에서 kubeadm이 만든 인증서·스태틱 파드·kubeadm-config를 찾고, 부트스트랩 토큰과 CA 해시를 확인한 뒤, 체크섬을 확인한 kubeadm으로 v1.37.0 → v1.37.2 업그레이드(컨트롤 플레인 → drain → kubelet → uncordon)를 직접 합니다.",
+      "purpose": "클러스터를 만들고 올리는 도구가 실제로 무엇을 바꾸는지 손으로 확인합니다. init·join·HA는 정적 설명입니다. (선택)",
+      "minutes": {
+        "concept": 15,
+        "handson": 45,
+        "review": 10
+      },
+      "versions": [
+        "1.37"
+      ],
+      "versionNotes": {
+        "1.36": "실행하지 않았습니다.",
+        "1.35": "실행하지 않았습니다."
+      },
+      "outline": [
+        "임시 프로필 만들기 (평소 클러스터는 쓰지 않음)",
+        "인증서·스태틱 파드·kubeadm-config 위치",
+        "인증서 만료 확인",
+        "부트스트랩 토큰과 CA 해시",
+        "upgrade plan → kubeadm 받기(sha256) → upgrade apply",
+        "drain이 멈추는 경우, kubelet 업그레이드, uncordon",
+        "업그레이드가 갱신한 인증서",
+        "실행하지 않은 부분: init·join·HA·마이너 업그레이드"
+      ],
+      "tags": [
+        "kubeadm",
+        "클러스터 구축",
+        "업그레이드",
+        "인증서",
+        "부트스트랩 토큰",
+        "스태틱 파드",
+        "drain",
+        "kubelet",
+        "HA",
+        "선택 심화"
+      ],
+      "file": "content/labs/a-kubeadm.md",
+      "prereq": [
+        "b-concepts"
+      ],
+      "env": "임시 minikube 프로필 kubeadm-lab (Kubernetes v1.37.0, docker 드라이버·containerd, 4GB) · dl.k8s.io의 kubeadm·kubelet v1.37.2",
+      "docs": [
+        {
+          "title": "Upgrading kubeadm clusters",
+          "url": "https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/"
+        },
+        {
+          "title": "Certificate management with kubeadm",
+          "url": "https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/"
+        },
+        {
+          "title": "kubeadm token",
+          "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-token/"
+        },
+        {
+          "title": "kubeadm join (discovery)",
+          "url": "https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join/"
+        },
+        {
+          "title": "Creating Highly Available Clusters with kubeadm",
+          "url": "https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/"
+        },
+        {
+          "title": "Safely Drain a Node",
+          "url": "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/"
+        }
+      ],
+      "verification": {
+        "status": "partial",
+        "summary": "임시 minikube 프로필(v1.38.1 · docker 드라이버·containerd · arm64)에서 구조 확인·인증서 만료·토큰·upgrade plan·kubeadm v1.37.2 받기(sha256)·upgrade apply·drain·kubelet 업그레이드·uncordon·인증서 갱신 확인까지 게시된 명령을 처음부터 실행해 통과했습니다(2026-11-02). 빈 노드의 kubeadm init·join, HA, 마이너 업그레이드, 여러 노드 순차 업그레이드는 실행하지 않았습니다(정적)."
+      },
+      "checks": [
+        "kubeadm-upgraded",
+        "kubeadm-node-schedulable"
+      ],
+      "yamlFiles": 0
+    },
+    {
+      "id": "a-kubespray",
+      "level": "advanced",
+      "type": "lab",
+      "status": "published",
+      "required": false,
+      "title": "Kubespray 인벤토리와 플레이북 검사",
+      "summary": "Kubespray v2.32.0을 태그로 받고 같은 버전의 공식 이미지로, 컨트롤 플레인 3·워커 2 인벤토리의 그룹 구조·기본 변수·플레이북 문법·태스크 수를 실제 노드 없이 검사합니다. 노드에 닿지 못할 때의 UNREACHABLE도 재현합니다. 실제 구축은 정적 설명입니다.",
+      "purpose": "여러 노드 구축을 자동화하는 도구가 무엇을 입력받고 무엇을 하는지 읽을 수 있게 합니다. (선택)",
+      "minutes": {
+        "concept": 15,
+        "handson": 25,
+        "review": 10
+      },
+      "versions": [
+        "1.37"
+      ],
+      "versionNotes": {
+        "1.36": "Kubespray v2.32.0의 기본 Kubernetes 버전은 1.36.4입니다. 실제 설치는 실행하지 않았습니다."
+      },
+      "outline": [
+        "Kubespray가 자동화하는 범위",
+        "태그 고정 받기와 플레이북 목록",
+        "인벤토리 그룹(stacked etcd)과 group_vars",
+        "공식 이미지로 그래프·문법 검사·태스크 수",
+        "UNREACHABLE 재현",
+        "실제 구축·노드 추가·업그레이드 순서(정적)"
+      ],
+      "tags": [
+        "Kubespray",
+        "Ansible",
+        "인벤토리",
+        "클러스터 구축",
+        "HA",
+        "etcd",
+        "kubeadm",
+        "선택 심화"
+      ],
+      "file": "content/labs/a-kubespray.md",
+      "prereq": [
+        "a-kubeadm"
+      ],
+      "env": "Docker · quay.io/kubespray/kubespray:v2.32.0 (amd64, arm64 Mac은 에뮬레이션) · ~/kubespray-lab · 노드 없음",
+      "docs": [
+        {
+          "title": "Kubespray v2.32.0",
+          "url": "https://github.com/kubernetes-sigs/kubespray/tree/v2.32.0"
+        },
+        {
+          "title": "Kubespray: Getting started",
+          "url": "https://github.com/kubernetes-sigs/kubespray/blob/v2.32.0/docs/getting_started/getting-started.md"
+        },
+        {
+          "title": "Kubespray: Ansible",
+          "url": "https://github.com/kubernetes-sigs/kubespray/blob/v2.32.0/docs/ansible/ansible.md"
+        },
+        {
+          "title": "Kubespray: Upgrades",
+          "url": "https://github.com/kubernetes-sigs/kubespray/blob/v2.32.0/docs/operations/upgrades.md"
+        }
+      ],
+      "verification": {
+        "status": "static",
+        "summary": "Kubespray v2.32.0(커밋 9751ea6f)과 공식 이미지(ansible-core 2.19.13, arm64 Mac에서 에뮬레이션)로 인벤토리 그래프·group_vars·플레이북 문법 검사·태스크 수·SSH 접속 실패를 실행해 확인했습니다(2026-11-02). 실제 노드에 cluster.yml·scale.yml·upgrade-cluster.yml을 실행하지 않았으므로 설치 동작은 검증되지 않았습니다."
+      },
+      "checks": [
+        "kubespray-syntax",
+        "kubespray-inventory"
+      ],
+      "yamlFiles": 0
+    },
+    {
       "id": "a-cap",
       "level": "advanced",
       "type": "capstone",

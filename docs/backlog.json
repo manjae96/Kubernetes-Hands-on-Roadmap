@@ -102,7 +102,8 @@
         "etcd",
         "백업",
         "복구"
-      ]
+      ],
+      "overlap": "kubeadm 구조·인증서·토큰·패치 업그레이드(plan → apply → drain → kubelet → uncordon)의 원본은 a-kubeadm(2026-11-02 공개, 선택). 이 과정을 만들 때는 여러 노드의 마이너 업그레이드와 etcd 스냅숏 복구에 집중하고, 기본 절차는 다시 쓰지 말고 a-kubeadm으로 링크합니다."
     }
   ],
   "_note": "사이트에 아직 공개하지 않은 계획 항목입니다. 작성·검증을 마치면 content/catalog.json으로 옮기고 status를 published로 바꿉니다. 이 폴더는 배포 이미지에 들어가지 않습니다."

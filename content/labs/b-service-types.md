@@ -106,7 +106,7 @@ LoadBalancer   <pending>
 |---|---|
 | AWS·GCP·Azure·국내 클라우드 | 클라우드 컨트롤러 매니저 (자동, **비용 발생**) |
 | minikube | `minikube tunnel` (내 PC 주소를 빌려 줌) |
-| 사내·베어메탈 | MetalLB, kube-vip, Cilium LB-IPAM 등 |
+| 사내·베어메탈 | MetalLB, kube-vip, Cilium LB-IPAM 등 (MetalLB는 [선택 실습](#/item/a-metallb)에서 직접 설치) |
 
 ```bash shell="실습 터미널" run=skip
 minikube tunnel -p k8s-lab      # 관리자 비밀번호를 물을 수 있음, 열어 둔 채 다른 창에서:
