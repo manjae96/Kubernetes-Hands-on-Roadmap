@@ -24,6 +24,15 @@
 
 **왜 필요한가.** 클러스터 하나 안의 장애는 Service·Deployment가 해결하지만, 데이터센터·리전 전체가 멈추면 클러스터 밖에서 「다른 곳으로 보내기」를 해야 합니다. 전역 로드밸런서 장비나 클라우드 서비스 대신, 어느 환경에나 있는 DNS로 그 일을 하는 것이 k8gb의 방식입니다.
 
+<!-- visual:k8gb-delegation start — 생성: tools/visuals.py, 원본 content/visuals/src/k8gb-delegation.json -->
+<figure class="visual" id="visual-k8gb-delegation">
+<div class="visual-scroll"><a href="content/visuals/svg/k8gb-delegation.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/k8gb-delegation.svg" alt="k8gb: 존 위임과 failover — 엣지 DNS(example.com 권한)가 cloud.example.com을 eu·us 두 클러스터의 CoreDNS에 위임하고, 각 클러스터의 external-dns가 그 NS·glue를 TSIG로 서명한 RFC 2136 업데이트로 씁니다. 두 CoreDNS는 서로의 상태를 DNS로 묻고, failover(primary eu)에서는 eu가 건강하면 둘 다 eu 앱 주소로, eu가 아프면 둘 다 us 앱 주소로 답합니다." width="499" loading="lazy" decoding="async"></a></div>
+<figcaption><b>k8gb: 존 위임과 failover</b> — 엣지 DNS(example.com 권한)가 cloud.example.com을 eu·us 두 클러스터의 CoreDNS에 위임하고, 각 클러스터의 external-dns가 그 NS·glue를 TSIG로 서명한 RFC 2136 업데이트로 씁니다. 두 CoreDNS는 서로의 상태를 DNS로 묻고, failover(primary eu)에서는 eu가 건강하면 둘 다 eu 앱 주소로, eu가 아프면 둘 다 us 앱 주소로 답합니다. <span class="visual-links"><a href="content/visuals/svg/k8gb-delegation.svg" target="_blank" rel="noopener">크게 보기</a> · <a href="content/visuals/svg/k8gb-delegation.svg" download="k8gb-delegation.svg">SVG 받기</a></span></figcaption>
+</figure>
+<!-- visual:k8gb-delegation end -->
+
+<details class="visual-text"><summary>그림 내용을 글로 보기</summary>
+
 ```text
 엣지 DNS (example.com 권한) ── cloud.example.com NS → gslb-ns-eu · gslb-ns-us (glue: 각 CoreDNS 주소)
    ▲ RFC 2136 동적 업데이트 (TSIG 서명) — 각 클러스터의 external-dns가 자기 NS·glue를 씀
@@ -32,6 +41,8 @@
    서로의 CoreDNS에 localtargets-web.cloud.example.com 을 물어 상대가 건강한지 앎
 failover(primary=eu): eu가 건강하면 두 CoreDNS 모두 .201, eu가 아프면 둘 다 .211
 ```
+
+</details>
 
 | 구성 요소 | 하는 일 |
 |---|---|

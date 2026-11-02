@@ -12,6 +12,16 @@
    "sha256": "4f255418d12e83e625aa85389d413b772da52ff7a9b9b7d06117e0afff7a2ccf"
   },
   {
+   "id": "k8gb-delegation",
+   "title": "k8gb: 존 위임과 failover",
+   "desc": "엣지 DNS(example.com 권한)가 cloud.example.com을 eu·us 두 클러스터의 CoreDNS에 위임하고, 각 클러스터의 external-dns가 그 NS·glue를 TSIG로 서명한 RFC 2136 업데이트로 씁니다. 두 CoreDNS는 서로의 상태를 DNS로 묻고, failover(primary eu)에서는 eu가 건강하면 둘 다 eu 앱 주소로, eu가 아프면 둘 다 us 앱 주소로 답합니다.",
+   "file": "content/labs/a-k8gb.md",
+   "svg": "content/visuals/svg/k8gb-delegation.svg",
+   "width": 499,
+   "height": 466,
+   "sha256": "3344f0ec8781dfa61672bd0f962556a6940df0ca3cf7f19c0ea7575d12198a13"
+  },
+  {
    "id": "k8s-architecture",
    "title": "쿠버네티스 구성: 컨트롤 플레인과 노드",
    "desc": "컨트롤 플레인에는 모든 구성 요소의 유일한 창구인 kube-apiserver, 모든 객체를 저장하는 etcd, 새 Pod를 둘 노드를 고르는 scheduler, 제어 루프 모음인 controller-manager가 있습니다. 노드마다 kubelet(Pod 실행·상태 보고), 컨테이너 런타임(containerd → runc), kube-proxy(Service 주소 → Pod)가 있고 모두 API로 보고·지시를 받습니다.",
