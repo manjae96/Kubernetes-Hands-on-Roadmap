@@ -1743,107 +1743,185 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- return-to:end -->
-<!-- feedback:start v1.0.1 — 실습 항해도 공통 「문제 신고·질문 보내기」 (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<!-- feedback:start v2.0.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
 <style>
-/* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>을 만들지 않음 */
-#hangdo-fb-open{position:fixed;right:12px;bottom:52px;z-index:74;font:600 13px/1 system-ui,sans-serif;padding:9px 14px;border-radius:999px;border:1px solid var(--chart,#2c6fb3);background:var(--paper,#fff);color:var(--chart,#2c6fb3);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)}
-#hangdo-fb-open:focus-visible,#hangdo-fb button:focus-visible,#hangdo-fb select:focus-visible,#hangdo-fb textarea:focus-visible{outline:2px solid var(--chart,#2c6fb3);outline-offset:2px}
-#hangdo-fb{width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 24px);border:1px solid var(--rule,#d3dce4);border-radius:14px;padding:18px 18px 14px;background:var(--paper,#fff);color:var(--ink,#1b2733);font:14px/1.5 system-ui,sans-serif}
-#hangdo-fb::backdrop{background:rgba(0,0,0,.45)}#hangdo-fb h2{font-size:1.05rem;margin:0 0 6px}#hangdo-fb label{display:block;font-weight:600;margin:10px 0 4px}
-#hangdo-fb select,#hangdo-fb textarea{width:100%;box-sizing:border-box;font:inherit;padding:7px 9px;border:1px solid var(--rule,#d3dce4);border-radius:8px;background:var(--paper,#fff);color:inherit}
+/* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>·style 속성을 만들지 않음 */
+#hangdo-fb-open{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:58;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--chart,var(--accent,#2c6fb3));background:var(--chart,var(--accent,#2c6fb3));color:#fff;font:600 15px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 4px 16px rgb(0 0 0 / .18)}
+#hangdo-fb-open svg{width:22px;height:22px;flex:none}
+#hangdo-fb-open.up{bottom:calc(68px + env(safe-area-inset-bottom,0px))}
+#hangdo-fb-open[hidden]{display:none}
+#hangdo-fb-open:hover{filter:brightness(1.08)}
+#hangdo-fb-open:focus-visible,#hangdo-fb button:focus-visible,#hangdo-fb select:focus-visible,#hangdo-fb textarea:focus-visible,#hangdo-fb a:focus-visible{outline:3px solid var(--chart,var(--accent,#2c6fb3));outline-offset:2px}
+@media (max-width:640px){#hangdo-fb-open{min-height:46px;padding:0 14px 0 12px;font-size:14px}}
+@media print{#hangdo-fb-open{display:none}}
+#hangdo-fb{width:min(580px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;border:1px solid var(--rule,var(--line,#d3dce4));border-radius:14px;padding:18px 18px 14px;background:var(--paper,var(--surface,#fff));color:var(--ink,#1b2733);font:14px/1.55 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+#hangdo-fb::backdrop{background:rgba(0,0,0,.45)}
+#hangdo-fb h2{font-size:1.1rem;margin:0 0 6px}#hangdo-fb .hint{font-size:12.5px;color:var(--muted,#566778);margin:4px 0 0}
+#hangdo-fb .kinds{display:grid;gap:10px;margin:12px 0 4px}
+#hangdo-fb .kind{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:start;text-align:left;width:100%;padding:12px 14px;border:1px solid var(--rule,var(--line,#d3dce4));border-radius:12px;background:transparent;color:inherit;font:inherit;cursor:pointer}
+#hangdo-fb .kind:hover{border-color:var(--chart,var(--accent,#2c6fb3))}
+#hangdo-fb .kind b{font-size:15px}#hangdo-fb .kind span.mark{grid-row:span 2;font-size:20px;line-height:1.2}#hangdo-fb .kind small{color:var(--muted,#566778)}
+#hangdo-fb label{display:block;font-weight:600;margin:10px 0 4px}
+#hangdo-fb select,#hangdo-fb textarea{width:100%;box-sizing:border-box;font:inherit;padding:7px 9px;border:1px solid var(--rule,var(--line,#d3dce4));border-radius:8px;background:var(--paper,var(--surface,#fff));color:inherit}
 #hangdo-fb textarea{min-height:96px;resize:vertical}#hangdo-fb textarea.mono{font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:80px}
-#hangdo-fb .hint{font-size:12.5px;color:var(--muted,#566778);margin:4px 0 0}#hangdo-fb .warn{font-size:12.5px;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--warn-soft,#fdf1e2);color:var(--ink,#1b2733)}
-#hangdo-fb dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px;color:var(--muted,#566778);margin:10px 0 0}#hangdo-fb dd{margin:0;overflow-wrap:anywhere}
-#hangdo-fb .row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}#hangdo-fb .row button{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--rule,#d3dce4);background:var(--paper,#fff);color:inherit;cursor:pointer}
-#hangdo-fb .row button.primary{background:var(--chart,#2c6fb3);border-color:var(--chart,#2c6fb3);color:#fff}#hangdo-fb .msg{margin:10px 0 0;font-size:13px}#hangdo-fb .msg.err{color:var(--risk,#c2410c);font-weight:600}#hangdo-fb .msg.ok{color:var(--ok,#2f8f4e);font-weight:600}
-#hangdo-fb .hint-inline{font-weight:400}
+#hangdo-fb .warn{font-size:12.5px;margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--warn-soft,var(--buoy-soft,#fdf1e2));color:var(--ink,#1b2733)}
+#hangdo-fb dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px;color:var(--muted,#566778);margin:10px 0 0}#hangdo-fb dt{font-weight:600}#hangdo-fb dd{margin:0;overflow-wrap:anywhere}
+#hangdo-fb .chosen{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 0}#hangdo-fb .chosen b{font-size:15px}
+#hangdo-fb .row{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:12px}
+#hangdo-fb .row button,#hangdo-fb .row a,#hangdo-fb .chosen button{font:inherit;padding:7px 14px;border-radius:8px;border:1px solid var(--rule,var(--line,#d3dce4));background:transparent;color:inherit;text-decoration:none;cursor:pointer}
+#hangdo-fb .row .primary{background:var(--chart,var(--accent,#2c6fb3));border-color:var(--chart,var(--accent,#2c6fb3));color:#fff}
+#hangdo-fb .msg{margin:10px 0 0;font-size:13px}#hangdo-fb .msg.err{color:var(--risk,var(--buoy,#c2410c));font-weight:600}#hangdo-fb .msg.ok{color:var(--ok,#24773a);font-weight:600}
+#hangdo-fb [hidden]{display:none}
+@media (prefers-reduced-motion:no-preference){#hangdo-fb-open{transition:filter .15s}}
 </style>
 <script>
-/* 문제 신고·질문 보내기: 과정 화면(#/item/…)에서 관리자에게 피드백을 보냅니다 (사이트 안 비동기 피드백함, POST /api/feedback).
-   - 클라우드 허브에 로그인(회원·게스트)했을 때만 보입니다. 로컬·단독 실행에는 /api가 없어 나타나지 않습니다.
-   - 함께 보내는 것: 항해도 id · 과정 id · 지금 화면의 상대 경로. 보낸 사람·회원/게스트 구분·시각·콘텐츠 버전은 서버가 붙입니다.
-   - 보내지 않는 것: 쿠키 · 토큰 · localStorage · 클립보드 · 터미널 기록 · 환경 변수 (입력한 글과 붙여 넣은 오류 출력만) */
+/* 도움·의견(건의사항·질문·버그 신고): 모든 주요 화면 오른쪽 아래의 버튼 → 관리자 피드백함(POST /api/feedback, 사이트 안 비동기)
+   - 클라우드 허브에 로그인(회원·게스트)했을 때 보냄. 로그인이 끝났으면 로그인 안내만, 로컬·단독 실행(/api 없음)에서는 서버로 보내지 않고 복사용 글만
+   - 함께 보내는 것: 화면 종류(허브 화면은 roadmap "hub" + 화면 키) · 항해도 id · 과정·노트 id · 같은 사이트 상대 경로. 보낸 사람·회원/게스트 구분·시각·콘텐츠 버전은 서버가 붙임
+   - 보내지 않는 것: 쿠키 · 토큰 · localStorage · 클립보드 · 터미널 기록 · 환경 변수 · 화면 캡처 · 브라우저 정보 (입력한 글과 붙여 넣은 오류 출력만)
+   - 화면 글은 모두 textContent·DOM으로 만듦(HTML 문자열을 넣지 않음) */
 (() => {
-  if (location.protocol === 'file:') return;
-  const KINDS = [['hard', '설명을 이해하기 어려움'], ['command', '명령이 실행되지 않음'], ['typo', '링크 또는 오탈자'], ['outdated', '내용이 오래됨'], ['access', '권한 또는 접근 문제'], ['other', '기타']];
+  if (location.protocol === 'file:' || document.getElementById('hangdo-fb-open')) return;
+  const GROUPS = [
+    ['idea', '건의사항', '💡', '추가했으면 하는 내용 · 사용성 개선 · 새 과정 제안', [['idea', '추가·개선 제안'], ['outdated', '내용이 오래됨'], ['other', '기타 의견']]],
+    ['question', '질문', '❓', '설명이 이해되지 않음 · 명령이나 개념 · 어느 과정부터 볼지', [['question', '개념·명령·학습 순서 질문'], ['hard', '설명을 이해하기 어려움']]],
+    ['bug', '버그 신고', '🐞', '화면 오류 · 링크 오류 · 명령 실패 · 예상 결과와 다름', [['screen', '화면 오류'], ['command', '명령이 실행되지 않음'], ['result', '예상 결과와 다름'], ['typo', '링크 오류 또는 오탈자'], ['access', '권한 또는 접근 문제']]],
+  ];
   const MAX = { message: 2000, errorOutput: 8000 };
+  const HUB = { '/': 'portal', '/index.html': 'portal', '/guide.html': 'guide', '/guide': 'guide', '/level-test.html': 'level-test', '/level-test': 'level-test', '/capstones.html': 'capstones', '/capstones': 'capstones', '/version.html': 'version', '/version': 'version', '/environment.html': 'environment', '/environment': 'environment' };
+  const HUB_URL = { portal: '/', guide: '/guide.html', 'level-test': '/level-test.html', capstones: '/capstones.html', version: '/version.html', environment: '/environment.html' };
+  const HUB_NAME = { portal: '포털', guide: '학습 가이드', 'level-test': '레벨테스트', capstones: '캡스톤', version: '버전 정보', environment: '환경 안내' };
   const seg = location.pathname.split('/')[1] || '';
-  if (!/^[a-z0-9-]{1,40}$/.test(seg)) return;
-  const itemOf = () => { const m = /^#\/item\/([A-Za-z0-9_.-]{1,80})/.exec(location.hash); return m ? m[1] : ''; };
-  const here = () => { const id = itemOf(); return `/${seg}/` + (id ? `#/item/${id}` : ''); };
-  let me = null, btn = null, dlg = null;
+  if (['admin', 'manage', 'auth', 'api'].includes(seg)) return;               // 관리 화면은 자체 피드백함이 있어 띄우지 않음
+  const hubPage = HUB[location.pathname] || '';
+  if (!hubPage && !/^[a-z0-9-]{1,40}$/.test(seg)) return;
+  const idOf = re => { const m = re.exec(location.hash); return m ? m[1] : ''; };
+  const ctx = () => {
+    if (hubPage) return { roadmap: 'hub', item: hubPage, url: HUB_URL[hubPage], place: HUB_NAME[hubPage] };
+    const note = seg === 'deep' ? idOf(/^#\/note\/([A-Za-z0-9_.-]{1,80})/) : '';
+    const item = note || idOf(/^#\/item\/([A-Za-z0-9_.-]{1,80})/);
+    return { roadmap: seg, item, url: `/${seg}/` + (note ? `#/note/${note}` : item ? `#/item/${item}` : ''), place: seg === 'deep' ? '심화 노트' : '항해도' };
+  };
   const REASON = {
     'empty-message': '내용을 입력하세요.', 'too-long': '글이 너무 깁니다. 줄여서 다시 보내 주세요.', 'too-large': '보낼 내용이 너무 큽니다. 오류 출력은 필요한 부분만 붙여 넣어 주세요.',
     'bad-kind': '유형을 고르세요.', 'bad-origin': '이 화면에서 보낸 요청이 아니라 거부되었습니다. 새로고침한 뒤 다시 보내 주세요.', 'login-required': '로그인이 끝났습니다. 다시 로그인한 뒤 보내 주세요.',
-    'project-forbidden': '이 항해도에 피드백을 보낼 권한이 없습니다.',
+    'project-forbidden': '이 항해도에 의견을 보낼 권한이 없습니다.', 'bad-roadmap': '이 화면에서는 보낼 수 없습니다.', 'bad-url': '이 화면에서는 보낼 수 없습니다.', 'bad-item': '이 화면에서는 보낼 수 없습니다.',
   };
+  const el = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k === 'text') e.textContent = v; else if (k === 'class') e.className = v; else e.setAttribute(k, v === true ? '' : String(v)); } for (const c of kids.flat()) if (c != null && c !== false) e.append(c instanceof Node ? c : document.createTextNode(String(c))); return e; };
+  const icon = () => { const NS = 'http://www.w3.org/2000/svg', s = document.createElementNS(NS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('focusable', 'false');
+    const p = document.createElementNS(NS, 'path'); p.setAttribute('d', 'M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.2 3.6c-.5.4-1.3 0-1.3-.6V16A2.5 2.5 0 0 1 4 13.5z'); p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'currentColor'); p.setAttribute('stroke-width', '1.8'); p.setAttribute('stroke-linejoin', 'round');
+    const d = document.createElementNS(NS, 'path'); d.setAttribute('d', 'M8.5 9.5h7M8.5 12h4.5'); d.setAttribute('stroke', 'currentColor'); d.setAttribute('stroke-width', '1.8'); d.setAttribute('stroke-linecap', 'round'); s.append(p, d); return s; };
+  let state = 'local', me = null, btn, dlg, group = null;
+  const CLOUD = 'https://hangdo.manjae96.workers.dev/';
 
   function build() {
-    btn = document.createElement('button');
-    btn.type = 'button'; btn.id = 'hangdo-fb-open'; btn.textContent = '문제 신고·질문 보내기';
-    btn.setAttribute('aria-haspopup', 'dialog');
-    dlg = document.createElement('dialog');
-    dlg.id = 'hangdo-fb'; dlg.setAttribute('aria-labelledby', 'hangdo-fb-h');
-    dlg.innerHTML = `<form method="dialog" novalidate>
-      <h2 id="hangdo-fb-h">문제 신고·질문 보내기</h2>
-      <p class="hint">관리자에게 이 과정에 대한 의견을 보냅니다. 답은 실시간이 아니며, 확인한 뒤 과정 내용에 반영합니다.</p>
-      <label for="hangdo-fb-kind">유형</label>
-      <select id="hangdo-fb-kind" name="kind" required></select>
-      <label for="hangdo-fb-msg">내용 <span aria-hidden="true">(필수)</span></label>
-      <textarea id="hangdo-fb-msg" name="message" required maxlength="${MAX.message}" aria-describedby="hangdo-fb-msg-h"></textarea>
-      <p class="hint" id="hangdo-fb-msg-h">무엇이 어려웠는지, 어떤 단계에서 막혔는지 적어 주세요. 최대 ${MAX.message}자.</p>
-      <label for="hangdo-fb-err">오류 출력 <span class="hint hint-inline">(선택)</span></label>
-      <textarea id="hangdo-fb-err" class="mono" name="errorOutput" maxlength="${MAX.errorOutput}" aria-describedby="hangdo-fb-warn"></textarea>
-      <p class="warn" id="hangdo-fb-warn"><b>붙여 넣기 전에 비밀값을 지우세요.</b> 비밀번호·토큰·API 키·kubeconfig·인증서·개인 정보는 「***」로 바꿔 주세요. 오류가 난 부분만 최대 ${MAX.errorOutput}자.</p>
-      <dl aria-label="함께 보내는 정보"><dt>항해도</dt><dd data-f="roadmap"></dd><dt>과정</dt><dd data-f="item"></dd><dt>화면</dt><dd data-f="url"></dd><dt>보낸 사람</dt><dd data-f="who"></dd><dt>그 밖</dt><dd>보낸 시각·콘텐츠 버전은 서버가 붙입니다. 쿠키·브라우저 저장소·클립보드는 보내지 않습니다.</dd></dl>
-      <p class="msg" role="status" aria-live="polite" data-f="status"></p>
-      <div class="row"><button type="button" data-a="close">닫기</button><button type="submit" class="primary" data-a="send">보내기</button></div>
-    </form>`;
-    const sel = dlg.querySelector('select');
-    sel.innerHTML = KINDS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+    btn = el('button', { type: 'button', id: 'hangdo-fb-open', 'aria-haspopup': 'dialog', 'aria-label': '도움·의견 보내기 — 건의사항·질문·버그 신고' }, icon(), el('span', { text: '도움·의견' }));
+    dlg = el('dialog', { id: 'hangdo-fb', 'aria-labelledby': 'hangdo-fb-h' });
     document.body.append(btn, dlg);
     btn.addEventListener('click', open);
-    dlg.querySelector('[data-a=close]').addEventListener('click', () => dlg.close());
-    dlg.addEventListener('close', () => btn.focus());
-    dlg.querySelector('form').addEventListener('submit', send);
+    dlg.addEventListener('close', () => { btn.hidden = false; btn.focus(); });
+    // 오른쪽 아래에 고정된 다른 버튼(검색 단독 버튼)이 있으면 그 위로
+    const other = [...document.querySelectorAll('.hs-open')].find(b => getComputedStyle(b).position === 'fixed');
+    if (other) btn.classList.add('up');
+    window.HangdoFeedback = { open: g => { open(); if (g && state === 'cloud') { group = g; showForm(); } } };   // 사용 안내 등 다른 화면에서 열기
   }
-  const say = (text, cls) => { const m = dlg.querySelector('[data-f=status]'); m.className = 'msg ' + (cls || ''); m.setAttribute('role', cls === 'err' ? 'alert' : 'status'); m.textContent = text; };
+  function clear() { dlg.textContent = ''; }
+  function head(title, hint) { dlg.append(el('h2', { id: 'hangdo-fb-h', text: title }), hint ? el('p', { class: 'hint', text: hint }) : null); }
+  const closeBtn = () => { const b = el('button', { type: 'button', text: '닫기' }); b.addEventListener('click', () => dlg.close()); return b; };
+  function show(focus) { btn.hidden = true; if (!dlg.open) dlg.showModal(); (focus || dlg.querySelector('button, a')).focus(); }
+
   function open() {
-    dlg.querySelector('[data-f=roadmap]').textContent = seg;
-    dlg.querySelector('[data-f=item]').textContent = itemOf() || '(과정 화면이 아님)';
-    dlg.querySelector('[data-f=url]').textContent = here();
-    dlg.querySelector('[data-f=who]').textContent = me.guest ? '게스트' : '회원';
-    say('');
-    dlg.showModal();
-    dlg.querySelector('textarea[name=message]').focus();
+    group = null;
+    if (state === 'login') return showLogin();
+    if (state === 'local') return showLocal();
+    showKinds();
+    show(dlg.querySelector('.kind'));
   }
-  let busy = false;
-  async function send(e) {
-    e.preventDefault();
-    if (busy) return;
-    const f = e.target, message = f.message.value.trim(), errorOutput = f.errorOutput.value;
-    if (!message) { say('내용을 입력하세요.', 'err'); f.message.setAttribute('aria-invalid', 'true'); f.message.focus(); return; }
-    if (message.length > MAX.message || errorOutput.length > MAX.errorOutput) { say(REASON['too-long'], 'err'); return; }
-    f.message.removeAttribute('aria-invalid');
-    busy = true; f.querySelector('[data-a=send]').disabled = true; say('보내는 중…');
-    try {
-      const r = await fetch('/api/feedback', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind: f.kind.value, message, errorOutput, roadmap: seg, item: itemOf(), url: here() }) });
-      const d = await r.json().catch(() => ({}));
-      if (r.ok) { f.message.value = ''; f.errorOutput.value = ''; say(`보냈습니다 (접수 번호 ${Number(d.id) || '-'}). 관리자가 확인한 뒤 과정 내용에 반영합니다.`, 'ok'); }
-      else if (r.status === 429) say(`잠시 뒤에 다시 보내 주세요 — 짧은 시간에 너무 많이 보냈습니다${d.retryAfterMinutes ? ` (최대 ${d.retryAfterMinutes}분 뒤)` : ''}.`, 'err');
-      else say(`보내지 못했습니다: ${REASON[d.error] || `서버 오류 (${r.status})`}`, 'err');
-    } catch (x) { say('보내지 못했습니다: 네트워크에 연결할 수 없습니다. 잠시 뒤 다시 시도하세요.', 'err'); }
-    finally { busy = false; f.querySelector('[data-a=send]').disabled = false; }
+  function showKinds() {
+    clear();
+    head('도움·의견 보내기', '관리자에게 보냅니다. 실시간 답변이 아니며, 확인한 뒤 과정과 사이트에 반영합니다. 어떤 내용인가요?');
+    const box = el('div', { class: 'kinds', role: 'group', 'aria-label': '유형' });
+    for (const [id, name, mark, desc] of GROUPS) {
+      const b = el('button', { type: 'button', class: 'kind', 'data-group': id }, el('span', { class: 'mark', 'aria-hidden': 'true', text: mark }), el('b', { text: name }), el('small', { text: desc }));
+      b.addEventListener('click', () => { group = id; showForm(); });
+      box.append(b);
+    }
+    dlg.append(box, el('div', { class: 'row' }, closeBtn()));
   }
-  const sync = () => { if (btn) btn.hidden = !itemOf(); };   // 과정 화면에서만
-  fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => {
-    if (!d) return;
-    me = d;
-    const go = () => { build(); sync(); };
-    if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
-  }).catch(() => {});
-  addEventListener('hashchange', sync);
+  function showForm() {
+    const g = GROUPS.find(x => x[0] === group), c = ctx();
+    clear();
+    head(`${g[1]} 보내기`, null);
+    const change = el('button', { type: 'button', text: '유형 바꾸기' }); change.addEventListener('click', () => { const was = group; showKinds(); dlg.querySelector(`.kind[data-group="${was}"]`).focus(); });
+    const form = el('form', { method: 'dialog', novalidate: true });
+    const sel = el('select', { id: 'hangdo-fb-kind', name: 'kind' }, g[4].map(([v, t]) => el('option', { value: v, text: t })));
+    const msg = el('textarea', { id: 'hangdo-fb-msg', name: 'message', maxlength: MAX.message, required: true, 'aria-describedby': 'hangdo-fb-msg-h' });
+    const err = el('textarea', { id: 'hangdo-fb-err', class: 'mono', name: 'errorOutput', maxlength: MAX.errorOutput, 'aria-describedby': 'hangdo-fb-warn' });
+    const showErr = group !== 'idea';
+    const status = el('p', { class: 'msg', role: 'status', 'aria-live': 'polite' });
+    const send = el('button', { type: 'submit', class: 'primary', text: '보내기' });
+    form.append(...[
+      el('div', { class: 'chosen' }, el('b', { text: `${g[2]} ${g[1]}` }), change),
+      el('label', { for: 'hangdo-fb-kind', text: '세부 유형' }), sel,
+      el('label', { for: 'hangdo-fb-msg' }, '내용 ', el('span', { class: 'hint', text: '(필수)' })), msg,
+      el('p', { class: 'hint', id: 'hangdo-fb-msg-h', text: group === 'idea' ? `무엇을 바꾸거나 더하면 좋을지 적어 주세요. 최대 ${MAX.message}자.` : group === 'question' ? `무엇이 궁금한지, 어디까지 해 봤는지 적어 주세요. 최대 ${MAX.message}자.` : `어느 단계에서 무엇을 했고 무엇이 나왔는지 적어 주세요. 최대 ${MAX.message}자.` }),
+      showErr ? [el('label', { for: 'hangdo-fb-err' }, '오류 출력 ', el('span', { class: 'hint', text: '(선택)' })), err] : null,
+      el('p', { class: 'warn', id: 'hangdo-fb-warn' }, el('b', { text: '붙여 넣기 전에 비밀값을 지우세요. ' }), '비밀번호·토큰·API 키·kubeconfig·인증서·개인 정보는 「***」로 바꿔 주세요.'),
+      el('dl', { 'aria-label': '함께 보내는 정보' },
+        el('dt', { text: '화면' }), el('dd', { text: c.place + (c.roadmap === 'hub' ? '' : ` · ${c.roadmap}`) }),
+        el('dt', { text: c.roadmap === 'deep' ? '노트' : '과정' }), el('dd', { text: c.roadmap === 'hub' ? '(과정 화면이 아님)' : (c.item || '(과정 화면이 아님)') }),
+        el('dt', { text: '주소' }), el('dd', { text: c.url }),
+        el('dt', { text: '보낸 사람' }), el('dd', { text: me && me.guest ? '게스트' : '회원' }),
+        el('dt', { text: '그 밖' }), el('dd', { text: '보낸 시각·콘텐츠 버전은 서버가 붙입니다. 쿠키·브라우저 저장소·클립보드·화면 캡처·브라우저 정보는 보내지 않습니다.' })),
+      status,
+      el('div', { class: 'row' }, closeBtn(), send)].flat().filter(Boolean));   // 배열·null을 그대로 append하면 글자로 바뀜 → 펼치고 거름
+    dlg.append(form);
+    let busy = false;
+    const say = (t, cls) => { status.className = 'msg ' + (cls || ''); status.setAttribute('role', cls === 'err' ? 'alert' : 'status'); status.textContent = t; };
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (busy) return;
+      const message = msg.value.trim(), errorOutput = showErr ? err.value : '';
+      if (!message) { say(REASON['empty-message'], 'err'); msg.setAttribute('aria-invalid', 'true'); msg.focus(); return; }
+      if (message.length > MAX.message || errorOutput.length > MAX.errorOutput) { say(REASON['too-long'], 'err'); return; }
+      msg.removeAttribute('aria-invalid');
+      busy = true; send.disabled = true; say('보내는 중…');
+      try {
+        const now = ctx();
+        const r = await fetch('/api/feedback', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ kind: sel.value, message, errorOutput, roadmap: now.roadmap, item: now.item, url: now.url }) });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok) { msg.value = ''; err.value = ''; say(`보냈습니다 (접수 번호 ${Number(d.id) || '-'}). 관리자가 확인한 뒤 반영합니다.`, 'ok'); }
+        else if (r.status === 429) say(`잠시 뒤에 다시 보내 주세요 — 짧은 시간에 너무 많이 보냈습니다${d.retryAfterMinutes ? ` (최대 ${d.retryAfterMinutes}분 뒤)` : ''}.`, 'err');
+        else if (r.status === 401) { say(REASON['login-required'], 'err'); state = 'login'; }
+        else say(`보내지 못했습니다: ${REASON[d.error] || `서버 오류 (${r.status})`}`, 'err');
+      } catch (x) { say('보내지 못했습니다: 네트워크에 연결할 수 없습니다. 잠시 뒤 다시 시도하세요.', 'err'); }
+      finally { busy = false; send.disabled = false; }
+    });
+    show(sel);
+  }
+  function showLogin() {
+    clear();
+    head('도움·의견을 보내려면 로그인하세요', '로그인한 회원이나 게스트 이용권으로 들어온 사람만 보낼 수 있습니다(남용 방지). 로그인이 끝났을 수 있습니다.');
+    dlg.append(el('div', { class: 'row' }, el('a', { href: '/auth/login', text: 'GitHub로 로그인' }), el('a', { href: '/auth/guest', text: '게스트로 이용' }), el('a', { href: '/auth/guest/help', text: '게스트 이용 안내' }), closeBtn()));
+    show(dlg.querySelector('a'));
+  }
+  function showLocal() {
+    clear();
+    const c = ctx();
+    head('도움·의견 (로컬 실행)', '이 화면은 내 PC에서 실행 중이라 서버로 보내지 않습니다. 클라우드 사이트에 로그인해 같은 화면의 「도움·의견」으로 보내거나, 아래 글을 복사해 두세요.');
+    const text = `## 도움·의견\n- 유형: (건의사항 / 질문 / 버그 신고)\n- 화면: ${c.place}${c.roadmap === 'hub' ? '' : ' · ' + c.roadmap}\n- 과정·노트: ${c.roadmap === 'hub' ? '-' : (c.item || '-')}\n- 주소: ${c.url}\n\n### 내용\n\n### 오류 출력 (비밀값은 *** 로)\n`;
+    const pre = el('textarea', { class: 'mono', readonly: true, 'aria-label': '복사할 글', rows: 9 }); pre.value = text;
+    const status = el('p', { class: 'msg', role: 'status', 'aria-live': 'polite' });
+    const copy = el('button', { type: 'button', class: 'primary', text: '글 선택' });   // 클립보드 API는 쓰지 않음(읽기·쓰기 모두) — 선택만 하고 복사는 사용자가
+    copy.addEventListener('click', () => { pre.focus(); pre.select(); status.textContent = '글을 선택했습니다. ⌘C(맥) 또는 Ctrl+C로 복사하세요.'; });
+    dlg.append(pre, status, el('div', { class: 'row' }, el('a', { href: CLOUD, target: '_blank', rel: 'noopener', text: '클라우드 사이트 열기' }), closeBtn(), copy));
+    show(copy);
+  }
+  const go = () => build();
+  fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' }).then(r => { state = r.ok ? 'cloud' : r.status === 401 ? 'login' : 'local'; return r.ok ? r.json() : null; })
+    .then(d => { me = d; }).catch(() => { state = 'local'; })
+    .finally(() => { if (document.body) go(); else document.addEventListener('DOMContentLoaded', go); });
 })();
 </script>
 <!-- feedback:end -->
