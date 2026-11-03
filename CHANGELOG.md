@@ -2,6 +2,16 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.8.1 — 2026-11-04
+
+공통 템플릿과 성능 측정 연결
+
+- 0으로 줄이기(i-scale-zero) 「생각할 점」: HPA를 TPS·정상 상태로 확인 — Locust i-tps 연결
+- 모든 화면 오른쪽 아래 「도움·의견」 버튼 — 건의사항·질문·버그 신고 (feedback v2.0.0)
+- 진도 영역 1.2.0: 사용 안내·실습 환경 선택도 사람·이용권별로 분리
+
+공통 템플릿: deep-drawer v1.4.0 · hub-search v1.3.0 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.8.0 — 2026-11-03
 
 선택 심화 과정 6개(MetalLB·Vault·kubeadm·Kubespray·k8gb·KubeVirt)와 접근 가능한 SVG
