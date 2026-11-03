@@ -278,6 +278,7 @@ ScaledToZero=False (NotScaledToZero)
 | PodDisruptionBudget | `minAvailable: 1` 같은 PDB는 0과 맞지 않음 (자발적 중단 차단) |
 | 0에서 깨어날 때의 자리 | 0 → N으로 늘 때 새 파드의 requests만큼 노드 여유와 네임스페이스 ResourceQuota가 있어야 뜸. 모자라면 `Pending`이거나(노드) 아예 안 생김(쿼터) → [중급 2의 6~8단계](#/item/i-lab02) 계산·쿼터 |
 | 줄이는 속도 | 이 실습은 `stabilizationWindowSeconds: 0`으로 바로 줄임. 기본 300초의 뜻과 늘리기·줄이기 정책은 [중급 2의 6단계](#/item/i-lab02) |
+| 부하로 확인할 때 | 부하 목표를 RPS가 아니라 서비스의 TPS(업무 건수)로 정하고, 새 파드가 준비되는 동안(워밍업)을 뺀 **정상 상태**에서 레플리카 수와 응답 시간을 봄 — [Locust: TPS·QPS와 지연 시간 제대로 재기](/locust/#/item/i-tps). 부하는 내 클러스터의 서비스에만 |
 
 ## 성공 판정
 
