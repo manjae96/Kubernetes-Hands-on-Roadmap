@@ -4,94 +4,557 @@
 <title>쿠버네티스 실습 항해도</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Kubernetes 공식 문서를 근거로 기본·중급·고급 과정을 minikube 실습으로 익히는 한국어 학습 사이트">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<!-- app-ui:start v1.0.2 — 실습 항해도 공통 「읽기 배치」 (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<!-- app-ui:start v2.0.0 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<link rel="stylesheet" href="/assets/fonts/pretendard-1.3.9/pretendard.css">
+<script type="application/json" id="hangdo-app">{"id":"k8s","key":"k8s-hangdo-v1","title":"쿠버네티스","prereq":[{"id":"docker","title":"도커"}],"related":[{"id":"pv","title":"PV·PVC"},{"id":"cni","title":"CNI"},{"id":"ingress","title":"Ingress"},{"id":"helm","title":"헬름"}]}</script>
 <style>
-/* 실습 정보표(dl.facts): 좁은 3단 칸 대신 망분리 항해도처럼 「항목 | 내용」 줄 — 긴 값이 칸 안에서 꺾이지 않고, 빈 칸이 생기지 않음 (1.0.0) */
-dl.facts { grid-template-columns: minmax(0, 1fr); }   /* dl.facts: 앱 CSS(.facts, 이 블록보다 뒤에 옴)보다 구체적이어야 이김 (1.0.1) */
-dl.facts > div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); padding: 0; box-shadow: none; border-top: 1px solid var(--rule, #d3dce4); }
-dl.facts > div:first-child { border-top: 0; }
-dl.facts dt { padding: 10px 14px; font-size: .85rem; letter-spacing: 0; color: var(--muted, #566778); background: color-mix(in srgb, var(--rule, #d3dce4) 22%, transparent); }
-dl.facts dd { margin: 0; padding: 10px 14px; min-width: 0; overflow-wrap: anywhere; }
-@media (max-width: 560px) {
-  dl.facts > div { grid-template-columns: minmax(0, 1fr); }
-  dl.facts dt { padding: 8px 14px 0; background: none; }
-  dl.facts dd { padding: 2px 14px 10px; }
+/* 공통 화면 틀 2.0 — 망분리 항해도의 배치·토큰을 22개 항해도가 같이 씀 (docs/UI-SHELL.md).
+   앱 CSS가 이 블록보다 뒤에 오므로 모든 규칙은 html.hs(클래스 1 + 요소 1)로 시작해 같은 선택자보다 이김. 앱의 기존 토큰 이름(--sheet·--rule·--chart…)은 공통 토큰에 연결 */
+html.hs, html.hs[data-theme="light"] {
+  --paper: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --line: #d6dce4; --line-2: #e6eaf0;
+  --ink: #16212e; --ink-2: #3c4858; --muted: #5d6878; --faint: #8b95a4;
+  --primary: #1e4fa3; --primary-ink: #173f84; --primary-weak: #e7eefb; --on-primary: #ffffff;
+  --ok: #1f7a4d; --ok-weak: #e4f3ea; --warn: #9a5b00; --warn-weak: #fcf1df; --danger: #b3261e; --danger-weak: #fbe9e7;
+  --code-bg: #121b27; --code-ink: #dfe6ef; --code-dim: #8a9bb0;
+  --lv-prep: #0e7490; --lv-basic: #2563eb; --lv-intermediate: #b7791f; --lv-advanced: #7c3aed;
+  --radius-s: 4px; --radius: 8px; --shadow: 0 8px 30px rgba(0, 0, 0, .18);
+  --font: "Pretendard", "Pretendard Variable", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "D2Coding", monospace;
+  --nav-w: 280px; --toc-w: 220px; --page-max: 1480px; --content-w: 780px; --header-h: 60px;
+  --sheet: var(--surface); --rule: var(--line); --chart: var(--primary); --chart-soft: var(--primary-weak);
+  --ok-soft: var(--ok-weak); --warn-soft: var(--warn-weak); --bad: var(--danger); --bad-soft: var(--danger-weak);
+  --buoy: #c2410c; --buoy-soft: #fbeee6;
+  --font-display: var(--font); --font-body: var(--font); --font-mono: var(--mono);
+  --step-0: 1rem; --step-1: 1.0625rem; --step-2: 1.125rem; --step-3: 1.375rem; --step-4: 1.875rem;
+  color-scheme: light;
 }
-/* 화면 밀림(CLS) 줄이기: 앱은 본문(#main)을 스크립트로 그리므로, 그리기 전에는 본문이 비어 바닥글이 화면 가운데에 있다가 아래로 밀림(홈 CLS 약 0.8)
-   → 본문 최소 높이를 화면 높이로 두어 바닥글이 처음부터 화면 아래에 있게 (1.0.2) */
-#shell > main#main { min-height: calc(100vh - var(--header-h, 64px)); }
-/* 홈(#/)은 앱이 목차 칸을 없앰(.shell.no-side) — 그리기 전부터 같은 배치로 시작해 본문이 왼쪽으로 튀지 않게(앱이 처음 그리면 바로 해제) */
-/* 첫 그리기 전(앱이 #main을 처음 그릴 때까지): 본문 칸은 보이지 않게 — 그동안 머리말이 선택 상자를 채우며 줄바꿈되어도 보이는 본문이 밀리지 않음.
-   선택 상자가 아직 비어 있는 도구 묶음도 보이지 않게(다 채워진 폭으로 나타남). 앱이 그리면 바로 해제, 늦어도 3초 */
-:root.hangdo-boot #shell { visibility: hidden; }
+@media (prefers-color-scheme: dark) {
+  html.hs:not([data-theme="light"]) {
+    --paper: #0f151d; --surface: #151d28; --surface-2: #1b2532; --line: #2b3746; --line-2: #222d3a;
+    --ink: #e5eaf1; --ink-2: #c3ccd8; --muted: #9aa6b6; --faint: #6f7c8d;
+    --primary: #7ea6f0; --primary-ink: #a6c2f6; --primary-weak: #1b2a44; --on-primary: #0f151d;
+    --ok: #5cc98d; --ok-weak: #15301f; --warn: #e3a64a; --warn-weak: #33260f; --danger: #f08378; --danger-weak: #3a1a17;
+    --code-bg: #0b1119; --buoy: #f0a070; --buoy-soft: #3a2416;
+    --lv-prep: #22a3c0; --lv-basic: #6b9cf5; --lv-intermediate: #e0a84a; --lv-advanced: #a98cf5; --shadow: 0 8px 30px rgba(0, 0, 0, .5);
+    color-scheme: dark;
+  }
+}
+html.hs[data-theme="dark"] {
+  --paper: #0f151d; --surface: #151d28; --surface-2: #1b2532; --line: #2b3746; --line-2: #222d3a;
+  --ink: #e5eaf1; --ink-2: #c3ccd8; --muted: #9aa6b6; --faint: #6f7c8d;
+  --primary: #7ea6f0; --primary-ink: #a6c2f6; --primary-weak: #1b2a44; --on-primary: #0f151d;
+  --ok: #5cc98d; --ok-weak: #15301f; --warn: #e3a64a; --warn-weak: #33260f; --danger: #f08378; --danger-weak: #3a1a17;
+  --code-bg: #0b1119; --buoy: #f0a070; --buoy-soft: #3a2416;
+  --lv-prep: #22a3c0; --lv-basic: #6b9cf5; --lv-intermediate: #e0a84a; --lv-advanced: #a98cf5; --shadow: 0 8px 30px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+html.hs body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.7 var(--font); word-break: keep-all; overflow-wrap: anywhere; }
+html.hs :is(code, pre, kbd, samp) { font-family: var(--mono); }
+html.hs :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+html.hs a { color: var(--primary); text-underline-offset: 2px; }
+:is(html.hs, html.hs-ag) .hs-skip { position: fixed; left: 12px; top: -60px; z-index: 100; padding: 8px 14px; border-radius: var(--radius); background: var(--primary); color: var(--on-primary); font-weight: 700; text-decoration: none; }
+:is(html.hs, html.hs-ag) .hs-skip:focus { top: calc(8px + env(safe-area-inset-top, 0px)); }
+html.hs .hs-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+html.hs .hs-m { color: var(--muted); font-size: 13.5px; }
+
+/* ---------- 상단 바: 한 줄(브랜드 · 전체 항해도 · 목차 · 전체 검색 · … · 도구 · 진도) + 수준 색 띠 */
+html.hs .topbar { position: sticky; top: 0; z-index: 30; background: var(--surface); border-bottom: 0; padding-top: env(safe-area-inset-top, 0px); }
+html.hs .topbar::after { content: ""; display: block; height: 4px; background: linear-gradient(90deg, var(--lv-prep) 0 25%, var(--lv-basic) 25% 50%, var(--lv-intermediate) 50% 75%, var(--lv-advanced) 75% 100%); }
+html.hs .topbar-inner { display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; min-height: 56px; max-width: none; margin: 0; padding-block: 0; border-bottom: 1px solid var(--line); }
+html.hs .topbar-inner > .brand { order: -1; display: inline-flex; align-items: center; gap: 10px; min-width: 0; color: var(--ink); font-family: var(--font); font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; text-decoration: none; white-space: nowrap; }
+html.hs .topbar-inner > .brand > span { overflow: hidden; text-overflow: ellipsis; }
+html.hs .topbar-inner > .brand { flex: 0 0 auto; }
+html.hs .topbar-inner > .brand > svg { flex: none; width: 28px; height: 28px; padding: 4px; border-radius: 6px; background: var(--primary); color: var(--on-primary) !important; }
+/* 앱 로고는 한 색(흰 선)으로 — 로고 안의 강조색이 바탕(primary)과 같아 사라지지 않게 */
+html.hs .topbar-inner > .brand > svg [fill]:not([fill="none"]) { fill: currentColor; }
+html.hs .topbar-inner > .brand > svg [stroke]:not([stroke="none"]) { stroke: currentColor; }
+html.hs .topbar-inner > #mainnav, html.hs .topbar-inner > #menuBtn { display: none !important; }
+html.hs .topbar-inner > .hub-link { color: var(--muted); font-size: .875rem; }
+html.hs .topbar-inner .tools { margin-left: auto; display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; min-width: 0; }
+html.hs .topbar-inner .tools label { font-size: .8125rem; color: var(--muted); white-space: nowrap; }
+html.hs .topbar-inner .tools select { height: 36px; min-width: 0; max-width: 13rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; font-size: .875rem; padding: 0 8px; }
+html.hs .topbar-inner .tools .search-wrap { min-width: 0; }
+html.hs .topbar-inner .tools input[type="search"] { height: 36px; width: clamp(140px, 18vw, 260px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink); font: inherit; font-size: .9375rem; padding: 0 12px; }
+html.hs .hs-prog { flex: none; display: inline-flex; align-items: center; gap: 8px; font-size: .8125rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+html.hs .hs-prog progress { width: 96px; height: 6px; border: 0; border-radius: 3px; background: var(--surface-2); appearance: none; -webkit-appearance: none; overflow: hidden; }
+html.hs .hs-prog progress::-webkit-progress-bar { background: var(--surface-2); }
+html.hs .hs-prog progress::-webkit-progress-value { background: var(--primary); }
+html.hs .hs-prog progress::-moz-progress-bar { background: var(--primary); }
+.hangdo-nav-toggle { display: none; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line, var(--rule, #d6dce4)); background: var(--surface, transparent); color: inherit; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; flex: none; }
+.hangdo-nav-toggle:hover { border-color: var(--primary, #1e4fa3); }
+.hangdo-nav-toggle:focus-visible { outline: 2px solid var(--primary, #1e4fa3); outline-offset: 2px; }
+.hangdo-nav-toggle:not([hidden]) { display: inline-flex; }
+/* 허브 경로에서는 「← 전체 항해도」 자리를 처음부터 잡음(보이지 않게) — 허브 확인 뒤 링크가 나타나며 머리말이 밀리지 않게 */
+:root.hangdo-hub #hubLink[hidden] { display: inline-flex !important; visibility: hidden; align-items: center; gap: 4px; font-size: .875rem; white-space: nowrap; }
 .topbar-inner .tools:has(select:empty) { visibility: hidden; }
-:root.hangdo-home-boot #shell { grid-template-columns: minmax(0, 1fr); }
-:root.hangdo-home-boot #shell > .side { display: none; }
-/* 허브 경로에서는 「← 전체 항해도」 자리를 처음부터 잡음(보이지 않게) — 허브 확인 뒤 링크가 나타나며 머리말이 줄바꿈되어 본문이 밀리지 않게 */
-:root.hangdo-hub #hubLink[hidden] { display: inline-flex !important; visibility: hidden; align-items: center; gap: 4px; font-size: .85rem; white-space: nowrap; }
-/* 왼쪽 목차 접기: 넓은 화면에서만(좁은 화면은 원래대로 본문 아래·메뉴 버튼) — 선택은 사람·이용권별(진도 영역이 나눔), 모든 항해도가 같이 따름 */
-.hangdo-nav-toggle { display: none; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rule, var(--line, #d3dce4)); background: transparent; color: inherit; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
-.hangdo-nav-toggle:hover { border-color: var(--chart, var(--primary, #1d5bb8)); }
-.hangdo-nav-toggle:focus-visible { outline: 2px solid var(--chart, var(--primary, #1d5bb8)); outline-offset: 2px; }
-@media (min-width: 981px) {
-  .hangdo-nav-toggle:not([hidden]) { display: inline-flex; }
-  :root[data-nav="collapsed"] .shell { grid-template-columns: minmax(0, 1fr); }
-  :root[data-nav="collapsed"] .shell > .side { display: none; }
+
+/* ---------- 3단 배치: 전체 과정(280) | 본문(가운데, 최대 780) | 이 페이지(220) */
+html.hs #shell { display: grid; grid-template-columns: var(--nav-w) minmax(0, 1fr) var(--toc-w); gap: 0; max-width: var(--page-max); margin: 0 auto; padding: 0; }
+html.hs #shell.no-side { grid-template-columns: var(--nav-w) minmax(0, 1fr) var(--toc-w); }
+html.hs #shell > #side { display: none !important; }
+html.hs #shell > main#main { min-width: 0; min-height: calc(100vh - var(--header-h)); padding: 28px 40px 120px; }
+html.hs #main > * { max-width: var(--content-w); margin-left: auto; margin-right: auto; }
+html.hs #main .article-grid { display: block; }
+html.hs #main .article-grid > #tocSlot, html.hs #main .toc { display: none !important; }
+html.hs #main .prose, html.hs #main .prose :is(p, li), html.hs #main .lede { max-width: none; }
+html.hs .hs-nav { position: sticky; top: var(--header-h); align-self: start; height: calc(100vh - var(--header-h)); overflow: auto; overscroll-behavior: contain; padding: 18px 10px 40px 16px; border-right: 1px solid var(--line-2); font-size: 14px; line-height: 1.45; min-width: 0; }
+html.hs .hs-toc { position: sticky; top: var(--header-h); align-self: start; max-height: calc(100vh - var(--header-h)); overflow: auto; padding: 28px 16px 40px 8px; font-size: 13px; min-width: 0; }
+/* 첫 그리기 전(앱이 #main을 처음 그릴 때까지): 본문 칸만 보이지 않게(늦어도 3초) — 틀(목차 칸)은 처음부터 같은 자리 */
+:root.hangdo-boot #shell > main { visibility: hidden; }
+@media (min-width: 861px) {
+  html.hs[data-nav="collapsed"] #shell, html.hs[data-nav="collapsed"] #shell.no-side { grid-template-columns: minmax(0, 1fr) var(--toc-w); }
+  html.hs[data-nav="collapsed"] .hs-nav { display: none; }
   :root[data-nav="collapsed"] .layout { grid-template-columns: minmax(0, 1fr) 220px; }
   :root[data-nav="collapsed"] .layout > .nav { display: none; }
 }
-@media (min-width: 981px) and (max-width: 1180px) { :root[data-nav="collapsed"] .layout { grid-template-columns: minmax(0, 1fr); } }
-@media print { .hangdo-nav-toggle { display: none !important; } }
+@media (max-width: 1180px) {
+  html.hs #shell, html.hs #shell.no-side { grid-template-columns: 260px minmax(0, 1fr); }
+  /* 머리말 도구(수준·버전·검색)는 둘째 줄로 — 높이는 스크립트가 재서 --header-h로 (목차 고정 위치) */
+  html.hs .topbar-inner { flex-wrap: wrap; gap: 8px 12px; padding-block: 10px; }
+  html.hs .topbar-inner .tools { flex: 1 1 100%; order: 5; margin-left: 0; }
+  html.hs .topbar-inner .tools .search-wrap { flex: 1 1 auto; }
+  html.hs .topbar-inner .tools input[type="search"] { width: 100%; }
+  html.hs .hs-prog { margin-left: auto; }
+  html.hs .hs-toc { display: none; }
+  html.hs[data-nav="collapsed"] #shell, html.hs[data-nav="collapsed"] #shell.no-side { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 861px) and (max-width: 1180px) { :root[data-nav="collapsed"] .layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 860px) {
+  html.hs #shell, html.hs #shell.no-side { grid-template-columns: minmax(0, 1fr); }
+  html.hs #shell > main#main { padding: 20px max(16px, env(safe-area-inset-right, 0px)) 120px max(16px, env(safe-area-inset-left, 0px)); }
+  html.hs .hs-nav { position: fixed; z-index: 60; top: 0; bottom: 0; left: 0; height: auto; width: min(320px, 86vw); padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(40px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--surface); border-right: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(-102%); visibility: hidden; transition: transform .18s ease, visibility .18s; }
+  html.hs.hs-drawer .hs-nav { transform: none; visibility: visible; }
+  html.hs.hs-drawer body { overflow: hidden; }
+  html.hs .hs-scrim:not([hidden]) { position: fixed; inset: 0; z-index: 55; background: rgba(10, 16, 24, .45); }
+  html.hs .hs-nav .hs-nav-head { display: flex; }
+  html.hs .hangdo-nav-toggle { order: -2; padding: 0 10px; }
+  html.hs .hs-prog progress, html.hs .topbar-inner > .hub-link { display: none !important; }
+  html.hs .topbar-inner { flex-wrap: wrap; gap: 8px 10px; padding-block: 10px; }
+  html.hs .topbar-inner .tools { flex: 1 1 100%; order: 5; margin-left: 0; }
+  html.hs .topbar-inner .tools select { flex: 0 1 auto; max-width: 40%; }
+  html.hs .topbar-inner .tools .search-wrap { flex: 1 1 auto; }
+  html.hs .topbar-inner .tools input[type="search"] { width: 100%; }
+  html.hs .hs-prog { margin-left: auto; }
+}
+/* 도구 이름표(학습 수준·버전)는 넓은 화면에서만 보이게 — 좁으면 화면 읽기 프로그램용으로만 남김(선택 상자와 연결 유지) */
+@media (max-width: 1480px) { html.hs .topbar-inner .tools label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
+@media (max-width: 520px) { html.hs .hs-prog { display: none; } }
+@media (max-width: 400px) {
+  html.hs .topbar-inner { gap: 8px; }
+  html.hs .topbar-inner > .brand > span { font-size: .9375rem; }
+  html.hs .topbar-inner .hs-open { font-size: 0; padding: 0 8px; min-width: 36px; min-height: 36px; justify-content: center; }
+  html.hs .topbar-inner .hs-open::before { content: "🔍"; font-size: 16px; }
+  html.hs .topbar-inner .hs-open kbd { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { html.hs .hs-nav { transition: none; } }
+
+/* ---------- 전체 과정 목차 (왼쪽) */
+html.hs .hs-nav-head { display: none; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 10px; font-weight: 700; }
+html.hs .hs-nav-head button { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: inherit; font: inherit; font-size: .875rem; cursor: pointer; }
+html.hs .hs-sec { margin: 0 0 6px; }
+html.hs .hs-hub { display: none; }
+@media (max-width: 860px) { html.hs .hs-hub { display: block; } }
+html.hs .hs-link { display: flex; align-items: flex-start; gap: 8px; padding: 5px 8px; border-radius: var(--radius-s); color: var(--ink-2); text-decoration: none; line-height: 1.4; }
+html.hs .hs-link:hover { background: var(--surface-2); color: var(--ink); }
+html.hs .hs-link[aria-current] { background: var(--primary-weak); color: var(--primary-ink); font-weight: 600; }
+html.hs .hs-part { margin-top: 14px; --pc: var(--line); }
+html.hs .hs-part.lv-prep { --pc: var(--lv-prep); } html.hs .hs-part.lv-basic { --pc: var(--lv-basic); }
+html.hs .hs-part.lv-intermediate { --pc: var(--lv-intermediate); } html.hs .hs-part.lv-advanced { --pc: var(--lv-advanced); }
+html.hs .hs-part > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 8px; padding: 6px 8px; font-weight: 700; color: var(--ink); border-left: 3px solid var(--pc); border-radius: 0 var(--radius-s) var(--radius-s) 0; }
+html.hs .hs-part > summary::-webkit-details-marker { display: none; }
+html.hs .hs-part > summary::after { content: "▾"; margin-left: 4px; color: var(--faint); font-size: 11px; transition: transform .15s; }
+html.hs .hs-part:not([open]) > summary::after { transform: rotate(-90deg); }
+html.hs .hs-part > summary:hover { background: var(--surface-2); }
+html.hs .hs-part > summary .no { color: var(--muted); font-weight: 600; font-size: 12px; white-space: nowrap; }
+html.hs .hs-part > summary .cnt { margin-left: auto; color: var(--faint); font-size: 11.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+html.hs .hs-mod { margin: 6px 0 2px 12px; }
+html.hs .hs-mod > div { font-size: 12.5px; color: var(--muted); padding: 4px 8px 2px; font-weight: 600; }
+html.hs .hs-item { padding-left: 16px; font-size: 13.5px; }
+html.hs .hs-item .st { flex: none; width: 15px; height: 15px; margin-top: 2px; border-radius: 50%; border: 1.5px solid var(--line); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1; color: transparent; }
+html.hs .hs-item .st.done { background: var(--ok); border-color: var(--ok); color: #fff; }
+html.hs .hs-item .st.manual { border-color: var(--ok); color: var(--ok); }
+html.hs .hs-item .st.guide { border: 0; border-radius: 0; color: var(--faint); font-size: 12px; }
+html.hs .hs-item.planned { color: var(--faint); }
+html.hs .hs-item.planned .st { border-style: dashed; }
+html.hs .hs-item .opt { color: var(--faint); font-size: 12px; font-weight: 400; }
+html.hs .hs-foot { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line-2); }
+html.hs .hs-foot h2 { margin: 0 0 4px; padding: 0 8px; font-size: 12.5px; color: var(--muted); font-weight: 600; letter-spacing: 0; font-family: var(--font); }
+
+/* ---------- 이 페이지 (오른쪽) */
+html.hs .hs-toc h2 { margin: 0 0 8px; font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0; font-family: var(--font); }
+html.hs .hs-toc ol { list-style: none; margin: 0; padding: 0; }
+html.hs .hs-toc a { display: block; color: var(--muted); text-decoration: none; padding: 3px 0 3px 10px; border-left: 2px solid transparent; line-height: 1.45; }
+html.hs .hs-toc a.l3 { padding-left: 22px; font-size: 12.5px; }
+html.hs .hs-toc a:hover { color: var(--ink); }
+html.hs .hs-toc a[aria-current] { color: var(--ink); border-left-color: var(--primary); }
+
+/* ---------- 본문 구성 요소 (망분리 항해도와 같은 모양) */
+html.hs #main :is(h1, h2, h3, h4) { font-family: var(--font); color: var(--ink); }
+html.hs #main h1 { font-size: 30px; line-height: 1.3; letter-spacing: -0.02em; font-weight: 700; margin: 6px 0 14px; }
+html.hs #main h2 { font-size: 22px; line-height: 1.4; letter-spacing: -0.01em; font-weight: 700; scroll-margin-top: 76px; }
+html.hs #main h3 { font-size: 18px; line-height: 1.45; font-weight: 700; scroll-margin-top: 76px; }
+html.hs #main .prose h2 { margin: 44px 0 12px; padding-top: 8px; border-top: 0; }
+html.hs #main .prose h2:first-child { margin-top: 0; }
+html.hs #main .prose h3 { margin: 30px 0 8px; }
+html.hs #main .prose :is(p, li) { color: var(--ink-2); }
+html.hs #main .prose strong { color: var(--ink); }
+html.hs #main :not(pre) > code { font-size: .88em; background: var(--surface-2); border: 1px solid var(--line-2); padding: 1px 5px; border-radius: var(--radius-s); color: var(--ink); }
+html.hs #main .prose table { border-collapse: collapse; font-size: 14.5px; }
+html.hs #main .prose :is(th, td) { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+html.hs #main .prose th { background: var(--surface-2); font-weight: 600; }
+html.hs #main .eyebrow { letter-spacing: 0; font-size: 13px; }
+html.hs #main .lede { font-size: 17px; line-height: 1.65; color: var(--ink-2); }
+html.hs #main .chip { font-size: 12.5px; line-height: 20px; border-color: var(--line); background: var(--surface); }
+html.hs #main .chip.lv { font-family: var(--font); letter-spacing: 0; }
+html.hs #main figure.code, html.hs #main figure.output { margin: 14px 0; border-radius: var(--radius); border: 1px solid #0006; background: var(--code-bg); }
+html.hs #main figure.code figcaption { background: #ffffff0d; color: #b9c4d3; border-bottom: 1px solid #ffffff12; font-size: 12.5px; padding: 6px 10px 6px 14px; }
+html.hs #main figure.code figcaption .shell-tag { color: #e8eef6; }
+html.hs #main figure.code figcaption .fname { color: #8fb8ff; }
+html.hs #main figure.code .btn-sm { border: 1px solid #ffffff26; background: transparent; color: #dfe6ef; border-radius: var(--radius-s); }
+html.hs #main figure.code .btn-sm:hover { border-color: #ffffff66; color: #fff; }
+html.hs #main figure pre { font-size: 13.5px; line-height: 1.6; background: var(--code-bg); color: var(--code-ink); }
+html.hs #main figure.output { background: var(--surface); border-color: var(--line); }
+html.hs #main figure.output figcaption { background: var(--surface-2); color: var(--muted); border-bottom: 1px solid var(--line); font-size: 12.5px; }
+html.hs #main figure.output pre { background: var(--surface); color: var(--ink); }
+html.hs #main figure.output.example figcaption { background: var(--warn-weak); color: var(--warn); }
+html.hs #main figure.output.verified figcaption { background: var(--ok-weak); color: var(--ok); }
+html.hs #main .callout { border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); padding: 12px 16px; }
+html.hs #main .callout.note { background: var(--primary-weak); border-color: transparent; }
+html.hs #main .callout.warn { background: var(--warn-weak); border-color: transparent; }
+html.hs #main .callout.danger { background: var(--danger-weak); border-color: transparent; }
+html.hs #main .verify { border: 1px solid var(--ok); border-left-width: 4px; background: var(--surface); }
+html.hs #main .btn { min-height: 34px; padding: 0 14px; border-radius: var(--radius); font-size: 14px; font-weight: 600; background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+html.hs #main .btn:hover { filter: none; background: var(--primary-ink); border-color: var(--primary-ink); }
+html.hs #main .btn.ghost { background: var(--surface); color: var(--ink); border-color: var(--line); }
+html.hs #main .btn.ghost:hover { border-color: var(--primary); color: var(--ink); }
+html.hs #main .done-panel { margin-top: 36px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+html.hs #main .pager { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); }
+html.hs #main .hero { border-bottom: 0; padding: 4px 0 8px; margin-bottom: 18px; gap: 24px; }
+html.hs #main .hero h1 { font-size: 34px; line-height: 1.25; letter-spacing: -0.025em; }
+html.hs #main .hero { grid-template-columns: minmax(0, 1fr); }   /* 본문 폭(780)에서는 글 → 그림 한 줄씩(망분리 홈과 같음) */
+html.hs #main .hero > :not(:first-child) { max-width: min(100%, 560px); }
+/* 실습 정보표(dl.facts): 「항목 | 내용」 줄 (1.0.0~) */
+html.hs dl.facts { display: grid; grid-template-columns: minmax(0, 1fr); margin: 18px 0 26px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; gap: 0; }
+html.hs dl.facts > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); padding: 0; box-shadow: none; border: 0; border-top: 1px solid var(--line-2); background: none; }
+html.hs dl.facts > div:first-child { border-top: 0; }
+html.hs dl.facts dt { margin: 0; padding: 8px 14px; font-size: 14.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); background: var(--surface-2); }
+html.hs dl.facts dd { margin: 0; padding: 8px 14px; min-width: 0; font-size: 14.5px; overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  html.hs dl.facts > div { grid-template-columns: minmax(0, 1fr); }
+  html.hs dl.facts dt { padding: 8px 14px 0; background: none; font-size: 13px; }
+  html.hs dl.facts dd { padding: 2px 14px 10px; }
+}
+/* 대시보드(홈 #/): 망분리 항해도 대시보드와 같은 항목 */
+html.hs .hs-dash { margin-top: 8px; margin-bottom: 32px; }
+html.hs .hs-dash h2 { margin: 0 0 10px; }
+html.hs .hs-dash .hs-cta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 14px; }
+html.hs .hs-dash .hs-cta a { display: inline-flex; align-items: center; max-width: 100%; min-height: 34px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; text-decoration: none; }
+html.hs .hs-dash .hs-cta a.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+html.hs .hs-dash .hs-cta a:hover { border-color: var(--primary); }
+html.hs .hs-dash dl.facts { margin: 0; }
+html.hs .hs-dash progress { vertical-align: middle; width: 120px; height: 6px; margin: 0 6px; border: 0; border-radius: 3px; background: var(--surface-2); appearance: none; -webkit-appearance: none; overflow: hidden; }
+html.hs .hs-dash progress::-webkit-progress-bar { background: var(--surface-2); }
+html.hs .hs-dash progress::-webkit-progress-value { background: var(--primary); }
+html.hs .hs-dash progress::-moz-progress-bar { background: var(--primary); }
+html.hs .hs-dash .hs-lv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 12px; margin: 0; padding: 0; list-style: none; }
+html.hs .hs-dash .hs-lv .t { font-weight: 600; }
+html.hs .hs-dash .hs-lv .m { color: var(--muted); font-variant-numeric: tabular-nums; }
+html.hs .site-foot { border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 13px; }
+/* 망분리 어댑터: 자기 배치 그대로 — 「목차 접기」는 넓은 화면만, 좁은 화면 서랍은 바깥 어둡게 */
+@media (max-width: 860px) {
+  html.hs-ag .hangdo-nav-toggle { display: none !important; }
+  html.hs-ag .hs-scrim:not([hidden]) { position: fixed; inset: 0; z-index: 35; background: rgba(10, 16, 24, .45); }
+}
+@media (min-width: 861px) { html.hs-ag .hs-scrim { display: none; } }
+/* 닫힌 서랍(화면 밖으로 밀어 둔 목차)은 Tab 초점이 들어가지 않게 */
+@media (max-width: 860px) { html.hs-ag body:not(.nav-open) .layout > .nav { visibility: hidden; transition: transform .18s ease, visibility .18s; } }
+html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(--surface); border-color: var(--line); }
+@media print { .hangdo-nav-toggle, html.hs .hs-nav, html.hs .hs-toc, html.hs .hs-prog { display: none !important; } html.hs #shell { display: block; } }
 </style>
 <script>
-/* 읽기 배치: 왼쪽 목차 접기/펼치기 (aria-expanded). 그리기 전에 접힘 상태를 적용하려고 <head>에 둡니다.
-   저장: localStorage 'hangdo-ui:v1' = {"nav":"collapsed"|"open"} — 진도 영역(progress-scope 1.3.0)이 사람·이용권별로 나눔, 서버로 보내지 않음 */
+/* 공통 화면 틀 2.0 — 앱 코드는 그대로 두고 틀만 그립니다(앱별 차이는 위 hangdo-app 어댑터: id·storageKey·선수/연관 항해도).
+   - 과정 목록: 앱이 content/catalog.json을 받을 때 그 응답을 복제해서 씀(추가 요청 0). 완료 표시는 앱이 쓰는 storageKey(localStorage)를 읽기만 함
+   - 화면 설정 저장: localStorage 'hangdo-ui:v1' = {"nav":"open|collapsed","closed":{"<항해도>":["basic",…]}} — 진도 영역(progress-scope)이 사람·이용권별로 나눔, 서버로 보내지 않음
+   - 사용자 입력을 HTML로 넣지 않음(과정 제목 등 저장소 콘텐츠도 esc로 이스케이프) */
 (() => {
-  const KEY = 'hangdo-ui:v1';
-  const read = () => { try { const v = JSON.parse(localStorage.getItem(KEY) || '{}'); return v && v.nav === 'collapsed' ? 'collapsed' : 'open'; } catch (e) { return 'open'; } };
-  const write = nav => { try { localStorage.setItem(KEY, JSON.stringify({ nav })); } catch (e) {} };
-  const apply = nav => { if (nav === 'collapsed') document.documentElement.dataset.nav = 'collapsed'; else delete document.documentElement.dataset.nav; };
-  apply(read());
-  // 첫 배치: 앱이 #main을 처음 그릴 때까지만 — 본문 칸 숨김(hangdo-boot), 홈이면 목차 없는 배치(hangdo-home-boot). 그 뒤는 앱이 정함
-  const route = location.hash || '#/', root = document.documentElement;
+  const root = document.documentElement;
+  let APP = {}; try { APP = JSON.parse(document.getElementById('hangdo-app').textContent) || {}; } catch (e) {}
+  // 어댑터 layout: 기본 = 공통 틀(.shell 구조 앱), "airgap" = 망분리처럼 자기 3단 배치(.layout·nav.nav·.toc)가 있는 앱 — 틀은 그대로 쓰고 접근성·접기·글꼴만
+  const AG = APP.layout === 'airgap';
+  root.classList.add(AG ? 'hs-ag' : 'hs');
+  const UI = 'hangdo-ui:v1';
+  const readUI = () => { try { const v = JSON.parse(localStorage.getItem(UI) || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; } };
+  const writeUI = patch => { try { localStorage.setItem(UI, JSON.stringify(Object.assign(readUI(), patch))); } catch (e) {} };
+  const navMode = () => readUI().nav === 'collapsed' ? 'collapsed' : 'open';
+  const applyNav = nav => { if (nav === 'collapsed') root.dataset.nav = 'collapsed'; else delete root.dataset.nav; };
+  applyNav(navMode());
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // 첫 그리기 전(앱이 #main을 처음 그릴 때까지): 본문 칸만 숨김(늦어도 3초)
   root.classList.add('hangdo-boot');
-  if (route === '#/' || route === '#') root.classList.add('hangdo-home-boot');
-  const off = () => root.classList.remove('hangdo-boot', 'hangdo-home-boot');
+  const off = () => root.classList.remove('hangdo-boot');
   setTimeout(off, 3000);
-  document.addEventListener('DOMContentLoaded', () => {
-    const m = document.getElementById('main');
-    if (!m || !m.querySelector('.loading')) return off();   // 이미 그려졌거나 구조가 다른 앱
-    new MutationObserver((r, o) => { o.disconnect(); requestAnimationFrame(off); }).observe(m, { childList: true });
-  });
-  if (location.pathname.split('/')[1]) document.documentElement.classList.add('hangdo-hub');   // /<항해도>/… = 허브 아래 (단독 실행은 /)
-  const init = () => {
+  if (location.pathname.split('/')[1]) root.classList.add('hangdo-hub');   // /<항해도>/… = 허브 아래 (단독 실행은 /)
+  const inHub = () => root.classList.contains('hangdo-hub');
+
+  // 과정 목록: 앱의 catalog 요청 응답을 복제(앱이 읽기 전에 복제하도록 then을 먼저 붙임)
+  let CAT = null;
+  const of = window.fetch;
+  if (!AG && typeof of === 'function') window.fetch = function (u) {
+    const p = of.apply(this, arguments);
+    try {
+      const s = typeof u === 'string' ? u : (u && u.url) || '';
+      if (!CAT && /(^|\/)content\/catalog\.json(\?|$)/.test(s)) p.then(r => r.ok ? r.clone().json() : null).then(c => { if (c && Array.isArray(c.items)) { CAT = c; paintAll(); } }).catch(() => {});
+    } catch (e) {}
+    return p;
+  };
+  const state = () => { try { return JSON.parse(localStorage.getItem(APP.key) || '{}') || {}; } catch (e) { return {}; } };
+  // 앱과 같은 판정: 성공 판정을 모두 통과(done) 또는 수동 완료(manual)
+  const doneOf = (st, it) => { const p = (st.progress || {})[it.id]; if (!p) return ''; const need = it.checks || []; if (need.length && need.every(c => p.checks && p.checks[c])) return 'done'; return p.manual ? 'manual' : ''; };
+  const LVNAME = { prep: '준비', basic: '기본', intermediate: '중급', advanced: '고급' };
+  const levels = () => [{ id: 'prep', name: '준비', title: '환경 준비' }].concat((CAT.levels || []).map(l => ({ id: l.id, name: l.marker || l.name, title: (l.name || LVNAME[l.id] || l.id) + ' 과정' })));
+  const minutes = it => { const m = it.minutes || {}; return (m.concept || 0) + (m.handson || 0) + (m.review || 0); };
+  const hm = n => n >= 60 ? `${Math.floor(n / 60)}시간${n % 60 ? ' ' + (n % 60) + '분' : ''}` : `${n}분`;
+  const cur = () => {
+    let h = ''; try { h = decodeURIComponent(location.hash || ''); } catch (e) { h = location.hash || ''; }
+    if (/^#[\w.~-]+$/.test(h)) h = '#/' + h.slice(1);
+    let m;
+    if ((m = h.match(/^#\/item\/([^/?#]+)/))) return { item: m[1], href: '#/item/' + m[1] };
+    if ((m = h.match(/^#\/level\/([^?#]+?)\/?$/))) return { guide: m[1], href: h };
+    if (!h || h === '#' || h === '#/') return { href: '#/', home: true };
+    return { href: h.split('?')[0] };
+  };
+  const topLinks = () => [...document.querySelectorAll('#mainnav a[href]')].map(a => [a.getAttribute('href'), a.textContent.trim()]);
+  const curLink = (href, c) => href === c.href || (c.item && href === '#/item/' + c.item) || (c.guide && href === '#/level/' + c.guide);
+  const MAINRE = /^#\/(roadmap|env|item\/setup)$/;
+
+  let nav, toc, btn, scrim, prog, lastNavHtml = '', lastCurHref = '';
+  function navHtml() {
+    const st = state(), c = cur(), closed = ((readUI().closed || {})[APP.id]) || [];
+    const link = (href, label) => `<a class="hs-link" href="${esc(href)}"${curLink(href, c) ? ' aria-current="page"' : ''}>${label}</a>`;
+    const links = topLinks();
+    const main = links.filter(([h]) => MAINRE.test(h)), rest = links.filter(([h]) => !MAINRE.test(h));
+    let h = `<div class="hs-nav-head"><span>전체 과정</span><button type="button" class="hs-close" aria-label="목차 닫기">닫기</button></div>`;
+    if (inHub()) h += `<div class="hs-sec hs-hub"><a class="hs-link" href="/">← 전체 항해도</a></div>`;
+    h += `<div class="hs-sec">${link('#/', '홈')}${main.map(([href, t]) => link(href, esc(t))).join('')}</div>`;
+    const tracks = (CAT.tracks || []).filter(t => CAT.items.some(i => i.product === t.id));
+    const itemLink = it => {
+      const d = doneOf(st, it), planned = it.status === 'planned';
+      const label = `${esc(it.title)}${it.required === false ? ' <span class="opt">(선택)</span>' : ''}${planned ? ' <span class="opt">예정</span>' : ''}`;
+      const sr = d === 'done' ? '완료 · 실행 결과 확인' : (d === 'manual' ? '완료' : '');
+      return `<a class="hs-link hs-item${planned ? ' planned' : ''}" href="#/item/${esc(it.id)}"${c.item === it.id ? ' aria-current="page"' : ''}><span class="st ${d}" aria-hidden="true">${d ? '✓' : ''}</span><span>${label}${sr ? `<span class="hs-sr"> (${sr})</span>` : ''}</span></a>`;
+    };
+    const guide = href => `<a class="hs-link hs-item" href="${esc(href)}"${curLink(href, c) ? ' aria-current="page"' : ''}><span class="st guide" aria-hidden="true">◇</span><span>이렇게 학습하세요</span></a>`;
+    levels().forEach(L => {
+      const its = CAT.items.filter(i => i.level === L.id); if (!its.length) return;
+      const pub = its.filter(i => i.status !== 'planned'), done = pub.filter(i => doneOf(st, i)).length;
+      const hasCur = its.some(i => i.id === c.item) || !!(c.guide && (c.guide === L.id || c.guide.endsWith('/' + L.id)));
+      const open = hasCur || !closed.includes(L.id);
+      let body = '';
+      if (tracks.length && L.id !== 'prep') {
+        its.filter(i => !tracks.some(t => t.id === i.product)).forEach(i => { body += itemLink(i); });
+        tracks.forEach(t => { const ti = its.filter(i => i.product === t.id); if (!ti.length) return;
+          body += `<div class="hs-mod"><div>${esc(t.name)}${t.status === 'planned' ? ' · 예정' : ''}</div>${guide(`#/level/${t.id}/${L.id}`)}${ti.map(itemLink).join('')}</div>`; });
+      } else {
+        if (L.id !== 'prep') body += guide(`#/level/${L.id}`);
+        body += its.map(itemLink).join('');
+      }
+      h += `<details class="hs-part lv-${esc(L.id)}" data-lv="${esc(L.id)}"${open ? ' open' : ''}><summary><span class="no">${esc(L.name)}</span><span>${esc(L.title)}</span><span class="cnt"><span aria-hidden="true">${done}/${pub.length}</span><span class="hs-sr">공개 ${pub.length}개 중 ${done}개 완료</span></span></summary>${body}</details>`;
+    });
+    if (rest.length) h += `<div class="hs-sec hs-foot"><h2>자료</h2>${rest.map(([href, t]) => link(href, esc(t))).join('')}</div>`;
+    return h;
+  }
+  function paintNav() {
+    if (!nav || !CAT) return;
+    const html = navHtml(), c = cur();
+    if (html !== lastNavHtml) {
+      const had = nav.contains(document.activeElement) ? (document.activeElement.getAttribute('href') || '') : null;
+      const top = nav.scrollTop; nav.innerHTML = html; nav.scrollTop = top; lastNavHtml = html;
+      if (had !== null) { const a = had && nav.querySelector(`a[href="${CSS.escape(had)}"]`); (a || nav.querySelector('.hs-close')).focus({ preventScroll: true }); }
+    }
+    if (c.href !== lastCurHref) {   // 경로가 바뀌면 현재 항목이 목차 화면 안에 오게
+      lastCurHref = c.href;
+      const a = nav.querySelector('a[aria-current]:not([href="#/"])');
+      if (a) { const r = a.getBoundingClientRect(), n = nav.getBoundingClientRect(); if (r.top < n.top + 40 || r.bottom > n.bottom - 20) nav.scrollTop += r.top - n.top - n.height / 3; }
+    }
+  }
+  function paintProg() {
+    if (!prog || !CAT) return;
+    const st = state(), pub = CAT.items.filter(i => i.status !== 'planned'), done = pub.filter(i => doneOf(st, i)).length;
+    const pct = pub.length ? Math.round(done / pub.length * 100) : 0;
+    prog.querySelector('.pct').textContent = pct + '%'; prog.querySelector('progress').value = pct;
+    prog.title = `공개 ${pub.length}개 중 ${done}개 완료`;
+  }
+  // 대시보드(홈): 진도·이어서 학습·구성·수준별·검증 수준·실습 환경·선수/연관 항해도·공식 문서
+  function paintDash() {
+    const main = document.getElementById('main');
+    if (!main || !CAT || !cur().home || main.querySelector('.loading')) return;
+    const old = main.querySelector('#hs-dash');
+    const st = state(), all = CAT.items, pub = all.filter(i => i.status !== 'planned'), done = pub.filter(i => doneOf(st, i)).length;
+    const pct = pub.length ? Math.round(done / pub.length * 100) : 0;
+    const last = st.last && st.last.global && all.find(i => i.id === st.last.global);
+    const first = pub.find(i => !doneOf(st, i)) || pub[0];
+    const cnt = t => pub.filter(i => i.type === t).length;
+    const types = [['setup', '환경 준비'], ['lesson', '강의'], ['lab', '실습'], ['capstone', '종합 과제']].map(([t, n]) => cnt(t) ? `${n} ${cnt(t)}` : '').filter(Boolean);
+    const planned = all.length - pub.length;
+    const lv = levels().map(L => { const its = pub.filter(i => i.level === L.id); if (!its.length) return ''; const d = its.filter(i => doneOf(st, i)).length;
+      return `<li class="t">${esc(L.title)}</li><li class="m">${d}/${its.length} 완료 · ${hm(its.reduce((a, i) => a + minutes(i), 0))}</li>`; }).join('');
+    const ver = {}; pub.forEach(i => { const s = (i.verification || {}).status || 'none'; ver[s] = (ver[s] || 0) + 1; });
+    const VN = { runtime: '실행 검증', partial: '부분 검증', static: '정적 확인', none: '미검증' };
+    const verTxt = Object.keys(VN).filter(k => ver[k]).map(k => `${VN[k]} ${ver[k]}`).join(' · ');
+    const hasEnv = topLinks().some(([h]) => h === '#/env'), hasVer = topLinks().some(([h]) => h === '#/verification');
+    const setup = all.find(i => i.id === 'setup');
+    const roads = list => (list || []).map(r => inHub() ? `<a href="/${esc(r.id)}/">${esc(r.title)}</a>` : esc(r.title)).join(' · ');
+    const docs = []; const v0 = (CAT.versions || [])[0]; if (v0 && typeof v0.docs === 'string') docs.push({ title: '공식 문서', url: v0.docs });
+    ((setup && setup.docs) || []).forEach(d => { if (docs.length < 3 && d && d.url && !docs.some(x => x.url === d.url)) docs.push(d); });
+    const row = (k, v) => v ? `<div><dt>${k}</dt><dd>${v}</dd></div>` : '';
+    const go = last && last.status !== 'planned' ? `<a class="primary" href="#/item/${esc(last.id)}">이어서 학습: ${esc(last.title)}</a>` : (first ? `<a class="primary" href="#/item/${esc(first.id)}">추천 시작: ${esc(first.title)}</a>` : '');
+    const html = `<h2 id="hs-dash-h">학습 현황</h2><div class="hs-cta">${go}</div>`
+      + `<dl class="facts">${row('진도', `${pct}%<progress max="100" value="${pct}" aria-hidden="true"></progress><span class="hs-m">공개 ${pub.length}개 중 ${done}개 완료</span>`)}`
+      + row('구성', `${types.join(' · ')}${planned ? ` · 예정 ${planned}` : ''} <span class="hs-m">(예상 ${hm(pub.reduce((a, i) => a + minutes(i), 0))})</span>`)
+      + row('수준별', lv ? `<ul class="hs-lv">${lv}</ul>` : '')
+      + row('검증 수준', verTxt ? (hasVer ? `<a href="#/verification">${verTxt}</a>` : verTxt) : '')
+      + row('실습 환경', setup ? `<a href="#/item/setup">${esc(setup.title)}</a>${hasEnv ? ' · <a href="#/env">실습 환경 지도</a>' : ''}` : '')
+      + row('선수 항해도', roads(APP.prereq)) + row('연관 항해도', roads(APP.related))
+      + row('공식 문서', docs.map(d => `<a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a>`).join(' · '))
+      + `</dl>`;
+    if (old) { if (old.dataset.sig !== html) { old.innerHTML = html; old.dataset.sig = html; } return; }
+    const sec = document.createElement('section'); sec.id = 'hs-dash'; sec.className = 'hs-dash'; sec.setAttribute('aria-labelledby', 'hs-dash-h'); sec.innerHTML = html; sec.dataset.sig = html;
+    const hero = main.querySelector('.hero') || main.querySelector('.page-head');
+    if (hero) hero.after(sec); else main.prepend(sec);
+  }
+  // 이 페이지 목차: 본문 h2·h3, 현재 구역 표시
+  let heads = [], tocSig = '';
+  // 제목 글자: 표시 칩(선택됨·예정 등)·숨긴 글자는 빼고, 조각 사이는 띄어 씀
+  const headText = h => { const out = []; const walk = n => n.childNodes.forEach(c => { if (c.nodeType === 3) out.push(c.nodeValue); else if (c.nodeType === 1 && !c.matches('.chip, [aria-hidden="true"], .sr-only, .hs-sr, .anchor')) { out.push(' '); walk(c); out.push(' '); } }); walk(h); return out.join('').replace(/\s+/g, ' ').trim(); };
+  function paintToc() {
+    const main = document.getElementById('main'); if (!toc || !main) return;
+    const hs = [...main.querySelectorAll('h2, h3')].filter(h => headText(h) && !h.closest('figure, .callout, .verify, dialog, [hidden], details:not([open]), .deep-drawer, .toc, #tocSlot'));
+    hs.forEach((h, i) => { if (!h.id) h.id = 'hs-h-' + i; });
+    const sig = (location.hash || '') + '\n' + hs.map(h => h.id + '|' + h.tagName + '|' + headText(h)).join('\n');
+    if (sig === tocSig) return markToc();
+    tocSig = sig; heads = hs.length >= 2 ? hs : [];
+    const here = location.hash || '#/';
+    toc.innerHTML = heads.length ? `<nav aria-label="이 페이지 목차"><h2>이 페이지</h2><ol>${heads.map(h => `<li><a class="${h.tagName === 'H3' ? 'l3' : 'l2'}" href="${esc(here)}" data-hs-goto="${esc(h.id)}">${esc(headText(h))}</a></li>`).join('')}</ol></nav>` : '';
+    markToc();
+  }
+  function markToc() {
+    if (!toc || !heads.length) return;
+    const y = (parseFloat(getComputedStyle(root).getPropertyValue('--header-h')) || 60) + 80;
+    let on = heads[0];
+    for (const h of heads) { if (h.getBoundingClientRect().top <= y) on = h; else break; }
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) on = heads[heads.length - 1];
+    toc.querySelectorAll('a[data-hs-goto]').forEach(a => { if (a.dataset.hsGoto === on.id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+  }
+  const mq = matchMedia('(max-width: 860px)');
+  const drawerOpen = () => root.classList.contains('hs-drawer');
+  function paintBtn() {
+    if (!btn) return;
+    if (mq.matches && !AG) { btn.setAttribute('aria-expanded', String(drawerOpen())); btn.textContent = '☰ 목차'; btn.title = '전체 과정 목차를 엽니다'; }
+    else { const open = navMode() !== 'collapsed'; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? '◧ 목차 접기' : '☰ 목차 펼치기'; btn.title = open ? '왼쪽 목차를 숨기고 본문을 넓게 봅니다' : '왼쪽 목차를 다시 보입니다'; }
+  }
+  function setDrawer(v, focusBack = true) {
+    root.classList.toggle('hs-drawer', v); if (scrim) scrim.hidden = !v; paintBtn();
+    if (v) { const a = nav.querySelector('a[aria-current]:not([href="#/"])') || nav.querySelector('a, button'); if (a) setTimeout(() => a.focus(), 30); }
+    else if (focusBack && btn) btn.focus({ preventScroll: true });
+  }
+  let queued = false;
+  function paintAll() { if (queued) return; queued = true; queueMicrotask(() => { queued = false; paintNav(); paintProg(); paintDash(); paintToc(); }); }
+
+  // 망분리 어댑터: 넓은 화면 「목차 접기」, 좁은 화면 서랍(☰ menuBtn)에 aria-expanded·ESC·초점 가두기·바깥 누르면 닫기
+  const initAg = () => {
     if (document.getElementById('hangdo-nav-toggle')) return true;
-    const side = document.querySelector('#shell > aside.side, .layout > nav.nav');
-    const bar = document.querySelector('.topbar-inner, .top-in');
-    if (!side || !bar) return false;
+    const side = document.querySelector('.layout > nav.nav'), bar = document.querySelector('.top-in'), mb = document.getElementById('menuBtn');
+    if (!side || !bar || !document.body) return false;
     if (!side.id) side.id = 'hangdo-side';
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.id = 'hangdo-nav-toggle'; btn.className = 'hangdo-nav-toggle'; btn.setAttribute('aria-controls', side.id);
-    const paint = () => { const open = read() !== 'collapsed'; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? '◧ 목차 접기' : '☰ 목차 펼치기'; btn.title = open ? '왼쪽 목차를 숨기고 본문을 넓게 봅니다' : '왼쪽 목차를 다시 보입니다'; };
-    const shell = document.getElementById('shell');
-    const sync = () => { btn.hidden = !!(shell && shell.classList.contains('no-side')); };   // 목차가 없는 화면(홈 등)에서는 숨김
-    btn.addEventListener('click', () => { const nav = read() === 'collapsed' ? 'open' : 'collapsed'; write(nav); apply(nav); paint(); if (nav === 'open') { const a = side.querySelector('a[aria-current], a'); if (a) a.focus({ preventScroll: true }); } });
+    nav = side;
+    btn = document.createElement('button'); btn.type = 'button'; btn.id = 'hangdo-nav-toggle'; btn.className = 'hangdo-nav-toggle'; btn.setAttribute('aria-controls', side.id);
+    btn.addEventListener('click', () => { const v = navMode() === 'collapsed' ? 'open' : 'collapsed'; writeUI({ nav: v }); applyNav(v); paintBtn(); if (v === 'open') { const a = side.querySelector('a[aria-current], a.on, a'); if (a) a.focus({ preventScroll: true }); } });
     const hub = bar.querySelector('#hubLink');
-    if (hub && hub.nextSibling) bar.insertBefore(btn, hub.nextSibling); else bar.insertBefore(btn, bar.firstChild);
-    paint(); sync();
-    if (shell) new MutationObserver(sync).observe(shell, { attributes: true, attributeFilter: ['class'] });
-    addEventListener('storage', e => { if (e.key === KEY) { apply(read()); paint(); } });   // 다른 탭에서 바꾸면 따라감
+    if (hub && hub.nextSibling) bar.insertBefore(btn, hub.nextSibling); else bar.appendChild(btn);
+    scrim = document.createElement('div'); scrim.className = 'hs-scrim'; scrim.hidden = true;
+    scrim.addEventListener('click', () => document.body.classList.remove('nav-open'));
+    document.body.appendChild(scrim);
+    if (mb) { mb.setAttribute('aria-controls', side.id); mb.setAttribute('aria-expanded', 'false'); }
+    let was = false;
+    new MutationObserver(() => {
+      const open = document.body.classList.contains('nav-open') && mq.matches;
+      root.classList.toggle('hs-drawer', open); scrim.hidden = !open; if (mb) mb.setAttribute('aria-expanded', String(open));
+      if (open && !was) { const a = side.querySelector('a.on, a[aria-current], a'); if (a) setTimeout(() => a.focus(), 30); }
+      was = open;
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    paintBtn();
     return true;
   };
-  // 문서를 읽는 도중(머리말·목차가 생기는 즉시) 단추를 넣음 — 첫 그리기 뒤에 넣으면 머리말이 줄바꿈되며 본문이 밀림(CLS)
+  const init = () => {
+    if (AG) return initAg();
+    if (document.getElementById('hangdo-nav')) return true;
+    const shell = document.getElementById('shell'), bar = document.querySelector('.topbar-inner'), main = document.getElementById('main');
+    if (!shell || !bar || !main) return false;
+    nav = document.createElement('nav'); nav.id = 'hangdo-nav'; nav.className = 'hs-nav'; nav.setAttribute('aria-label', '전체 과정');
+    shell.insertBefore(nav, shell.firstChild);
+    toc = document.createElement('aside'); toc.id = 'hangdo-toc'; toc.className = 'hs-toc'; toc.setAttribute('aria-label', '이 페이지');
+    shell.appendChild(toc);
+    scrim = document.createElement('div'); scrim.className = 'hs-scrim'; scrim.hidden = true; scrim.addEventListener('click', () => setDrawer(false));
+    shell.appendChild(scrim);
+    btn = document.createElement('button'); btn.type = 'button'; btn.id = 'hangdo-nav-toggle'; btn.className = 'hangdo-nav-toggle'; btn.setAttribute('aria-controls', nav.id);
+    btn.addEventListener('click', () => {
+      if (mq.matches) return setDrawer(!drawerOpen());
+      const v = navMode() === 'collapsed' ? 'open' : 'collapsed'; writeUI({ nav: v }); applyNav(v); paintBtn();
+      if (v === 'open') { const a = nav.querySelector('a[aria-current], a'); if (a) a.focus({ preventScroll: true }); }
+    });
+    const hub = bar.querySelector('#hubLink');
+    if (hub && hub.nextSibling) bar.insertBefore(btn, hub.nextSibling); else bar.insertBefore(btn, bar.firstChild);
+    // 머리말 높이(줄바꿈·안전 영역 포함)를 재서 고정 목차 위치에 씀
+    const header = bar.closest('header') || bar;
+    if (window.ResizeObserver) new ResizeObserver(() => root.style.setProperty('--header-h', Math.round(header.getBoundingClientRect().height) + 'px')).observe(header);
+    prog = document.createElement('span'); prog.className = 'hs-prog'; prog.innerHTML = '<span class="pct">0%</span><progress max="100" value="0" aria-hidden="true"></progress>';
+    bar.appendChild(prog);
+    paintBtn();
+    // 과정 묶음 접기/펼치기는 항해도별로 기억
+    nav.addEventListener('toggle', e => { const d = e.target; if (!d.matches || !d.matches('details.hs-part') || !d.isConnected || !d.dataset.lv) return;
+      const was = !((readUI().closed || {})[APP.id] || []).includes(d.dataset.lv);
+      if (was === d.open) return;   // 다시 그리기로 생긴 toggle은 무시
+      const all = Object.assign({}, readUI().closed || {}); const set = new Set(all[APP.id] || []);
+      if (d.open) set.delete(d.dataset.lv); else set.add(d.dataset.lv); all[APP.id] = [...set]; writeUI({ closed: all }); lastNavHtml = ''; }, true);
+    nav.addEventListener('click', e => { if (e.target.closest('.hs-close')) return setDrawer(false); if (e.target.closest('a[href]') && mq.matches) setDrawer(false, false); });
+    toc.addEventListener('click', e => { const a = e.target.closest('a[data-hs-goto]'); if (!a) return; e.preventDefault();
+      const t = document.getElementById(a.dataset.hsGoto); if (t) { t.scrollIntoView({ block: 'start' }); t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); } });
+    new MutationObserver(() => { off(); paintAll(); }).observe(main, { childList: true });
+    let t = 0; new MutationObserver(() => { clearTimeout(t); t = setTimeout(paintToc, 120); }).observe(main, { childList: true, subtree: true });
+    if (!main.querySelector('.loading')) off();
+    paintAll();
+    return true;
+  };
+  const skip = () => {
+    if (!document.body || document.querySelector('.hs-skip')) return;
+    const a = document.createElement('a'); a.className = 'hs-skip'; a.href = '#main'; a.textContent = '본문으로 건너뛰기';
+    a.addEventListener('click', e => { e.preventDefault(); const m = document.getElementById('main'); if (m) { m.focus(); m.scrollIntoView(); } });
+    document.body.insertBefore(a, document.body.firstChild);
+  };
+  // 문서를 읽는 도중(머리말·틀이 생기는 즉시) 넣음 — 첫 그리기 뒤에 넣으면 머리말·본문이 밀림(CLS)
   if (document.readyState === 'loading') {
-    const mo = new MutationObserver(() => { if (init()) mo.disconnect(); });
+    const mo = new MutationObserver(() => { skip(); if (init()) mo.disconnect(); });
     mo.observe(document.documentElement, { childList: true, subtree: true });
-    document.addEventListener('DOMContentLoaded', () => { mo.disconnect(); init(); });
-  } else init();
+    document.addEventListener('DOMContentLoaded', () => { mo.disconnect(); skip(); init(); });
+  } else { skip(); init(); }
+  if (!AG) addEventListener('hashchange', () => setTimeout(paintAll, 0));
+  if (!AG) addEventListener('click', () => setTimeout(paintAll, 60), true);
+  if (!AG) addEventListener('change', () => setTimeout(paintAll, 60), true);
+  addEventListener('storage', e => { if (e.key === UI) { applyNav(navMode()); paintBtn(); lastNavHtml = ''; } paintAll(); });
+  let sy = 0; addEventListener('scroll', () => { if (sy) return; sy = requestAnimationFrame(() => { sy = 0; markToc(); }); }, { passive: true });
+  mq.addEventListener('change', () => { if (drawerOpen()) { if (AG) document.body.classList.remove('nav-open'); else setDrawer(false, false); } paintBtn(); });
+  // 서랍 열림: ESC로 닫고 단추로 초점 복귀, Tab은 서랍 안에서만
+  document.addEventListener('keydown', e => {
+    if (!drawerOpen()) return;
+    if (e.key === 'Escape') { e.preventDefault(); if (AG) { document.body.classList.remove('nav-open'); const mb = document.getElementById('menuBtn'); if (mb) mb.focus({ preventScroll: true }); return; } return setDrawer(false); }
+    if (e.key !== 'Tab') return;
+    const f = [...nav.querySelectorAll('a[href], button, summary')].filter(x => x.getClientRects().length);
+    if (!f.length) return;
+    const a = f[0], z = f[f.length - 1];
+    if (!nav.contains(document.activeElement)) { e.preventDefault(); a.focus(); }
+    else if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
+    else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+  });
 })();
 </script>
 <!-- app-ui:end -->
