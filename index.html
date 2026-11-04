@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<!-- app-ui:start v1.0.1 — 실습 항해도 공통 「읽기 배치」 (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<!-- app-ui:start v1.0.2 — 실습 항해도 공통 「읽기 배치」 (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* 실습 정보표(dl.facts): 좁은 3단 칸 대신 망분리 항해도처럼 「항목 | 내용」 줄 — 긴 값이 칸 안에서 꺾이지 않고, 빈 칸이 생기지 않음 (1.0.0) */
 dl.facts { grid-template-columns: minmax(0, 1fr); }   /* dl.facts: 앱 CSS(.facts, 이 블록보다 뒤에 옴)보다 구체적이어야 이김 (1.0.1) */
@@ -20,6 +20,18 @@ dl.facts dd { margin: 0; padding: 10px 14px; min-width: 0; overflow-wrap: anywhe
   dl.facts dt { padding: 8px 14px 0; background: none; }
   dl.facts dd { padding: 2px 14px 10px; }
 }
+/* 화면 밀림(CLS) 줄이기: 앱은 본문(#main)을 스크립트로 그리므로, 그리기 전에는 본문이 비어 바닥글이 화면 가운데에 있다가 아래로 밀림(홈 CLS 약 0.8)
+   → 본문 최소 높이를 화면 높이로 두어 바닥글이 처음부터 화면 아래에 있게 (1.0.2) */
+#shell > main#main { min-height: calc(100vh - var(--header-h, 64px)); }
+/* 홈(#/)은 앱이 목차 칸을 없앰(.shell.no-side) — 그리기 전부터 같은 배치로 시작해 본문이 왼쪽으로 튀지 않게(앱이 처음 그리면 바로 해제) */
+/* 첫 그리기 전(앱이 #main을 처음 그릴 때까지): 본문 칸은 보이지 않게 — 그동안 머리말이 선택 상자를 채우며 줄바꿈되어도 보이는 본문이 밀리지 않음.
+   선택 상자가 아직 비어 있는 도구 묶음도 보이지 않게(다 채워진 폭으로 나타남). 앱이 그리면 바로 해제, 늦어도 3초 */
+:root.hangdo-boot #shell { visibility: hidden; }
+.topbar-inner .tools:has(select:empty) { visibility: hidden; }
+:root.hangdo-home-boot #shell { grid-template-columns: minmax(0, 1fr); }
+:root.hangdo-home-boot #shell > .side { display: none; }
+/* 허브 경로에서는 「← 전체 항해도」 자리를 처음부터 잡음(보이지 않게) — 허브 확인 뒤 링크가 나타나며 머리말이 줄바꿈되어 본문이 밀리지 않게 */
+:root.hangdo-hub #hubLink[hidden] { display: inline-flex !important; visibility: hidden; align-items: center; gap: 4px; font-size: .85rem; white-space: nowrap; }
 /* 왼쪽 목차 접기: 넓은 화면에서만(좁은 화면은 원래대로 본문 아래·메뉴 버튼) — 선택은 사람·이용권별(진도 영역이 나눔), 모든 항해도가 같이 따름 */
 .hangdo-nav-toggle { display: none; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rule, var(--line, #d3dce4)); background: transparent; color: inherit; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
 .hangdo-nav-toggle:hover { border-color: var(--chart, var(--primary, #1d5bb8)); }
@@ -43,10 +55,23 @@ dl.facts dd { margin: 0; padding: 10px 14px; min-width: 0; overflow-wrap: anywhe
   const write = nav => { try { localStorage.setItem(KEY, JSON.stringify({ nav })); } catch (e) {} };
   const apply = nav => { if (nav === 'collapsed') document.documentElement.dataset.nav = 'collapsed'; else delete document.documentElement.dataset.nav; };
   apply(read());
+  // 첫 배치: 앱이 #main을 처음 그릴 때까지만 — 본문 칸 숨김(hangdo-boot), 홈이면 목차 없는 배치(hangdo-home-boot). 그 뒤는 앱이 정함
+  const route = location.hash || '#/', root = document.documentElement;
+  root.classList.add('hangdo-boot');
+  if (route === '#/' || route === '#') root.classList.add('hangdo-home-boot');
+  const off = () => root.classList.remove('hangdo-boot', 'hangdo-home-boot');
+  setTimeout(off, 3000);
+  document.addEventListener('DOMContentLoaded', () => {
+    const m = document.getElementById('main');
+    if (!m || !m.querySelector('.loading')) return off();   // 이미 그려졌거나 구조가 다른 앱
+    new MutationObserver((r, o) => { o.disconnect(); requestAnimationFrame(off); }).observe(m, { childList: true });
+  });
+  if (location.pathname.split('/')[1]) document.documentElement.classList.add('hangdo-hub');   // /<항해도>/… = 허브 아래 (단독 실행은 /)
   const init = () => {
+    if (document.getElementById('hangdo-nav-toggle')) return true;
     const side = document.querySelector('#shell > aside.side, .layout > nav.nav');
     const bar = document.querySelector('.topbar-inner, .top-in');
-    if (!side || !bar || document.getElementById('hangdo-nav-toggle')) return;
+    if (!side || !bar) return false;
     if (!side.id) side.id = 'hangdo-side';
     const btn = document.createElement('button');
     btn.type = 'button'; btn.id = 'hangdo-nav-toggle'; btn.className = 'hangdo-nav-toggle'; btn.setAttribute('aria-controls', side.id);
@@ -59,8 +84,14 @@ dl.facts dd { margin: 0; padding: 10px 14px; min-width: 0; overflow-wrap: anywhe
     paint(); sync();
     if (shell) new MutationObserver(sync).observe(shell, { attributes: true, attributeFilter: ['class'] });
     addEventListener('storage', e => { if (e.key === KEY) { apply(read()); paint(); } });   // 다른 탭에서 바꾸면 따라감
+    return true;
   };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  // 문서를 읽는 도중(머리말·목차가 생기는 즉시) 단추를 넣음 — 첫 그리기 뒤에 넣으면 머리말이 줄바꿈되며 본문이 밀림(CLS)
+  if (document.readyState === 'loading') {
+    const mo = new MutationObserver(() => { if (init()) mo.disconnect(); });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
+    document.addEventListener('DOMContentLoaded', () => { mo.disconnect(); init(); });
+  } else init();
 })();
 </script>
 <!-- app-ui:end -->
@@ -1456,12 +1487,13 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- deep-drawer:end -->
-<!-- hub-search:start v1.3.1 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
+<!-- hub-search:start v1.3.2 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .hs-open { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); color: var(--muted, #566778);
   border-radius: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
 .hs-open:hover { border-color: var(--chart, #1d5bb8); color: var(--ink, #142231); }
 .hs-open kbd { font-family: var(--font-mono, ui-monospace, monospace); font-size: .75rem; border: 1px solid var(--rule, #d3dce4); border-radius: 4px; padding: 0 4px; }
+.hs-open.hs-pending { visibility: hidden; }   /* 허브 확인 전: 자리만 잡아 머리말이 나중에 줄바꿈으로 밀리지 않게 (1.3.2) */
 .hs-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / .35); z-index: 80; display: flex; justify-content: center; align-items: flex-start; padding: 10vh 16px 16px; }
 .hs-backdrop[hidden] { display: none; }
 .hs-panel { width: min(720px, 100%); max-height: 75vh; display: flex; flex-direction: column; background: var(--sheet, #fff); color: var(--ink, #142231);
@@ -1501,15 +1533,20 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   const EXAMPLES = ['etcd', '롤백', 'PromQL', '프로브', 'StorageClass', '사이드카', '부하'];
   let REG = null, DOCS = null, building = null, down = [], sel = 0, results = [], lastFocus = null;
 
+  // 허브 경로(/<항해도>/…)나 포털 자리(#hsSlot)면 단추를 먼저 보이지 않게 넣어 자리를 잡음 → 허브 확인 뒤 보이게(아니면 뺌). 단독 실행(/)은 예전처럼 확인 뒤에만
+  const mkBtn = () => { const b = document.createElement('button'); b.type = 'button'; b.className = 'hs-open'; b.id = 'hsOpen'; b.innerHTML = `🔍 전체 검색 <kbd>${isMac ? '⌘K' : 'Ctrl K'}</kbd>`; b.addEventListener('click', open); return b; };
+  let early = null;
+  if ($('hsSlot') || ($('hubLink') && location.pathname.split('/')[1])) {
+    early = mkBtn(); early.classList.add('hs-pending'); early.setAttribute('aria-hidden', 'true'); early.tabIndex = -1;
+    if ($('hsSlot')) $('hsSlot').appendChild(early); else $('hubLink').insertAdjacentElement('afterend', early);
+  }
   const ready = getJSON('/roadmaps.json').then(d => {
-    if (!d || !d.roadmaps) return null;      // 단독 실행: 통합 검색 없음 (각 항해도 자체 검색 사용)
+    if (!d || !d.roadmaps) { if (early) early.remove(); return null; }      // 단독 실행: 통합 검색 없음 (각 항해도 자체 검색 사용)
     REG = d;
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'hs-open'; btn.id = 'hsOpen';
-    btn.innerHTML = `🔍 전체 검색 <kbd>${isMac ? '⌘K' : 'Ctrl K'}</kbd>`;
-    btn.addEventListener('click', open);
+    const btn = early || mkBtn();
+    if (early) { early.classList.remove('hs-pending'); early.removeAttribute('aria-hidden'); early.removeAttribute('tabindex'); }
     const slot = $('hsSlot'), hub = $('hubLink');
-    if (slot) slot.appendChild(btn); else if (hub) hub.insertAdjacentElement('afterend', btn);
+    if (early) {} else if (slot) slot.appendChild(btn); else if (hub) hub.insertAdjacentElement('afterend', btn);
     else {   // 머리말 자리가 없는 화면: 오른쪽 아래 사용자 도구 영역(#hangdo-dock, 도움·의견 템플릿)에 함께 — 따로 고정하면 겹침
       const dock = document.getElementById('hangdo-dock') || Object.assign(document.createElement('div'), { id: 'hangdo-dock' });
       if (!dock.isConnected) document.body.append(dock);
