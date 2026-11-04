@@ -419,8 +419,10 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
       + `</dl>`;
     if (old) { if (old.dataset.sig !== html) { old.innerHTML = html; old.dataset.sig = html; } return; }
     const sec = document.createElement('section'); sec.id = 'hs-dash'; sec.className = 'hs-dash'; sec.setAttribute('aria-labelledby', 'hs-dash-h'); sec.innerHTML = html; sec.dataset.sig = html;
-    const hero = main.querySelector('.hero') || main.querySelector('.page-head');
-    if (hero) hero.after(sec); else main.prepend(sec);
+    // 첫 화면 소개(제목 h1이 든 본문 첫 묶음) 바로 뒤에 — 소개 모양(.hero·section·.page-head)은 앱마다 다름
+    let head = main.querySelector('.hero') || main.querySelector('h1');
+    while (head && head.parentElement && head.parentElement !== main) head = head.parentElement;
+    if (head && head.parentElement === main) head.after(sec); else main.prepend(sec);
   }
   // 이 페이지 목차: 본문 h2·h3, 현재 구역 표시
   let heads = [], tocSig = '';
