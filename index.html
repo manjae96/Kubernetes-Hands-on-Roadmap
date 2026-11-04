@@ -1711,7 +1711,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     const saveMeta = () => { try { localStorage.setItem(META, JSON.stringify(meta)); } catch (e) {} };
     const upload = async (k, state, extra) => {
       const r = await post('/api/progress', Object.assign({ site: k, state: state || {} }, extra || {}));
-      if (r && r.ok) { meta[k] = Object.assign({}, meta[k], { at: Date.now(), dirty: false }); saveMeta(); }
+      if (r && r.ok) { const d = await r.clone().json().catch(() => ({})); meta[k] = Object.assign({}, meta[k], { at: Number(d.updated_at) || 0, dirty: false }); saveMeta(); }   // at = 서버가 저장한 판(updated_at)
       return r;
     };
     const server = sync ? await api('/api/progress').then(r => r.ok ? r.json() : null).catch(() => null) : null;
@@ -1723,10 +1723,15 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
       for (const k of keys) {
         const local = read(k), s = srv[k], m = meta[k];
         if (s) {
-          if (m && m.dirty && local && !same(local, s.state)) { upload(k, local); continue; }   // 이 브라우저에서 고쳤지만 아직 못 올린 것
-          if (!same(local, s.state)) {
-            if ((m && m.at) || !doneCount(local)) { localStorage.setItem(k, JSON.stringify(s.state)); changed.push(k); }   // 맞춘 적 있는 캐시 → 서버 값
-            else if (!(m && m.choice)) pending.push({ k, kind: 'conflict', local: doneCount(local), server: doneCount(s.state) });
+          // 캐시가 어느 서버 판(updated_at)에서 왔는지로 판단 — 앱이 열 때 상태를 다듬어 써서 글자 그대로 같지 않아도 같은 판이면 그대로 둠
+          const base = !!(m && m.at && m.at === s.updated_at);
+          if (m && m.dirty && local && !same(local, s.state)) {
+            if (base) { upload(k, local); continue; }   // 이 브라우저에서 고쳤지만 아직 못 올린 것 (그 사이 서버는 그대로) → 올림
+            pending.push({ k, kind: 'conflict', local: doneCount(local), server: doneCount(s.state) }); continue;   // 다른 기기에서도 바뀜 → 묻기 (어느 쪽도 덮지 않음)
+          }
+          if (!base && !same(local, s.state)) {
+            if ((m && m.at) || !doneCount(local)) { localStorage.setItem(k, JSON.stringify(s.state)); changed.push(k); }   // 맞춘 적 있는 캐시(서버가 더 새것) → 서버 값
+            else if (!(m && m.choice)) { pending.push({ k, kind: 'conflict', local: doneCount(local), server: doneCount(s.state) }); continue; }
           }
           meta[k] = Object.assign({}, meta[k], { at: s.updated_at, dirty: false });
         } else if (doneCount(local)) {
@@ -1759,8 +1764,9 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
         const k = b.dataset.k, c = b.dataset.c, li = b.closest('li');
         li.querySelectorAll('button').forEach(x => { x.disabled = true; });
         if (c === 'browser') { const r = await upload(k, read(k), { import: true }); if (!r || !r.ok) { li.append(' — 저장하지 못했습니다. 새로고침한 뒤 다시 시도하세요.'); return; } }
-        else { const s = server && (server.items || []).find(i => i.site === k); if (s) localStorage.setItem(k, JSON.stringify(s.state)); else localStorage.removeItem(k); }
-        meta[k] = Object.assign({}, meta[k], { choice: c, choiceAt: Date.now(), at: Date.now(), dirty: false }); saveMeta();
+        const s = server && (server.items || []).find(i => i.site === k);
+        if (c !== 'browser') { if (s) localStorage.setItem(k, JSON.stringify(s.state)); else localStorage.removeItem(k); }
+        meta[k] = Object.assign({}, meta[k], { choice: c, choiceAt: Date.now(), dirty: false }, c === 'browser' ? {} : { at: s ? s.updated_at : 0 }); saveMeta();
         li.append(c === 'browser' ? ' — 가져왔습니다.' : ' — 계정 진도를 씁니다.');
         if (!box.querySelector('button:not([disabled])')) setTimeout(() => location.reload(), 900);
       });
