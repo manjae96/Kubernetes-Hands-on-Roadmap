@@ -7,6 +7,63 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<!-- app-ui:start v1.0.0 — 실습 항해도 공통 「읽기 배치」 (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<style>
+/* 실습 정보표(dl.facts): 좁은 3단 칸 대신 망분리 항해도처럼 「항목 | 내용」 줄 — 긴 값이 칸 안에서 꺾이지 않고, 빈 칸이 생기지 않음 (1.0.0) */
+.facts { grid-template-columns: minmax(0, 1fr); }
+.facts > div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); padding: 0; box-shadow: none; border-top: 1px solid var(--rule, #d3dce4); }
+.facts > div:first-child { border-top: 0; }
+.facts dt { padding: 10px 14px; font-size: .85rem; letter-spacing: 0; color: var(--muted, #566778); background: color-mix(in srgb, var(--rule, #d3dce4) 22%, transparent); }
+.facts dd { margin: 0; padding: 10px 14px; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .facts > div { grid-template-columns: minmax(0, 1fr); }
+  .facts dt { padding: 8px 14px 0; background: none; }
+  .facts dd { padding: 2px 14px 10px; }
+}
+/* 왼쪽 목차 접기: 넓은 화면에서만(좁은 화면은 원래대로 본문 아래·메뉴 버튼) — 선택은 사람·이용권별(진도 영역이 나눔), 모든 항해도가 같이 따름 */
+.hangdo-nav-toggle { display: none; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rule, var(--line, #d3dce4)); background: transparent; color: inherit; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
+.hangdo-nav-toggle:hover { border-color: var(--chart, var(--primary, #1d5bb8)); }
+.hangdo-nav-toggle:focus-visible { outline: 2px solid var(--chart, var(--primary, #1d5bb8)); outline-offset: 2px; }
+@media (min-width: 981px) {
+  .hangdo-nav-toggle:not([hidden]) { display: inline-flex; }
+  :root[data-nav="collapsed"] .shell { grid-template-columns: minmax(0, 1fr); }
+  :root[data-nav="collapsed"] .shell > .side { display: none; }
+  :root[data-nav="collapsed"] .layout { grid-template-columns: minmax(0, 1fr) 220px; }
+  :root[data-nav="collapsed"] .layout > .nav { display: none; }
+}
+@media (min-width: 981px) and (max-width: 1180px) { :root[data-nav="collapsed"] .layout { grid-template-columns: minmax(0, 1fr); } }
+@media print { .hangdo-nav-toggle { display: none !important; } }
+</style>
+<script>
+/* 읽기 배치: 왼쪽 목차 접기/펼치기 (aria-expanded). 그리기 전에 접힘 상태를 적용하려고 <head>에 둡니다.
+   저장: localStorage 'hangdo-ui:v1' = {"nav":"collapsed"|"open"} — 진도 영역(progress-scope 1.3.0)이 사람·이용권별로 나눔, 서버로 보내지 않음 */
+(() => {
+  const KEY = 'hangdo-ui:v1';
+  const read = () => { try { const v = JSON.parse(localStorage.getItem(KEY) || '{}'); return v && v.nav === 'collapsed' ? 'collapsed' : 'open'; } catch (e) { return 'open'; } };
+  const write = nav => { try { localStorage.setItem(KEY, JSON.stringify({ nav })); } catch (e) {} };
+  const apply = nav => { if (nav === 'collapsed') document.documentElement.dataset.nav = 'collapsed'; else delete document.documentElement.dataset.nav; };
+  apply(read());
+  const init = () => {
+    const side = document.querySelector('#shell > aside.side, .layout > nav.nav');
+    const bar = document.querySelector('.topbar-inner, .top-in');
+    if (!side || !bar || document.getElementById('hangdo-nav-toggle')) return;
+    if (!side.id) side.id = 'hangdo-side';
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.id = 'hangdo-nav-toggle'; btn.className = 'hangdo-nav-toggle'; btn.setAttribute('aria-controls', side.id);
+    const paint = () => { const open = read() !== 'collapsed'; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? '◧ 목차 접기' : '☰ 목차 펼치기'; btn.title = open ? '왼쪽 목차를 숨기고 본문을 넓게 봅니다' : '왼쪽 목차를 다시 보입니다'; };
+    const shell = document.getElementById('shell');
+    const sync = () => { btn.hidden = !!(shell && shell.classList.contains('no-side')); };   // 목차가 없는 화면(홈 등)에서는 숨김
+    btn.addEventListener('click', () => { const nav = read() === 'collapsed' ? 'open' : 'collapsed'; write(nav); apply(nav); paint(); if (nav === 'open') { const a = side.querySelector('a[aria-current], a'); if (a) a.focus({ preventScroll: true }); } });
+    const hub = bar.querySelector('#hubLink');
+    if (hub && hub.nextSibling) bar.insertBefore(btn, hub.nextSibling); else bar.insertBefore(btn, bar.firstChild);
+    paint(); sync();
+    if (shell) new MutationObserver(sync).observe(shell, { attributes: true, attributeFilter: ['class'] });
+    addEventListener('storage', e => { if (e.key === KEY) { apply(read()); paint(); } });   // 다른 탭에서 바꾸면 따라감
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+<!-- app-ui:end -->
 <!-- site-head:start v1.2.0 — 실습 항해도 공통 머리 정보 (Hands-On-Roadmap/templates/site-head.html에서 관리, 직접 고치지 말 것) -->
 <!-- favicon: 원본은 허브 portal/assets/favicon.svg. 클라우드 허브(Worker)·로컬 게이트웨이·단독 실행(deploy nginx) 모두 사이트 루트에서 로그인 없이 내줌 -->
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -27,7 +84,7 @@ details.visual-text > summary { cursor: pointer; font-size: .85rem; }
 @media (max-width: 640px) { figure.visual img { max-width: none; width: max(100%, 560px); } }
 </style>
 <!-- site-head:end -->
-<!-- progress-scope:start v1.2.0 — 실습 항해도 공통 「진도 영역」 (Hands-On-Roadmap/templates/progress-scope.html에서 관리, 직접 고치지 말 것) -->
+<!-- progress-scope:start v1.3.0 — 실습 항해도 공통 「진도 영역」 (Hands-On-Roadmap/templates/progress-scope.html에서 관리, 직접 고치지 말 것) -->
 <script>
 /* 진도 영역: 같은 브라우저를 여러 사람(게스트 이용권·회원)이 써도 진도가 섞이지 않게 합니다. <head>에서 앱보다 먼저 실행됩니다.
    - 클라우드 허브가 HTML을 내줄 때 쿠키 hangdo_scope에 이 사람·이용권의 진도 영역(추측할 수 없는 값, 게스트 g…·회원 m…)을 알려 줍니다.
@@ -47,8 +104,8 @@ details.visual-text > summary { cursor: pointer; font-size: .85rem; }
   const GUEST_LOCKED = ['intermediate', 'advanced', '중급', '고급'];   // tools/build_static.py GUEST_LOCKED_LEVELS와 같음
   const isApp = k => /^[a-z0-9-]+-hangdo-v1$/.test(k);
   // 레벨테스트 결과(hangdo-level-test)도 사람·이용권별 — 허브와 항해도가 한 출처(localStorage 공유)라 모든 화면의 이 목록이 같아야 함
-  // 사용 안내(hangdo-onboarding:v1)·실습 환경 선택(hangdo-env:v1)도 사람·이용권별 (1.2.0)
-  const isProgress = k => isApp(k) || k === 'hangdo-portal-recent' || k === 'hangdo-portal-track' || k === 'hangdo-level-test' || k === 'hangdo-onboarding:v1' || k === 'hangdo-env:v1';
+  // 사용 안내(hangdo-onboarding:v1)·실습 환경 선택(hangdo-env:v1)도 사람·이용권별 (1.2.0) · 진도 동기화 상태(hangdo-sync:v1)·캡스톤 파트 완료(hangdo-capstone:v1)·목차 접기(hangdo-ui:v1)도 (1.3.0)
+  const isProgress = k => isApp(k) || k === 'hangdo-portal-recent' || k === 'hangdo-portal-track' || k === 'hangdo-level-test' || k === 'hangdo-onboarding:v1' || k === 'hangdo-env:v1' || k === 'hangdo-sync:v1' || k === 'hangdo-capstone:v1' || k === 'hangdo-ui:v1';
   let want = 'local';
   try { const m = document.cookie.match(/(?:^|;\s*)hangdo_scope=([A-Za-z0-9_-]{8,40})(?:;|$)/); if (m) want = m[1]; } catch (e) {}
   let ls; try { ls = localStorage; } catch (e) { return; }   // 저장소를 쓸 수 없는 환경: 아무것도 하지 않음
@@ -1593,9 +1650,13 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- hub-search:end -->
-<!-- progress-sync:start v1.4.0 -->
+<!-- progress-sync:start v2.0.0 -->
 <style>
 /* 계정 메뉴 — 오른쪽 아래 사용자 도구 영역(#hangdo-dock)에 「도움·의견」과 나란히 (CSP: 정적 <style>, 1.4.0) */
+.ps-import{position:relative;z-index:57;margin:8px auto;max-width:min(760px,calc(100vw - 24px));padding:12px 14px;border-radius:12px;border:1px solid var(--chart,#2c6fb3);background:var(--sheet,#fff);color:var(--ink,#142231);font:14px/1.55 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;box-shadow:0 4px 16px rgb(0 0 0 / .12)}
+.ps-import p{margin:0 0 6px;overflow-wrap:anywhere}.ps-import ul{margin:4px 0;padding-left:18px}.ps-import li{margin:4px 0;overflow-wrap:anywhere}
+.ps-import button{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--rule,#d3dce4);background:var(--paper,#f2f5f7);color:inherit;font:inherit;cursor:pointer}
+.ps-import .ps-note{color:var(--muted,#566778);font-size:13px}
 .ps-acct{position:relative}
 .ps-acct-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:44px;max-width:200px;padding:0 14px;border-radius:999px;border:1px solid var(--rule,#d3dce4);background:var(--sheet,#fff);color:var(--ink,#142231);font:500 14px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 2px 10px rgb(0 0 0 / .1)}
 .ps-acct-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1609,69 +1670,123 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 @media (max-width:600px){.ps-acct-btn span{display:none}.ps-acct-btn{padding:0;justify-content:center}}
 </style>
 <script>
-/* 진도 동기화: 클라우드 허브(로그인 + /api)에서만 동작합니다. 로컬 허브(Docker)·단독 실행에는 /api가 없어 아무것도 하지 않습니다.
-   - 서버 → 브라우저: 다른 기기에서 한 진도를 가져와 합칩니다(완료·통과는 어느 쪽이든 유지).
-   - 브라우저 → 서버: 진도 저장 키(storageKey)가 바뀌면 2초 모아 올립니다.
-   - 열람 기록: 어느 화면(#/...)을 열었는지 남깁니다.  관리 화면: /admin/
-   - 진도 영역(templates/progress-scope.html)이 이 사람의 영역(/api/me의 progressScope)과 같을 때만 서버와 합칩니다.
-     게스트 진도는 서버 진도와 합치지 않습니다(게스트는 서버에 저장하지 않음).
-   - 다른 탭에서 사용자가 바뀌면(진도 영역 스크립트의 hangdoScopeOk) 이 탭은 서버에 올리지 않습니다.  */
+/* 진도 동기화 2.0: 클라우드 허브(로그인 + /api)에서만 동작합니다. 로컬 허브(Docker)·단독 실행에는 /api가 없어 아무것도 하지 않습니다.
+   - 기준 데이터는 서버(D1)의 「내 계정」 진도입니다. 회원은 GitHub 아이디, 게스트는 이 이용권 하나(불투명 subject)로 저장되고,
+     같은 닉네임이어도 다른 이용권이면 완전히 따로입니다. 브라우저 저장소(localStorage)는 캐시·오프라인 보조입니다.
+   - 자동으로 합치지 않습니다: 이 브라우저에서 서버와 한 번도 맞춘 적 없는 진도가 있거나 계정 진도와 다르면
+     「한 번만 가져오기」를 묻고, 고른 결과를 기록합니다(hangdo-sync:v1, 진도 영역별). 가져오기로 계정 진도를 바꾸면 서버가 예전 값을 7일 보관합니다.
+   - 서버와 맞춘 적 있는 캐시는 서버 값을 따릅니다(다른 기기에서 하거나 초기화한 결과가 반영됨). 아직 못 올린 이 브라우저의 변경은 올립니다.
+   - 올릴 때 이 탭이 열릴 때의 진도 영역(scope)을 함께 보내고, 서버가 지금 사람의 영역과 다르면 거부합니다(다른 탭에서 사람이 바뀐 오래된 탭).
+   - 조회자(viewer)도 자기 진도는 저장합니다(콘텐츠·관리 권한과 별개인 개인 학습 기록). 다른 사람의 진도는 읽지도 쓰지도 못합니다.
+   - 열람 기록: 어느 화면(#/...)을 열었는지 남깁니다.  관리 화면: /admin/  · 내 학습(초기화·복습·시험 이력): /me.html */
 (() => {
   if (location.protocol === 'file:') return;
   const seg = location.pathname.split('/')[1] || '';
   const PORTAL = seg === '' || seg === 'index.html';
+  const META = 'hangdo-sync:v1';
   const api = (p, o) => fetch(p, Object.assign({ credentials: 'same-origin', cache: 'no-store' }, o));
+  let TAB = ''; try { TAB = localStorage.getItem('hangdo-progress-scope') || ''; } catch (e) {}
   const scopeLive = () => typeof window.hangdoScopeOk !== 'function' || window.hangdoScopeOk();   // 다른 탭에서 사용자가 바뀌었으면 올리지 않음
-  const post = (p, body) => !scopeLive() ? Promise.resolve() : api(p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
+  const post = (p, body) => !scopeLive() ? Promise.resolve(null) : api(p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ scope: TAB }, body)) }).catch(() => null);
   const read = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
-  const merge = (a, b) => {
-    if (a === undefined || a === null) return b;
-    if (b === undefined || b === null) return a;
-    if (typeof a === 'boolean' && typeof b === 'boolean') return a || b;
-    if (Array.isArray(a) && Array.isArray(b)) return [...new Set([...a, ...b].map(x => JSON.stringify(x)))].map(x => JSON.parse(x));
-    if (typeof a === 'object' && typeof b === 'object') { const o = { ...b, ...a }; for (const k of Object.keys(o)) o[k] = merge(a[k], b[k]); return o; }
-    return a;
-  };
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  // 「진도가 있다」 = 완료·통과 표시가 하나라도 있음 (앱이 처음 열 때 쓰는 빈 기본 상태는 진도가 아님)
+  const doneCount = st => { if (!st || typeof st !== 'object') return 0; let n = 0;
+    for (const p of Object.values(st.progress || {})) if (p && (p.manual === true || Object.values(p.checks || {}).some(v => v === true))) n++;
+    for (const v of Object.values(st.done || {})) if (v === true) n++;
+    return n; };
+  const E = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k === 'text') e.textContent = v; else if (k === 'class') e.className = v; else e.setAttribute(k, v === true ? '' : String(v)); } kids.flat(Infinity).forEach(c => { if (c != null && c !== false) e.append(c instanceof Node ? c : document.createTextNode(String(c))); }); return e; };
   (async () => {
     const me = await api('/api/me').then(r => r.ok ? r.json() : null).catch(() => null);
     if (!me) return;
     let scopeOk = true;
     try { scopeOk = !me.progressScope || localStorage.getItem('hangdo-progress-scope') === me.progressScope; } catch (e) {}
     if (!scopeOk && !sessionStorage.getItem('hangdo-scope-retry')) { sessionStorage.setItem('hangdo-scope-retry', '1'); location.reload(); return; }   // 영역 쿠키를 새로 받아 다시 맞춤
-    const sync = scopeOk && !me.guest;      // 다른 사람의 진도이거나 게스트면 서버와 합치지도, 올리지도 않음
+    const sync = scopeOk;      // 다른 사람의 진도 영역이면 서버와 맞추지도, 올리지도 않음
     const reg = await fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => null);
     const list = (reg && reg.roadmaps) || [];
     const keys = PORTAL ? list.map(r => r.storageKey) : list.filter(r => r.id === seg).map(r => r.storageKey);
-    // 조회자(viewer) 권한인 항해도는 진도를 서버에 저장하지 않음 (서버도 403으로 막음) — 브라우저에만 남김
-    const idOf = Object.fromEntries(list.map(r => [r.storageKey, r.id]));
-    const canSave = k => !me.roles || ['editor', 'admin'].includes(me.roles[idOf[k]]);
-    const server = sync ? await api('/api/progress').then(r => r.json()).catch(() => ({ items: [] })) : { items: [] };
-    const srv = Object.fromEntries((server.items || []).map(i => [i.site, i.state]));
-    let changed = false;
-    for (const k of keys) {
-      const local = read(k), m = merge(local, srv[k]);
-      if (m && JSON.stringify(m) !== JSON.stringify(local)) { localStorage.setItem(k, JSON.stringify(m)); changed = true; }
-      if (sync && m && canSave(k) && JSON.stringify(m) !== JSON.stringify(srv[k])) post('/api/progress', { site: k, state: m });
+    const titleOf = Object.fromEntries(list.map(r => [r.storageKey, r.title]));
+    let meta = {}; try { meta = JSON.parse(localStorage.getItem(META) || '{}') || {}; } catch (e) { meta = {}; }
+    const saveMeta = () => { try { localStorage.setItem(META, JSON.stringify(meta)); } catch (e) {} };
+    const upload = async (k, state, extra) => {
+      const r = await post('/api/progress', Object.assign({ site: k, state: state || {} }, extra || {}));
+      if (r && r.ok) { meta[k] = Object.assign({}, meta[k], { at: Date.now(), dirty: false }); saveMeta(); }
+      return r;
+    };
+    const server = sync ? await api('/api/progress').then(r => r.ok ? r.json() : null).catch(() => null) : null;
+    const pending = [], frozen = new Set();
+    let srv = {};
+    if (server) {
+      srv = Object.fromEntries((server.items || []).map(i => [i.site, i]));
+      const changed = [];
+      for (const k of keys) {
+        const local = read(k), s = srv[k], m = meta[k];
+        if (s) {
+          if (m && m.dirty && local && !same(local, s.state)) { upload(k, local); continue; }   // 이 브라우저에서 고쳤지만 아직 못 올린 것
+          if (!same(local, s.state)) {
+            if ((m && m.at) || !doneCount(local)) { localStorage.setItem(k, JSON.stringify(s.state)); changed.push(k); }   // 맞춘 적 있는 캐시 → 서버 값
+            else if (!(m && m.choice)) pending.push({ k, kind: 'conflict', local: doneCount(local), server: doneCount(s.state) });
+          }
+          meta[k] = Object.assign({}, meta[k], { at: s.updated_at, dirty: false });
+        } else if (doneCount(local)) {
+          if (m && m.at && !m.dirty) { localStorage.removeItem(k); changed.push(k); meta[k] = Object.assign({}, m, { at: 0 }); }   // 서버에서 초기화됨 → 캐시도 비움
+          else if (m && m.dirty) upload(k, local);
+          else if (!(m && m.choice)) pending.push({ k, kind: 'import', local: doneCount(local) });
+        }
+      }
+      saveMeta();
+      // 캐시를 서버 값으로 바꿨으면 앱이 새 값으로 다시 그리도록 새로고침 — 반복 방지 표시는 「이 사람(영역) + 이 서버 상태」마다
+      //   예전처럼 탭마다 한 번만이면, 같은 탭에서 사람이 바뀐 뒤에는 새로고침하지 않아 앱 메모리의 옛 진도가 계정 진도를 덮어씀(데이터 손실)
+      if (changed.length) {
+        const sig = TAB + '|' + changed.map(k => k + '@' + ((srv[k] && srv[k].updated_at) || 0)).join(',');
+        let seen = ''; try { seen = sessionStorage.getItem('hangdo-synced-' + seg) || ''; } catch (e) {}
+        if (seen !== sig) { try { sessionStorage.setItem('hangdo-synced-' + seg, sig); } catch (e) {} location.reload(); return; }
+        changed.forEach(k => frozen.add(k));   // 새로고침을 못 했으면 이 화면의 앱 메모리는 옛 값 → 이 항해도는 올리지 않음(다음에 열 때 서버 값으로)
+      }
     }
-    if (changed && !sessionStorage.getItem('hangdo-synced-' + seg)) { sessionStorage.setItem('hangdo-synced-' + seg, '1'); location.reload(); return; }
+    // 한 번만 가져오기 (자동 병합 없음): 고른 결과를 hangdo-sync:v1에 기록
+    if (pending.length) {
+      const who = me.guest ? '이 게스트 이용권' : '내 계정';
+      const box = E('div', { class: 'ps-import', role: 'region', 'aria-label': '진도 가져오기' },
+        E('p', {}, E('b', { text: '이 브라우저에만 있는 진도가 있습니다.' }), ` 자동으로 합치지 않습니다. 항해도마다 골라 주세요 — 고른 내용은 ${who}에 저장됩니다.`),
+        E('ul', {}, pending.map(x => E('li', {}, E('b', { text: titleOf[x.k] || x.k }), x.kind === 'import' ? ` — 이 브라우저 완료 ${x.local}개 (${who}에는 없음) ` : ` — 이 브라우저 완료 ${x.local}개 · ${who} 완료 ${x.server}개 `,
+          E('button', { type: 'button', 'data-k': x.k, 'data-c': 'browser', text: x.kind === 'import' ? '가져오기' : '이 브라우저 진도로 바꾸기' }), ' ',
+          E('button', { type: 'button', 'data-k': x.k, 'data-c': 'account', text: x.kind === 'import' ? '가져오지 않기' : `${who} 진도 쓰기` })))),
+        E('p', { class: 'ps-note', text: '가져오기로 바꾼 예전 계정 진도는 「내 학습」에서 7일 안에 되돌릴 수 있습니다.' }));
+      box.addEventListener('click', async e => {
+        const b = e.target.closest('button[data-k]'); if (!b) return;
+        const k = b.dataset.k, c = b.dataset.c, li = b.closest('li');
+        li.querySelectorAll('button').forEach(x => { x.disabled = true; });
+        if (c === 'browser') { const r = await upload(k, read(k), { import: true }); if (!r || !r.ok) { li.append(' — 저장하지 못했습니다. 새로고침한 뒤 다시 시도하세요.'); return; } }
+        else { const s = server && (server.items || []).find(i => i.site === k); if (s) localStorage.setItem(k, JSON.stringify(s.state)); else localStorage.removeItem(k); }
+        meta[k] = Object.assign({}, meta[k], { choice: c, choiceAt: Date.now(), at: Date.now(), dirty: false }); saveMeta();
+        li.append(c === 'browser' ? ' — 가져왔습니다.' : ' — 계정 진도를 씁니다.');
+        if (!box.querySelector('button:not([disabled])')) setTimeout(() => location.reload(), 900);
+      });
+      document.body.prepend(box);
+    }
     const timers = {};
     const orig = Storage.prototype.setItem;
     Storage.prototype.setItem = function (k, v) {
       orig.call(this, k, v);
-      if (sync && this === localStorage && keys.includes(k) && canSave(k)) { clearTimeout(timers[k]); timers[k] = setTimeout(() => post('/api/progress', { site: k, state: read(k) || {} }), 2000); }
+      if (sync && this === localStorage && keys.includes(k) && !frozen.has(k)) {
+        meta[k] = Object.assign({}, meta[k], { dirty: true }); try { orig.call(localStorage, META, JSON.stringify(meta)); } catch (e) {}
+        clearTimeout(timers[k]); timers[k] = setTimeout(() => upload(k, read(k) || {}), 2000);
+      }
     };
     let last = '';
     const view = () => { const r = location.hash || '/'; if (r !== last) { last = r; post('/api/view', { site: PORTAL ? '' : seg, route: r }); } };
     view(); addEventListener('hashchange', view);
     if (PORTAL) return;   // 포털은 왼쪽 사이드바에 계정 메뉴가 있음
     // 계정 메뉴: 버튼 하나 → 펼치면 내 정보·관리·권한 관리·로그아웃 (DOM으로만 만듦, Esc·바깥 누르면 닫고 버튼으로 포커스)
-    const E = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k === 'text') e.textContent = v; else if (k === 'class') e.className = v; else e.setAttribute(k, v === true ? '' : String(v)); } kids.flat(Infinity).forEach(c => { if (c != null && c !== false) e.append(c instanceof Node ? c : document.createTextNode(String(c))); }); return e; };
     const role = me.guest ? '게스트 (준비·기본)' : (me.roles && me.roles[seg] === 'viewer') ? '회원 · 이 항해도는 조회 전용' : '회원';
     const menu = E('div', { class: 'ps-acct-menu', id: 'hangdo-acct-menu', hidden: true, role: 'group', 'aria-label': '계정' },
       E('p', {}, E('b', { text: me.login }), ` · ${role}`),
       E('ul', {},
         me.admin ? E('li', {}, E('a', { href: '/admin/', text: `관리${me.pending ? ` (대기 ${Number(me.pending) || 0})` : ''}` })) : null,
         (me.manages || []).length ? E('li', {}, E('a', { href: '/manage/', text: '권한 관리' })) : null,
+        E('li', {}, E('a', { href: '/me.html', text: '내 학습 (진도·복습·시험 이력)' })),
         E('li', {}, E('a', { href: '/', text: '실습 항해도 홈' })),
         E('li', {}, E('a', { href: '/auth/logout', text: me.guest ? '로그아웃 · 이용권 끝내기' : '로그아웃' }))));
     const btn = E('button', { type: 'button', class: 'ps-acct-btn', id: 'hangdo-acct-btn', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-controls': 'hangdo-acct-menu', 'aria-label': `계정 메뉴 — ${me.login}` },
@@ -1775,7 +1890,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- return-to:end -->
-<!-- feedback:start v2.0.1 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<!-- feedback:start v2.1.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>·style 속성을 만들지 않음 */
 /* 오른쪽 아래 사용자 도구 영역(dock): 늘 떠 있는 것은 「도움·의견」 하나, 계정 메뉴·통합 검색(머리말 자리가 없는 화면)은 그 옆에 — 서로 겹치지 않음 (2.0.1) */
@@ -1823,9 +1938,9 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     ['bug', '버그 신고', '🐞', '화면 오류 · 링크 오류 · 명령 실패 · 예상 결과와 다름', [['screen', '화면 오류'], ['command', '명령이 실행되지 않음'], ['result', '예상 결과와 다름'], ['typo', '링크 오류 또는 오탈자'], ['access', '권한 또는 접근 문제']]],
   ];
   const MAX = { message: 2000, errorOutput: 8000 };
-  const HUB = { '/': 'portal', '/index.html': 'portal', '/guide.html': 'guide', '/guide': 'guide', '/level-test.html': 'level-test', '/level-test': 'level-test', '/capstones.html': 'capstones', '/capstones': 'capstones', '/version.html': 'version', '/version': 'version', '/environment.html': 'environment', '/environment': 'environment' };
-  const HUB_URL = { portal: '/', guide: '/guide.html', 'level-test': '/level-test.html', capstones: '/capstones.html', version: '/version.html', environment: '/environment.html' };
-  const HUB_NAME = { portal: '포털', guide: '학습 가이드', 'level-test': '레벨테스트', capstones: '캡스톤', version: '버전 정보', environment: '환경 안내' };
+  const HUB = { '/': 'portal', '/index.html': 'portal', '/guide.html': 'guide', '/guide': 'guide', '/level-test.html': 'level-test', '/level-test': 'level-test', '/capstones.html': 'capstones', '/capstones': 'capstones', '/version.html': 'version', '/version': 'version', '/environment.html': 'environment', '/environment': 'environment', '/me.html': 'me', '/me': 'me', '/leaderboard.html': 'leaderboard', '/leaderboard': 'leaderboard' };
+  const HUB_URL = { portal: '/', guide: '/guide.html', 'level-test': '/level-test.html', capstones: '/capstones.html', version: '/version.html', environment: '/environment.html', me: '/me.html', leaderboard: '/leaderboard.html' };
+  const HUB_NAME = { portal: '포털', guide: '학습 가이드', 'level-test': '레벨테스트', capstones: '캡스톤', version: '버전 정보', environment: '환경 안내', me: '내 학습', leaderboard: '익명 순위' };
   const seg = location.pathname.split('/')[1] || '';
   if (['admin', 'manage', 'auth', 'api'].includes(seg)) return;               // 관리 화면은 자체 피드백함이 있어 띄우지 않음
   const hubPage = HUB[location.pathname] || '';
