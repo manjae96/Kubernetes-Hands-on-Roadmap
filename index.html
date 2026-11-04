@@ -48,6 +48,7 @@ html.hs[data-theme="dark"] {
   --lv-prep: #22a3c0; --lv-basic: #6b9cf5; --lv-intermediate: #e0a84a; --lv-advanced: #a98cf5; --shadow: 0 8px 30px rgba(0, 0, 0, .5);
   color-scheme: dark;
 }
+html.hs { scroll-padding-top: calc(var(--header-h) + 16px); }   /* 제목으로 이동할 때 고정 머리말 아래로 */
 html.hs body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.7 var(--font); word-break: keep-all; overflow-wrap: anywhere; }
 html.hs :is(code, pre, kbd, samp) { font-family: var(--mono); }
 html.hs :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
@@ -191,8 +192,8 @@ html.hs .hs-toc a[aria-current] { color: var(--ink); border-left-color: var(--pr
 /* ---------- 본문 구성 요소 (망분리 항해도와 같은 모양) */
 html.hs #main :is(h1, h2, h3, h4) { font-family: var(--font); color: var(--ink); }
 html.hs #main h1 { font-size: 30px; line-height: 1.3; letter-spacing: -0.02em; font-weight: 700; margin: 6px 0 14px; }
-html.hs #main h2 { font-size: 22px; line-height: 1.4; letter-spacing: -0.01em; font-weight: 700; scroll-margin-top: 76px; }
-html.hs #main h3 { font-size: 18px; line-height: 1.45; font-weight: 700; scroll-margin-top: 76px; }
+html.hs #main h2 { font-size: 22px; line-height: 1.4; letter-spacing: -0.01em; font-weight: 700; scroll-margin-top: 0; }
+html.hs #main h3 { font-size: 18px; line-height: 1.45; font-weight: 700; scroll-margin-top: 0; }
 html.hs #main .prose h2 { margin: 44px 0 12px; padding-top: 8px; border-top: 0; }
 html.hs #main .prose h2:first-child { margin-top: 0; }
 html.hs #main .prose h3 { margin: 30px 0 8px; }
@@ -268,6 +269,7 @@ html.hs .site-foot { border-top: 1px solid var(--line); background: var(--surfac
 @media (min-width: 861px) { html.hs-ag .hs-scrim { display: none; } }
 /* 닫힌 서랍(화면 밖으로 밀어 둔 목차)은 Tab 초점이 들어가지 않게 */
 @media (max-width: 860px) { html.hs-ag body:not(.nav-open) .layout > .nav { visibility: hidden; transition: transform .18s ease, visibility .18s; } }
+html.hs-ag { --font: "Pretendard", "Pretendard Variable", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; }   /* 허브 글꼴 이름(Pretendard)을 먼저 */
 html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(--surface); border-color: var(--line); }
 @media print { .hangdo-nav-toggle, html.hs .hs-nav, html.hs .hs-toc, html.hs .hs-prog { display: none !important; } html.hs #shell { display: block; } }
 </style>
