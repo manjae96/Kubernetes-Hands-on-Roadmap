@@ -1399,7 +1399,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- deep-drawer:end -->
-<!-- hub-search:start v1.3.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
+<!-- hub-search:start v1.3.1 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .hs-open { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); color: var(--muted, #566778);
   border-radius: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
@@ -1453,7 +1453,11 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     btn.addEventListener('click', open);
     const slot = $('hsSlot'), hub = $('hubLink');
     if (slot) slot.appendChild(btn); else if (hub) hub.insertAdjacentElement('afterend', btn);
-    else { btn.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:70'; document.body.appendChild(btn); }
+    else {   // 머리말 자리가 없는 화면: 오른쪽 아래 사용자 도구 영역(#hangdo-dock, 도움·의견 템플릿)에 함께 — 따로 고정하면 겹침
+      const dock = document.getElementById('hangdo-dock') || Object.assign(document.createElement('div'), { id: 'hangdo-dock' });
+      if (!dock.isConnected) document.body.append(dock);
+      dock.append(btn);
+    }
     document.addEventListener('keydown', e => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); backdrop.hidden ? open() : close(); }
       else if (e.key === 'Escape' && !backdrop.hidden) { e.preventDefault(); e.stopPropagation(); close(); }
@@ -1589,10 +1593,20 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- hub-search:end -->
-<!-- progress-sync:start v1.3.1 -->
+<!-- progress-sync:start v1.4.0 -->
 <style>
-/* 로그인 배지 (CSP: 정적 <style>) */
-.ps-badge{position:fixed;right:12px;bottom:12px;z-index:70;font:12px/1.4 system-ui,sans-serif;padding:6px 10px;border-radius:999px;background:var(--paper,#f2f5f7);color:var(--muted,#566778);border:1px solid var(--rule,#d3dce4)}.ps-badge a{color:inherit}
+/* 계정 메뉴 — 오른쪽 아래 사용자 도구 영역(#hangdo-dock)에 「도움·의견」과 나란히 (CSP: 정적 <style>, 1.4.0) */
+.ps-acct{position:relative}
+.ps-acct-btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;min-width:44px;max-width:200px;padding:0 14px;border-radius:999px;border:1px solid var(--rule,#d3dce4);background:var(--sheet,#fff);color:var(--ink,#142231);font:500 14px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 2px 10px rgb(0 0 0 / .1)}
+.ps-acct-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ps-acct-btn:focus-visible{outline:3px solid var(--chart,#2c6fb3);outline-offset:2px}
+.ps-acct-menu{position:absolute;right:0;bottom:calc(100% + 8px);width:min(300px,calc(100vw - 32px));padding:12px;border-radius:12px;border:1px solid var(--rule,#d3dce4);background:var(--sheet,#fff);color:var(--ink,#142231);box-shadow:0 8px 28px rgb(0 0 0 / .2);font:14px/1.5 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.ps-acct-menu[hidden]{display:none}
+.ps-acct-menu p{margin:0 0 8px;color:var(--muted,#566778);overflow-wrap:anywhere}.ps-acct-menu p b{color:var(--ink,#142231)}
+.ps-acct-menu ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.ps-acct-menu a{display:flex;align-items:center;min-height:40px;padding:0 8px;border-radius:8px;color:inherit;text-decoration:none}
+.ps-acct-menu a:hover,.ps-acct-menu a:focus-visible{background:var(--paper,#f2f5f7);outline:none}
+@media (max-width:600px){.ps-acct-btn span{display:none}.ps-acct-btn{padding:0;justify-content:center}}
 </style>
 <script>
 /* 진도 동기화: 클라우드 허브(로그인 + /api)에서만 동작합니다. 로컬 허브(Docker)·단독 실행에는 /api가 없어 아무것도 하지 않습니다.
@@ -1649,16 +1663,33 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     let last = '';
     const view = () => { const r = location.hash || '/'; if (r !== last) { last = r; post('/api/view', { site: PORTAL ? '' : seg, route: r }); } };
     view(); addEventListener('hashchange', view);
-    const b = document.createElement('div');
-    b.className = 'ps-badge';
-    b.innerHTML = `<span></span>${me.admin ? ` · <a href="/admin/">관리${me.pending ? ` <b>(대기 ${Number(me.pending)})</b>` : ''}</a>` : ''}${(me.manages || []).length ? ` · <a href="/manage/">권한 관리</a>` : ''}${me.guest ? ' · 게스트(준비·기본)' : (!PORTAL && me.roles && me.roles[seg] === 'viewer') ? ' · 조회 전용(진도는 이 브라우저에만)' : ''} · <a href="/auth/logout">로그아웃</a>`;
-    b.firstChild.textContent = me.login;
-    document.body.appendChild(b);
+    if (PORTAL) return;   // 포털은 왼쪽 사이드바에 계정 메뉴가 있음
+    // 계정 메뉴: 버튼 하나 → 펼치면 내 정보·관리·권한 관리·로그아웃 (DOM으로만 만듦, Esc·바깥 누르면 닫고 버튼으로 포커스)
+    const E = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k === 'text') e.textContent = v; else if (k === 'class') e.className = v; else e.setAttribute(k, v === true ? '' : String(v)); } kids.flat(Infinity).forEach(c => { if (c != null && c !== false) e.append(c instanceof Node ? c : document.createTextNode(String(c))); }); return e; };
+    const role = me.guest ? '게스트 (준비·기본)' : (me.roles && me.roles[seg] === 'viewer') ? '회원 · 이 항해도는 조회 전용' : '회원';
+    const menu = E('div', { class: 'ps-acct-menu', id: 'hangdo-acct-menu', hidden: true, role: 'group', 'aria-label': '계정' },
+      E('p', {}, E('b', { text: me.login }), ` · ${role}`),
+      E('ul', {},
+        me.admin ? E('li', {}, E('a', { href: '/admin/', text: `관리${me.pending ? ` (대기 ${Number(me.pending) || 0})` : ''}` })) : null,
+        (me.manages || []).length ? E('li', {}, E('a', { href: '/manage/', text: '권한 관리' })) : null,
+        E('li', {}, E('a', { href: '/', text: '실습 항해도 홈' })),
+        E('li', {}, E('a', { href: '/auth/logout', text: me.guest ? '로그아웃 · 이용권 끝내기' : '로그아웃' }))));
+    const btn = E('button', { type: 'button', class: 'ps-acct-btn', id: 'hangdo-acct-btn', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-controls': 'hangdo-acct-menu', 'aria-label': `계정 메뉴 — ${me.login}` },
+      '👤', E('span', { text: me.guest ? '게스트' : me.login }));
+    const wrap = E('div', { class: 'ps-acct' }, menu, btn);
+    const toggle = open => { menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); if (open) { const f = menu.querySelector('a'); if (f) f.focus(); } };
+    btn.addEventListener('click', () => toggle(menu.hidden));
+    wrap.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) { e.preventDefault(); toggle(false); btn.focus(); } });
+    document.addEventListener('click', e => { if (!menu.hidden && !wrap.contains(e.target)) toggle(false); });
+    const dock = document.getElementById('hangdo-dock') || Object.assign(document.createElement('div'), { id: 'hangdo-dock' });
+    if (!dock.isConnected) document.body.append(dock);
+    const fb = document.getElementById('hangdo-fb-open');
+    if (fb && fb.parentNode === dock) fb.after(wrap); else dock.prepend(wrap);   // 「도움·의견」 바로 왼쪽
   })();
 })();
 </script>
 <!-- progress-sync:end -->
-<!-- return-to:start v1.0.0 — 실습 항해도 공통 「이전 실습으로 돌아가기」 (Hands-On-Roadmap/templates/return-to.html에서 관리, 직접 고치지 말 것) -->
+<!-- return-to:start v1.0.1 — 실습 항해도 공통 「이전 실습으로 돌아가기」 (Hands-On-Roadmap/templates/return-to.html에서 관리, 직접 고치지 말 것) -->
 <script>
 /* 이전 실습으로 돌아가기: 기본·중급·고급 실습 화면에서 준비 과정·선수 학습 링크(같은 항해도 또는 다른 항해도의 #/item/…)를 누르면
    그 목적지 화면에 「이전 실습으로 돌아가기」(원래 항해도·과정 이름·돌아갈 경로)를 보여 줍니다.
@@ -1722,7 +1753,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     if (cur !== s.to) return;
     const nav = document.createElement('nav');
     nav.id = 'hangdo-return'; nav.setAttribute('aria-label', '이전 실습으로 돌아가기');
-    nav.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:75;max-width:min(440px,calc(100vw - 24px));display:grid;gap:2px;padding:10px 40px 10px 14px;border-radius:12px;font:13px/1.45 system-ui,sans-serif;background:var(--paper,#fff);color:var(--ink,#1b2733);border:1px solid var(--chart,#2c6fb3);box-shadow:0 6px 20px rgba(0,0,0,.15)';
+    nav.style.cssText = 'position:fixed;left:12px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:75;max-width:min(440px,calc(100vw - 24px));display:grid;gap:2px;padding:10px 40px 10px 14px;border-radius:12px;font:13px/1.45 system-ui,sans-serif;background:var(--paper,#fff);color:var(--ink,#1b2733);border:1px solid var(--chart,#2c6fb3);box-shadow:0 6px 20px rgba(0,0,0,.15)';
     const link = document.createElement('a');
     link.setAttribute('href', s.from); link.textContent = '↩ 이전 실습으로 돌아가기';
     link.style.cssText = 'font-weight:700;color:var(--chart,#2c6fb3)';
@@ -1744,12 +1775,15 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- return-to:end -->
-<!-- feedback:start v2.0.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<!-- feedback:start v2.0.1 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>·style 속성을 만들지 않음 */
-#hangdo-fb-open{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:58;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--chart,var(--accent,#2c6fb3));background:var(--chart,var(--accent,#2c6fb3));color:#fff;font:600 15px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 4px 16px rgb(0 0 0 / .18)}
+/* 오른쪽 아래 사용자 도구 영역(dock): 늘 떠 있는 것은 「도움·의견」 하나, 계정 메뉴·통합 검색(머리말 자리가 없는 화면)은 그 옆에 — 서로 겹치지 않음 (2.0.1) */
+#hangdo-dock{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:58;display:flex;flex-direction:row-reverse;align-items:flex-end;gap:8px;max-width:calc(100vw - 120px);pointer-events:none}
+#hangdo-dock>*{pointer-events:auto;flex:none}
+@media (max-width:600px){#hangdo-dock{flex-direction:column-reverse;max-width:calc(100vw - 32px)}}
+#hangdo-fb-open{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--chart,var(--accent,#2c6fb3));background:var(--chart,var(--accent,#2c6fb3));color:#fff;font:600 15px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 4px 16px rgb(0 0 0 / .18)}
 #hangdo-fb-open svg{width:22px;height:22px;flex:none}
-#hangdo-fb-open.up{bottom:calc(68px + env(safe-area-inset-bottom,0px))}
 #hangdo-fb-open[hidden]{display:none}
 #hangdo-fb-open:hover{filter:brightness(1.08)}
 #hangdo-fb-open:focus-visible,#hangdo-fb button:focus-visible,#hangdo-fb select:focus-visible,#hangdo-fb textarea:focus-visible,#hangdo-fb a:focus-visible{outline:3px solid var(--chart,var(--accent,#2c6fb3));outline-offset:2px}
@@ -1818,16 +1852,18 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   function build() {
     btn = el('button', { type: 'button', id: 'hangdo-fb-open', 'aria-haspopup': 'dialog', 'aria-label': '도움·의견 보내기 — 건의사항·질문·버그 신고' }, icon(), el('span', { text: '도움·의견' }));
     dlg = el('dialog', { id: 'hangdo-fb', 'aria-labelledby': 'hangdo-fb-h' });
-    document.body.append(btn, dlg);
+    const dock = document.getElementById('hangdo-dock') || Object.assign(document.createElement('div'), { id: 'hangdo-dock' });
+    if (!dock.isConnected) document.body.append(dock);
+    dock.prepend(btn);                 // row-reverse: 맨 앞 = 맨 오른쪽(가장자리)
+    document.body.append(dlg);
     btn.addEventListener('click', open);
     dlg.addEventListener('close', () => { btn.hidden = false; btn.focus(); });
-    // 오른쪽 아래에 고정된 다른 버튼(검색 단독 버튼)이 있으면 그 위로
-    const other = [...document.querySelectorAll('.hs-open')].find(b => getComputedStyle(b).position === 'fixed');
-    if (other) btn.classList.add('up');
     window.HangdoFeedback = { open: g => { open(); if (g && state === 'cloud') { group = g; showForm(); } } };   // 사용 안내 등 다른 화면에서 열기
   }
   function clear() { dlg.textContent = ''; }
-  function head(title, hint) { dlg.append(el('h2', { id: 'hangdo-fb-h', text: title }), hint ? el('p', { class: 'hint', text: hint }) : null); }
+  // append에 null·false·배열을 그대로 넘기면 「null」 같은 글자가 화면에 생김 → 항상 put으로 펼치고 거름 (2.0.1: 보내기 화면의 「null」 수정)
+  const put = (parent, ...kids) => parent.append(...kids.flat(Infinity).filter(k => k != null && k !== false).map(k => k instanceof Node ? k : document.createTextNode(String(k))));
+  function head(title, hint) { put(dlg, el('h2', { id: 'hangdo-fb-h', text: title }), hint ? el('p', { class: 'hint', text: hint }) : null); }
   const closeBtn = () => { const b = el('button', { type: 'button', text: '닫기' }); b.addEventListener('click', () => dlg.close()); return b; };
   function show(focus) { btn.hidden = true; if (!dlg.open) dlg.showModal(); (focus || dlg.querySelector('button, a')).focus(); }
 
@@ -1845,9 +1881,9 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     for (const [id, name, mark, desc] of GROUPS) {
       const b = el('button', { type: 'button', class: 'kind', 'data-group': id }, el('span', { class: 'mark', 'aria-hidden': 'true', text: mark }), el('b', { text: name }), el('small', { text: desc }));
       b.addEventListener('click', () => { group = id; showForm(); });
-      box.append(b);
+      put(box, b);
     }
-    dlg.append(box, el('div', { class: 'row' }, closeBtn()));
+    put(dlg, box, el('div', { class: 'row' }, closeBtn()));
   }
   function showForm() {
     const g = GROUPS.find(x => x[0] === group), c = ctx();
@@ -1861,7 +1897,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     const showErr = group !== 'idea';
     const status = el('p', { class: 'msg', role: 'status', 'aria-live': 'polite' });
     const send = el('button', { type: 'submit', class: 'primary', text: '보내기' });
-    form.append(...[
+    put(form, ...[
       el('div', { class: 'chosen' }, el('b', { text: `${g[2]} ${g[1]}` }), change),
       el('label', { for: 'hangdo-fb-kind', text: '세부 유형' }), sel,
       el('label', { for: 'hangdo-fb-msg' }, '내용 ', el('span', { class: 'hint', text: '(필수)' })), msg,
@@ -1875,8 +1911,8 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
         el('dt', { text: '보낸 사람' }), el('dd', { text: me && me.guest ? '게스트' : '회원' }),
         el('dt', { text: '그 밖' }), el('dd', { text: '보낸 시각·콘텐츠 버전은 서버가 붙입니다. 쿠키·브라우저 저장소·클립보드·화면 캡처·브라우저 정보는 보내지 않습니다.' })),
       status,
-      el('div', { class: 'row' }, closeBtn(), send)].flat().filter(Boolean));   // 배열·null을 그대로 append하면 글자로 바뀜 → 펼치고 거름
-    dlg.append(form);
+      el('div', { class: 'row' }, closeBtn(), send)]);
+    put(dlg, form);
     let busy = false;
     const say = (t, cls) => { status.className = 'msg ' + (cls || ''); status.setAttribute('role', cls === 'err' ? 'alert' : 'status'); status.textContent = t; };
     form.addEventListener('submit', async e => {
@@ -1904,7 +1940,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   function showLogin() {
     clear();
     head('도움·의견을 보내려면 로그인하세요', '로그인한 회원이나 게스트 이용권으로 들어온 사람만 보낼 수 있습니다(남용 방지). 로그인이 끝났을 수 있습니다.');
-    dlg.append(el('div', { class: 'row' }, el('a', { href: '/auth/login', text: 'GitHub로 로그인' }), el('a', { href: '/auth/guest', text: '게스트로 이용' }), el('a', { href: '/auth/guest/help', text: '게스트 이용 안내' }), closeBtn()));
+    put(dlg, el('div', { class: 'row' }, el('a', { href: '/auth/login', text: 'GitHub로 로그인' }), el('a', { href: '/auth/guest', text: '게스트로 이용' }), el('a', { href: '/auth/guest/help', text: '게스트 이용 안내' }), closeBtn()));
     show(dlg.querySelector('a'));
   }
   function showLocal() {
@@ -1916,7 +1952,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     const status = el('p', { class: 'msg', role: 'status', 'aria-live': 'polite' });
     const copy = el('button', { type: 'button', class: 'primary', text: '글 선택' });   // 클립보드 API는 쓰지 않음(읽기·쓰기 모두) — 선택만 하고 복사는 사용자가
     copy.addEventListener('click', () => { pre.focus(); pre.select(); status.textContent = '글을 선택했습니다. ⌘C(맥) 또는 Ctrl+C로 복사하세요.'; });
-    dlg.append(pre, status, el('div', { class: 'row' }, el('a', { href: CLOUD, target: '_blank', rel: 'noopener', text: '클라우드 사이트 열기' }), closeBtn(), copy));
+    put(dlg, pre, status, el('div', { class: 'row' }, el('a', { href: CLOUD, target: '_blank', rel: 'noopener', text: '클라우드 사이트 열기' }), closeBtn(), copy));
     show(copy);
   }
   const go = () => build();
