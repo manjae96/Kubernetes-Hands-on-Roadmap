@@ -7,18 +7,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<!-- app-ui:start v1.0.0 — 실습 항해도 공통 「읽기 배치」 (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<!-- app-ui:start v1.0.1 — 실습 항해도 공통 「읽기 배치」 (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* 실습 정보표(dl.facts): 좁은 3단 칸 대신 망분리 항해도처럼 「항목 | 내용」 줄 — 긴 값이 칸 안에서 꺾이지 않고, 빈 칸이 생기지 않음 (1.0.0) */
-.facts { grid-template-columns: minmax(0, 1fr); }
-.facts > div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); padding: 0; box-shadow: none; border-top: 1px solid var(--rule, #d3dce4); }
-.facts > div:first-child { border-top: 0; }
-.facts dt { padding: 10px 14px; font-size: .85rem; letter-spacing: 0; color: var(--muted, #566778); background: color-mix(in srgb, var(--rule, #d3dce4) 22%, transparent); }
-.facts dd { margin: 0; padding: 10px 14px; min-width: 0; overflow-wrap: anywhere; }
+dl.facts { grid-template-columns: minmax(0, 1fr); }   /* dl.facts: 앱 CSS(.facts, 이 블록보다 뒤에 옴)보다 구체적이어야 이김 (1.0.1) */
+dl.facts > div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); padding: 0; box-shadow: none; border-top: 1px solid var(--rule, #d3dce4); }
+dl.facts > div:first-child { border-top: 0; }
+dl.facts dt { padding: 10px 14px; font-size: .85rem; letter-spacing: 0; color: var(--muted, #566778); background: color-mix(in srgb, var(--rule, #d3dce4) 22%, transparent); }
+dl.facts dd { margin: 0; padding: 10px 14px; min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 560px) {
-  .facts > div { grid-template-columns: minmax(0, 1fr); }
-  .facts dt { padding: 8px 14px 0; background: none; }
-  .facts dd { padding: 2px 14px 10px; }
+  dl.facts > div { grid-template-columns: minmax(0, 1fr); }
+  dl.facts dt { padding: 8px 14px 0; background: none; }
+  dl.facts dd { padding: 2px 14px 10px; }
 }
 /* 왼쪽 목차 접기: 넓은 화면에서만(좁은 화면은 원래대로 본문 아래·메뉴 버튼) — 선택은 사람·이용권별(진도 영역이 나눔), 모든 항해도가 같이 따름 */
 .hangdo-nav-toggle { display: none; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rule, var(--line, #d3dce4)); background: transparent; color: inherit; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
