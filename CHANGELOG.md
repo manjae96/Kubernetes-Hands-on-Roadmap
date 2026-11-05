@@ -2,6 +2,17 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.8.3 — 2026-11-05
+
+공통 화면 틀 2.0 — 망분리 항해도와 같은 화면 구조·토큰·글꼴
+
+- 공통 화면 틀 2.0(허브 app-ui 2.0.0, docs/UI-SHELL.md): 망분리 항해도와 같은 상단 바·왼쪽 전체 과정 목차·가운데 본문·오른쪽 「이 페이지」·홈 대시보드·공통 토큰(밝게/어둡게)
+- 글꼴: 허브 Pretendard(UI·본문), 코드만 고정폭 — 외부 글꼴(Google Fonts) 링크 제거, 외부 출처 0
+- 접근성: 건너뛰기 링크, aria-current·aria-expanded·aria-controls, 좁은 화면 서랍(초점 가두기·ESC로 닫고 단추로 복귀)
+- URL·#/item/<id>·항목 id·storageKey·진도·시험·배지·포트·Docker 그대로, 앱 기능 그대로(상단 메뉴는 왼쪽 목차로)
+
+공통 템플릿: deep-drawer v1.4.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.8.2 — 2026-11-05
 
 공통 템플릿 갱신 — 계정별 진도 동기화 2.0 · 읽기 배치 · 화면 밀림 수정
