@@ -2387,8 +2387,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     if (cur !== s.to) return;
     const nav = document.createElement('nav');
     nav.id = 'hangdo-return'; nav.setAttribute('aria-label', '이전 실습으로 돌아가기');
-    // 폭: 오른쪽 아래 dock(도움·의견·계정·허브 홈·맨 위로) 자리를 남김 — 좁은 화면에서 겹치지 않게(2026-11-05)
-    nav.style.cssText = 'position:fixed;left:12px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:75;max-width:min(440px,calc(100vw - 172px));display:grid;gap:2px;padding:10px 40px 10px 14px;border-radius:12px;font:13px/1.45 system-ui,sans-serif;background:var(--paper,#fff);color:var(--ink,#1b2733);border:1px solid var(--chart,#2c6fb3);box-shadow:0 6px 20px rgba(0,0,0,.15)';
+    nav.style.cssText = 'position:fixed;left:12px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:75;max-width:min(440px,calc(100vw - 24px));display:grid;gap:2px;padding:10px 40px 10px 14px;border-radius:12px;font:13px/1.45 system-ui,sans-serif;background:var(--paper,#fff);color:var(--ink,#1b2733);border:1px solid var(--chart,#2c6fb3);box-shadow:0 6px 20px rgba(0,0,0,.15)';
     const link = document.createElement('a');
     link.setAttribute('href', s.from); link.textContent = '↩ 이전 실습으로 돌아가기';
     link.style.cssText = 'font-weight:700;color:var(--chart,#2c6fb3)';
@@ -2403,7 +2402,20 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     x.addEventListener('click', () => { clear(); nav.remove(); });
     nav.append(link, where, path, x);
     document.body.appendChild(nav);
+    fit(); setTimeout(fit, 400); setTimeout(fit, 1500);   // dock 단추(계정 메뉴 등)는 나중에 붙을 수 있음
   };
+  // 오른쪽 아래 dock(도움·의견·계정·허브 홈·맨 위로)과 겹치지 않게: 실제 단추 위치를 보고 왼쪽 남는 폭에 맞추고, 너무 좁으면 dock 위로 올림(2026-11-05)
+  //   CSSOM(style 속성 아님)이라 CSP 대상이 아님. 숨어 있는 「맨 위로」 자리도 포함(나중에 나타나도 겹치지 않게)
+  function fit() {
+    const nav = document.getElementById('hangdo-return'); if (!nav) return;
+    const rs = [...document.querySelectorAll('#hangdo-dock > :not(.hd-nav), #hangdo-dock .hd-nav > *')].map(e => e.getBoundingClientRect()).filter(r => r.width && r.height);
+    nav.style.bottom = 'calc(64px + env(safe-area-inset-bottom,0px))'; nav.style.maxWidth = 'min(440px,calc(100vw - 24px))';
+    if (!rs.length) return;
+    const left = Math.min(...rs.map(r => r.left)), top = Math.min(...rs.map(r => r.top)), room = left - 24;
+    if (room >= 200) nav.style.maxWidth = Math.min(440, Math.floor(room)) + 'px';
+    else nav.style.bottom = Math.ceil(window.innerHeight - top + 12) + 'px';
+  }
+  addEventListener('resize', fit);
   addEventListener('hashchange', show);
   addEventListener('pageshow', show);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();
