@@ -267,6 +267,8 @@ html.hs .site-foot { border-top: 1px solid var(--line); background: var(--surfac
   html.hs-ag .hs-scrim:not([hidden]) { position: fixed; inset: 0; z-index: 35; background: rgba(10, 16, 24, .45); }
 }
 @media (min-width: 861px) { html.hs-ag .hs-scrim { display: none; } }
+/* 860px 이하는 앱이 「← 전체 항해도」를 숨김(망분리 .hub, 공통 틀 .hub-link) — hub-search가 허브 경로에서 미리 잡는 자리(:root.hangdo-hub #hubLink[hidden])가 첫 그림에만 보여 상단 바가 넘치던 문제 */
+@media (max-width: 860px) { html.hangdo-hub:is(.hs, .hs-ag) #hubLink[hidden] { display: none !important; } }
 /* 닫힌 서랍(화면 밖으로 밀어 둔 목차)은 Tab 초점이 들어가지 않게 */
 @media (max-width: 860px) { html.hs-ag body:not(.nav-open) .layout > .nav { visibility: hidden; transition: transform .18s ease, visibility .18s; } }
 html.hs-ag { --font: "Pretendard", "Pretendard Variable", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif; }   /* 허브 글꼴 이름(Pretendard)을 먼저 */
