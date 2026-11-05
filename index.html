@@ -2427,6 +2427,10 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 .hd-btn.is-off{visibility:hidden}
 @media (max-width:600px){#hangdo-dock>.hd-nav{flex:none;margin:0 0 2px}.hd-btn{padding:0;width:44px}.hd-btn .hd-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media print{#hangdo-dock>.hd-nav{display:none}}
+/* 문서 끝의 마지막 줄을 dock(두 줄)이 가리지 않게 아래 여백(본문 위 내용은 움직이지 않음) */
+html.hd-pad body{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}
+@media (max-width:600px){html.hd-pad body{padding-bottom:calc(196px + env(safe-area-inset-bottom,0px))}}
+@media print{html.hd-pad body{padding-bottom:0}}
 #hangdo-fb-open{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--chart,var(--accent,#2c6fb3));background:var(--chart,var(--accent,#2c6fb3));color:#fff;font:600 15px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 4px 16px rgb(0 0 0 / .18)}
 #hangdo-fb-open svg{width:22px;height:22px;flex:none}
 #hangdo-fb-open[hidden]{display:none}
@@ -2608,7 +2612,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 /* 페이지 이동(2.2.0): 오른쪽 아래 dock에 「허브 홈」(링크)·「맨 위로」(단추) — 각각 독립 요소, 도움·의견과 다른 줄
    - 허브 홈: 항상 같은 사이트의 상대 경로 "/"(허브 포털). 운영 주소를 적지 않고 뒤로 가기를 쓰지 않음. 보이는 곳은 기존 「← 전체 항해도」 규칙과 같음:
      허브 화면(포털 첫 화면 제외)과 /<항해도>/… 아래. 단독 실행(경로 /)·포털 첫 화면에는 넣지 않음
-   - 맨 위로: 한 화면 넘게 내렸을 때만 보임(visibility — 자리는 그대로라 다른 단추가 움직이지 않음). 누르면 문서 맨 위로(움직임 줄이기 설정이면 바로),
+   - 맨 위로: 한 화면(최대 600px) 넘게 내렸을 때만 보임(visibility — 자리는 그대로라 다른 단추가 움직이지 않음). 누르면 문서 맨 위로(움직임 줄이기 설정이면 바로),
      초점은 빼앗지 않고 단추에 둠(초점이 있는 동안은 숨기지 않음). 화면 읽기 프로그램에 따로 알리지 않음
    - 관리·권한 관리·로그인 화면에는 넣지 않음. 화면 글은 textContent, CSP: 인라인 style 없음(클래스만) */
 (() => {
@@ -2619,6 +2623,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   const ROOT = path === '/' || path === '/index.html';
   const UNDER = /^\/[a-z0-9-]{1,40}\//.test(path);
   const showHome = HUBPAGE || UNDER;
+  document.documentElement.classList.add('hd-pad');   // dock이 있는 화면: 문서 끝에 dock 높이만큼 여백(위 CSS) — 마지막 줄이 가려지지 않게
   const NS = 'http://www.w3.org/2000/svg';
   const svg = d => { const s = document.createElementNS(NS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('focusable', 'false');
     const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'currentColor'); p.setAttribute('stroke-width', '2'); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round'); s.append(p); return s; };
@@ -2637,7 +2642,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     const dock = document.getElementById('hangdo-dock') || Object.assign(document.createElement('div'), { id: 'hangdo-dock' });
     if (!dock.isConnected) document.body.append(dock);
     dock.append(nav);
-    const far = () => (window.scrollY || document.documentElement.scrollTop) > Math.max(400, window.innerHeight);
+    const far = () => (window.scrollY || document.documentElement.scrollTop) > Math.min(window.innerHeight, 600);   // 한 화면(최대 600px) 넘게 내렸을 때
     let off = true;
     const paint = () => { const want = !far() && document.activeElement !== top; if (want !== off) { off = want; top.classList.toggle('is-off', off); } };
     window.addEventListener('scroll', paint, { passive: true }); window.addEventListener('resize', paint);
