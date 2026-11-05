@@ -2323,7 +2323,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- progress-sync:end -->
-<!-- return-to:start v1.0.1 — 실습 항해도 공통 「이전 실습으로 돌아가기」 (Hands-On-Roadmap/templates/return-to.html에서 관리, 직접 고치지 말 것) -->
+<!-- return-to:start v1.0.2 — 실습 항해도 공통 「이전 실습으로 돌아가기」 (Hands-On-Roadmap/templates/return-to.html에서 관리, 직접 고치지 말 것) -->
 <script>
 /* 이전 실습으로 돌아가기: 기본·중급·고급 실습 화면에서 준비 과정·선수 학습 링크(같은 항해도 또는 다른 항해도의 #/item/…)를 누르면
    그 목적지 화면에 「이전 실습으로 돌아가기」(원래 항해도·과정 이름·돌아갈 경로)를 보여 줍니다.
@@ -2387,7 +2387,8 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     if (cur !== s.to) return;
     const nav = document.createElement('nav');
     nav.id = 'hangdo-return'; nav.setAttribute('aria-label', '이전 실습으로 돌아가기');
-    nav.style.cssText = 'position:fixed;left:12px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:75;max-width:min(440px,calc(100vw - 24px));display:grid;gap:2px;padding:10px 40px 10px 14px;border-radius:12px;font:13px/1.45 system-ui,sans-serif;background:var(--paper,#fff);color:var(--ink,#1b2733);border:1px solid var(--chart,#2c6fb3);box-shadow:0 6px 20px rgba(0,0,0,.15)';
+    // 폭: 오른쪽 아래 dock(도움·의견·계정·허브 홈·맨 위로) 자리를 남김 — 좁은 화면에서 겹치지 않게(2026-11-05)
+    nav.style.cssText = 'position:fixed;left:12px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:75;max-width:min(440px,calc(100vw - 172px));display:grid;gap:2px;padding:10px 40px 10px 14px;border-radius:12px;font:13px/1.45 system-ui,sans-serif;background:var(--paper,#fff);color:var(--ink,#1b2733);border:1px solid var(--chart,#2c6fb3);box-shadow:0 6px 20px rgba(0,0,0,.15)';
     const link = document.createElement('a');
     link.setAttribute('href', s.from); link.textContent = '↩ 이전 실습으로 돌아가기';
     link.style.cssText = 'font-weight:700;color:var(--chart,#2c6fb3)';
