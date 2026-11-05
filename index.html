@@ -460,7 +460,8 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
   }
   function setDrawer(v, focusBack = true) {
     root.classList.toggle('hs-drawer', v); if (scrim) scrim.hidden = !v; paintBtn();
-    if (v) { const a = nav.querySelector('a[aria-current]:not([href="#/"])') || nav.querySelector('a, button'); if (a) setTimeout(() => a.focus(), 30); }
+    // 초점 대상은 미뤄 둔 뒤에 고름 — 그 사이 목차를 다시 그리면(늦게 온 catalog) 먼저 고른 링크는 문서에서 떨어져 초점이 서랍 밖에 남음
+    if (v) { const f = () => { if (!root.classList.contains('hs-drawer') || nav.contains(document.activeElement)) return; const a = nav.querySelector('a[aria-current]:not([href="#/"])') || nav.querySelector('a, button'); if (a) a.focus(); }; setTimeout(() => { f(); requestAnimationFrame(f); }, 30); }
     else if (focusBack && btn) btn.focus({ preventScroll: true });
   }
   let queued = false;
