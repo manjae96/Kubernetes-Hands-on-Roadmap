@@ -2,6 +2,18 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.8.4 — 2026-11-06
+
+CSP 강제 준비 — 인라인 스타일을 클래스로
+
+- CSP 강제 준비: style="" 속성을 클래스로(허브 tools/csp_inline.py) — 화면은 그대로(바꾸기 전·후 픽셀 비교 동일), 항해도 화면 CSP 위반 0
+- a-lab02 그림의 SVG style도 클래스로(레벨테스트 근거 절 해시는 그대로)
+- 공통 화면 틀 app-ui 2.1.0: 수준 카드의 「총 예상 시간·진도」와 「먼저 볼 곳」 카드를 같은 줄끼리 정렬
+- 오른쪽 아래 「허브 홈」·「맨 위로」(도움·의견과 같은 dock 안 별도 줄, feedback 2.2.0) · 「이전 실습으로 돌아가기」 안내가 dock과 겹치지 않게(return-to 1.0.2)
+- URL·#/item/<id>·항목 id·storageKey·진도·포트·Docker·단독 실행 그대로
+
+공통 템플릿: deep-drawer v1.4.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.8.3 — 2026-11-05
 
 공통 화면 틀 2.0 — 망분리 항해도와 같은 화면 구조·토큰·글꼴
