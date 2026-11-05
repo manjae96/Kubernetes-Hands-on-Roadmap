@@ -4,7 +4,7 @@
 <title>쿠버네티스 실습 항해도</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Kubernetes 공식 문서를 근거로 기본·중급·고급 과정을 minikube 실습으로 익히는 한국어 학습 사이트">
-<!-- app-ui:start v2.0.0 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<!-- app-ui:start v2.1.0 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
 <link rel="stylesheet" href="/assets/fonts/pretendard-1.3.9/pretendard.css">
 <script type="application/json" id="hangdo-app">{"id":"k8s","key":"k8s-hangdo-v1","title":"쿠버네티스","prereq":[{"id":"docker","title":"도커"}],"related":[{"id":"pv","title":"PV·PVC"},{"id":"cni","title":"CNI"},{"id":"ingress","title":"Ingress"},{"id":"helm","title":"헬름"}]}</script>
 <style>
@@ -234,6 +234,10 @@ html.hs #main .hero { border-bottom: 0; padding: 4px 0 8px; margin-bottom: 18px;
 html.hs #main .hero h1 { font-size: 34px; line-height: 1.25; letter-spacing: -0.025em; }
 html.hs #main .hero { grid-template-columns: minmax(0, 1fr); }   /* 본문 폭(780)에서는 글 → 그림 한 줄씩(망분리 홈과 같음) */
 html.hs #main .hero > :not(:first-child) { max-width: min(100%, 560px); }
+/* 카드 정렬 (2.1.0, docs/UI-CARDS.md): 수준 카드는 대상·선수·목표 길이가 달라도 「총 예상 시간·진도」와 단추가 같은 줄 카드끼리 같은 높이.
+   같은 줄은 grid가 높이를 맞추고(stretch), 카드 안 목록은 세로 flex — 마지막 두 칸(시간·진도)을 아래로. 좁은 화면(한 줄 하나)은 내용 높이 그대로 */
+html.hs .level-card dl { display: flex; flex-direction: column; gap: 8px; }
+html.hs .level-card dl > div:nth-last-child(2) { margin-top: auto; padding-top: 4px; }
 /* 실습 정보표(dl.facts): 「항목 | 내용」 줄 (1.0.0~) */
 html.hs dl.facts { display: grid; grid-template-columns: minmax(0, 1fr); margin: 18px 0 26px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; gap: 0; }
 html.hs dl.facts > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); padding: 0; box-shadow: none; border: 0; border-top: 1px solid var(--line-2); background: none; }
