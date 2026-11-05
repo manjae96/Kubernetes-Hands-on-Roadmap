@@ -78,7 +78,7 @@ kubectl get namespace lab-a02 lab-a02-partner
 <rect class="box" x="30" y="60" width="140" height="44" rx="6"/><text x="42" y="80">api</text><text class="small" x="42" y="96">role=api</text>
 <rect class="box" x="30" y="170" width="140" height="44" rx="6"/><text x="42" y="190">stranger</text><text class="small" x="42" y="206">라벨 없음</text>
 <path class="line" d="M172 82L328 120" marker-end="url(#a2a)"/><text class="small" x="210" y="88">allow-api-to-db</text>
-<path class="line bad" d="M172 192L320 150"/><text x="236" y="182" style="fill:var(--bad);font-weight:700">✕</text>
+<path class="line bad" d="M172 192L320 150"/><text x="236" y="182" class="cs-9546e3">✕</text>
 <rect class="zone" x="510" y="80" width="240" height="110" rx="8"/><text class="small" x="522" y="98">네임스페이스 lab-a02-partner</text>
 <rect class="box" x="560" y="114" width="140" height="44" rx="6"/><text x="572" y="134">api</text><text class="small" x="572" y="150">role=api</text>
 <path class="line" d="M558 136H462" marker-end="url(#a2a)"/><text class="small" x="476" y="72">allow-partner-api</text>

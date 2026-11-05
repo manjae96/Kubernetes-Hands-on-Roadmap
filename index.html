@@ -1083,6 +1083,7 @@ a.term { color: inherit; text-decoration: underline dotted var(--chart); text-un
 .diagram .arrowhead { fill: var(--chart); }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
 </style>
+<style id="csp-classes">/* CSP: 예전 인라인 스타일 속성을 옮긴 클래스 — 허브 tools/csp_inline.py가 만듦 */.cs-116966{margin:0 !important}.cs-1201c4{color:var(--muted) !important;margin-top:-4px !important}.cs-1495d7{fill:var(--muted) !important;font-family:var(--font-mono) !important;font-size:11px !important;paint-order:stroke !important;stroke:var(--sheet) !important;stroke-width:4px !important}.cs-3922d3{min-width:0 !important}.cs-41a338{fill:var(--chart) !important}.cs-57f9e3{color:var(--muted) !important}.cs-6923d7{fill:var(--ink) !important;font-family:var(--font-display) !important;font-size:15px !important;font-weight:700 !important;paint-order:stroke !important;stroke:var(--sheet) !important;stroke-width:5px !important}.cs-7c70b2{fill:var(--sheet) !important;stroke:var(--chart) !important}.cs-84a226{font-family:var(--font-mono) !important}.cs-9546e3{fill:var(--bad) !important;font-weight:700 !important}.cs-9562b8{margin:0 !important;font-size:.85rem !important;color:var(--muted) !important}.cs-a26bda{margin-top:20px !important}.cs-af4c04{stroke:var(--rule) !important}.cs-b557c0{fill:var(--muted) !important;font-size:11px !important;font-family:var(--font-body) !important}.cs-d46224{margin-top:0 !important}.cs-d97e91{stroke:var(--chart) !important}.cs-e40178{color:var(--bad) !important;margin:8px 0 0 !important;font-size:.88rem !important}.cs-fbc25d{font-size:.85rem !important;color:var(--muted) !important}.pw-0{width:0%}.pw-100{width:100%}.pw-10{width:10%}.pw-11{width:11%}.pw-12{width:12%}.pw-13{width:13%}.pw-14{width:14%}.pw-15{width:15%}.pw-16{width:16%}.pw-17{width:17%}.pw-18{width:18%}.pw-19{width:19%}.pw-1{width:1%}.pw-20{width:20%}.pw-21{width:21%}.pw-22{width:22%}.pw-23{width:23%}.pw-24{width:24%}.pw-25{width:25%}.pw-26{width:26%}.pw-27{width:27%}.pw-28{width:28%}.pw-29{width:29%}.pw-2{width:2%}.pw-30{width:30%}.pw-31{width:31%}.pw-32{width:32%}.pw-33{width:33%}.pw-34{width:34%}.pw-35{width:35%}.pw-36{width:36%}.pw-37{width:37%}.pw-38{width:38%}.pw-39{width:39%}.pw-3{width:3%}.pw-40{width:40%}.pw-41{width:41%}.pw-42{width:42%}.pw-43{width:43%}.pw-44{width:44%}.pw-45{width:45%}.pw-46{width:46%}.pw-47{width:47%}.pw-48{width:48%}.pw-49{width:49%}.pw-4{width:4%}.pw-50{width:50%}.pw-51{width:51%}.pw-52{width:52%}.pw-53{width:53%}.pw-54{width:54%}.pw-55{width:55%}.pw-56{width:56%}.pw-57{width:57%}.pw-58{width:58%}.pw-59{width:59%}.pw-5{width:5%}.pw-60{width:60%}.pw-61{width:61%}.pw-62{width:62%}.pw-63{width:63%}.pw-64{width:64%}.pw-65{width:65%}.pw-66{width:66%}.pw-67{width:67%}.pw-68{width:68%}.pw-69{width:69%}.pw-6{width:6%}.pw-70{width:70%}.pw-71{width:71%}.pw-72{width:72%}.pw-73{width:73%}.pw-74{width:74%}.pw-75{width:75%}.pw-76{width:76%}.pw-77{width:77%}.pw-78{width:78%}.pw-79{width:79%}.pw-7{width:7%}.pw-80{width:80%}.pw-81{width:81%}.pw-82{width:82%}.pw-83{width:83%}.pw-84{width:84%}.pw-85{width:85%}.pw-86{width:86%}.pw-87{width:87%}.pw-88{width:88%}.pw-89{width:89%}.pw-8{width:8%}.pw-90{width:90%}.pw-91{width:91%}.pw-92{width:92%}.pw-93{width:93%}.pw-94{width:94%}.pw-95{width:95%}.pw-96{width:96%}.pw-97{width:97%}.pw-98{width:98%}.pw-99{width:99%}.pw-9{width:9%}</style>
 
 <a class="skip" href="#main">본문으로 건너뛰기</a>
 <header class="topbar">
@@ -1403,13 +1404,13 @@ function renderHome() {
     const resume = state.last[L.id] && ITEM[state.last[L.id]];
     return `<article class="level-card ${cur ? 'current' : ''}" aria-labelledby="lv-${L.id}">
       <h3 id="lv-${L.id}"><span class="chip lv">${esc(L.marker)}</span>${esc(L.name)} 과정 ${cur ? '<span class="chip published">선택됨</span>' : ''}</h3>
-      <p style="margin:0">${esc(L.tagline)}</p>
+      <p class="cs-116966">${esc(L.tagline)}</p>
       <dl>
         <div><dt>대상</dt><dd>${esc(L.audience)}</dd></div>
         <div><dt>필요한 선수 지식</dt><dd><ul>${L.prereq.map(p => `<li>${esc(p)}</li>`).join('')}</ul></dd></div>
         <div><dt>학습 목표</dt><dd><ul>${L.goals.map(p => `<li>${esc(p)}</li>`).join('')}</ul></dd></div>
-        <div><dt>총 예상 시간</dt><dd><strong style="font-family:var(--font-mono)">${fmtMin(sumT(s.tp))}</strong></dd></div>
-        <div><dt>진도</dt><dd><div class="meter" role="img" aria-label="공개 콘텐츠 ${s.pub.length}개 중 ${s.done}개 완료"><span style="width:${pct}%"></span></div><span style="font-size:.85rem;color:var(--muted)">공개 콘텐츠 ${s.pub.length}개 중 ${s.done}개 완료</span></dd></div>
+        <div><dt>총 예상 시간</dt><dd><strong class="cs-84a226">${fmtMin(sumT(s.tp))}</strong></dd></div>
+        <div><dt>진도</dt><dd><div class="meter" role="img" aria-label="공개 콘텐츠 ${s.pub.length}개 중 ${s.done}개 완료"><span class="pw-${pct}"></span></div><span class="cs-fbc25d">공개 콘텐츠 ${s.pub.length}개 중 ${s.done}개 완료</span></dd></div>
       </dl>
       <div class="actions">
         <button class="btn" data-pick="${L.id}">이 수준 선택</button>
@@ -1431,7 +1432,7 @@ function renderHome() {
       <figure class="hero-chart" aria-label="학습 항로 개요">${heroSvg()}</figure>
     </section>
     <h2 class="section-title" id="pick">학습 수준 선택</h2>
-    <p style="color:var(--muted);margin-top:-4px">이전 과정을 마치지 않아도 어느 수준이든 시작할 수 있고, 언제든 상단의 「학습 수준」에서 바꿀 수 있습니다.</p>
+    <p class="cs-1201c4">이전 과정을 마치지 않아도 어느 수준이든 시작할 수 있고, 언제든 상단의 「학습 수준」에서 바꿀 수 있습니다.</p>
     <div class="levels">${cards}</div>
     <h2 class="section-title">먼저 볼 곳</h2>
     <div class="quick">
@@ -1446,11 +1447,11 @@ function renderHome() {
 function heroSvg() {
   const lv = C.levels.map((L, i) => ({ L, s: levelSummary(L.id), x: 60 + i * 150 }));
   return `<svg viewBox="0 0 480 190" role="img" aria-label="기본에서 고급으로 이어지는 항로">
-    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrowhead" style="fill:var(--chart)"/></marker></defs>
-    <g style="stroke:var(--rule)" stroke-width="1">${[40, 80, 120, 160].map(y => `<line x1="10" x2="470" y1="${y}" y2="${y}"/>`).join('')}${[60, 210, 360].map(x => `<line y1="20" y2="175" x1="${x}" x2="${x}"/>`).join('')}</g>
-    <path d="M30 150 C 90 150, 90 100, 150 100 S 230 60, 290 60 S 400 30, 450 30" fill="none" style="stroke:var(--chart)" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#ah)"/>
-    ${lv.map((o, i) => { const y = [128, 82, 46][i]; return `<g transform="translate(${o.x + 20},${y})"><circle r="9" style="fill:var(--sheet);stroke:var(--chart)" stroke-width="2.5"/><text x="14" y="-12" style="fill:var(--ink);font-family:var(--font-display);font-size:15px;font-weight:700;paint-order:stroke;stroke:var(--sheet);stroke-width:5px">${esc(o.L.name)}</text><text x="14" y="6" style="fill:var(--muted);font-family:var(--font-mono);font-size:11px;paint-order:stroke;stroke:var(--sheet);stroke-width:4px">${fmtMin(sumT(o.s.tp))}</text></g>`; }).join('')}
-    <text x="14" y="178" style="fill:var(--muted);font-size:11px;font-family:var(--font-body)">환경 준비 → 기본 → 중급 → 고급 · 숫자는 공개된 강의·실습 예상 시간 합계</text>
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrowhead cs-41a338"/></marker></defs>
+    <g class="cs-af4c04" stroke-width="1">${[40, 80, 120, 160].map(y => `<line x1="10" x2="470" y1="${y}" y2="${y}"/>`).join('')}${[60, 210, 360].map(x => `<line y1="20" y2="175" x1="${x}" x2="${x}"/>`).join('')}</g>
+    <path d="M30 150 C 90 150, 90 100, 150 100 S 230 60, 290 60 S 400 30, 450 30" fill="none" class="cs-d97e91" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+    ${lv.map((o, i) => { const y = [128, 82, 46][i]; return `<g transform="translate(${o.x + 20},${y})"><circle r="9" class="cs-7c70b2" stroke-width="2.5"/><text x="14" y="-12" class="cs-6923d7">${esc(o.L.name)}</text><text x="14" y="6" class="cs-1495d7">${fmtMin(sumT(o.s.tp))}</text></g>`; }).join('')}
+    <text x="14" y="178" class="cs-b557c0">환경 준비 → 기본 → 중급 → 고급 · 숫자는 공개된 강의·실습 예상 시간 합계</text>
   </svg>`;
 }
 function pickLevel(lv) { state.level = lv; save(); $('#levelSel').value = lv; toast(LV[lv].name + ' 과정을 선택했습니다'); }
@@ -1471,9 +1472,9 @@ function renderRoadmap() {
   const prep = levelItems('prep');
   const m = setMain(`<div class="page-head"><div class="eyebrow">전체 교육 과정</div><h1>학습 로드맵</h1>
     <p class="lede">준비 과정부터 고급까지 전체 목차입니다. 공개된 항목은 바로 학습할 수 있고, 「예정」 항목은 후속으로 제작합니다. 시간은 개념·핸즈온·복습 시간을 더한 값입니다.</p></div>
-    <section class="roadmap-level"><h2 class="section-title" style="margin-top:0">준비 과정</h2><p style="color:var(--muted)">부족한 선수 지식을 채우고 실습 환경을 만듭니다.</p>${stepList(prep)}</section>
+    <section class="roadmap-level"><h2 class="section-title cs-d46224">준비 과정</h2><p class="cs-57f9e3">부족한 선수 지식을 채우고 실습 환경을 만듭니다.</p>${stepList(prep)}</section>
     ${C.levels.map(L => { const s = levelSummary(L.id); return `<section class="roadmap-level"><h2 class="section-title">${esc(L.marker)} ${esc(L.name)} 과정</h2>
-      <p style="color:var(--muted)">선수 과정: ${esc(L.prereqCourse)} · 공개분 ${fmtMin(sumT(s.tp))} · 예정 포함 ${fmtMin(sumT(s.tall))} · <a href="#/level/${L.id}">이렇게 학습하세요</a></p>
+      <p class="cs-57f9e3">선수 과정: ${esc(L.prereqCourse)} · 공개분 ${fmtMin(sumT(s.tp))} · 예정 포함 ${fmtMin(sumT(s.tall))} · <a href="#/level/${L.id}">이렇게 학습하세요</a></p>
       <p><strong>수료하면</strong> ${esc(L.outcomes.join(' / '))}</p>${stepList(s.items)}</section>`; }).join('')}`);
   focusMain();
 }
@@ -1500,12 +1501,12 @@ async function renderLevel(lv) {
     </tbody></table></div>
     <p>총 예상 시간은 현재 공개된 강의·실습 ${s.pub.length}개의 시간을 합산한 값입니다.${plannedExtra > 0 ? ` 예정 콘텐츠가 모두 공개되면 ${fmtMin(plannedExtra)}이 더해집니다.` : ''}</p>
     <p><strong>최초 실습 환경 설치</strong>는 위 시간과 별도로 약 ${fmtMin(setup)}이 걸립니다. (<a href="#/item/setup">환경 준비</a>, 이미 했다면 생략)</p>
-    <p style="color:var(--muted)">선수 지식이 부족하거나 오류 해결에 시간을 쓰면 더 걸릴 수 있습니다. 처음 보는 오류를 직접 진단하는 시간도 학습의 일부로 보세요.</p>`;
+    <p class="cs-57f9e3">선수 지식이 부족하거나 오류 해결에 시간을 쓰면 더 걸릴 수 있습니다. 처음 보는 오류를 직접 진단하는 시간도 학습의 일부로 보세요.</p>`;
   const first = s.items.find(i => i.status === 'published' && i.required !== false) || s.items[0];
   const resume = state.last[lv] && ITEM[state.last[lv]];
   const cta = `<div class="guide-cta"><a class="btn" href="#/item/${first.id}" data-start="${lv}">이 과정 시작하기</a>${resume ? `<a class="btn ghost" href="#/item/${resume.id}">이어서 학습하기 · ${esc(resume.title)}</a>` : ''}</div>`;
   let html = mdToHtml(md).replace('<p>{{roadmap}}</p>', roadmap).replace('<p>{{duration}}</p>', duration).replace(/<p>\{\{cta\}\}<\/p>/g, cta);
-  const m = setMain(`<div class="article-grid"><article class="prose-wrap" style="min-width:0">
+  const m = setMain(`<div class="article-grid"><article class="prose-wrap cs-3922d3">
     <div class="page-head"><div class="eyebrow">${levelChip(lv)}<span>과정 시작 가이드</span></div><h1>${esc(L.name)} 과정: 이렇게 학습하세요</h1><p class="lede">${esc(L.tagline)}</p></div>
     <div class="prose">${html}</div></article><div id="tocSlot"></div></div>`);
   wire(m, 'guide-' + lv);
@@ -1530,7 +1531,7 @@ function factsFor(i) {
     ${comps ? `<div><dt>사용 구성 요소</dt><dd><ul>${comps}</ul></dd></div>` : ''}
     ${imgs ? `<div><dt>컨테이너 이미지</dt><dd><ul>${imgs}</ul></dd></div>` : ''}
     ${docs ? `<div><dt>공식 문서</dt><dd><ul>${docs}</ul></dd></div>` : ''}
-    <div><dt>검증 상태 · 마지막 확인</dt><dd>${verChip(i) || '<span class="chip planned">예정</span>'} ${esc(i.lastChecked || C.meta.lastChecked)}<br><span style="font-size:.85rem;color:var(--muted)">${esc((i.verification || {}).summary || '')}</span></dd></div>
+    <div><dt>검증 상태 · 마지막 확인</dt><dd>${verChip(i) || '<span class="chip planned">예정</span>'} ${esc(i.lastChecked || C.meta.lastChecked)}<br><span class="cs-fbc25d">${esc((i.verification || {}).summary || '')}</span></dd></div>
   </dl>`;
 }
 async function renderItem(id) {
@@ -1553,7 +1554,7 @@ async function renderItem(id) {
   }
   let md;
   try { md = await loadMd(i.file); } catch (e) { setMain(`<p>콘텐츠 파일(${esc(i.file)})을 불러오지 못했습니다. 로컬에서 실행 중이라면 README의 실행 방법대로 웹 서버로 열었는지 확인하세요.</p>`); return; }
-  const m = setMain(`<div class="article-grid"><article style="min-width:0">${head}${banner}${factsFor(i)}<div class="prose">${mdToHtml(md)}</div>
+  const m = setMain(`<div class="article-grid"><article class="cs-3922d3">${head}${banner}${factsFor(i)}<div class="prose">${mdToHtml(md)}</div>
     ${donePanel(i)}${pagerFor(i)}</article><div id="tocSlot"></div></div>`);
   wire(m, id);
   const bundle = $('#bundleBtn', m);
@@ -1581,7 +1582,7 @@ function donePanel(i) {
       <span id="doneState">${doneStateText(i.id)}</span>
       ${yamlCount ? `<button class="btn ghost" id="bundleBtn">이 실습의 YAML ${yamlCount}개 한 번에 받기 (zip)</button>` : ''}
     </div>
-    <p style="margin:0;font-size:.85rem;color:var(--muted)">「수동 완료」는 직접 표시한 기록이고, 「실행 결과 확인됨」은 성공 판정 명령의 출력을 붙여 넣어 기준과 일치한 기록입니다. 두 기록은 따로 저장됩니다.</p>
+    <p class="cs-9562b8">「수동 완료」는 직접 표시한 기록이고, 「실행 결과 확인됨」은 성공 판정 명령의 출력을 붙여 넣어 기준과 일치한 기록입니다. 두 기록은 따로 저장됩니다.</p>
   </section>`;
 }
 function pagerFor(i) {
@@ -1589,7 +1590,7 @@ function pagerFor(i) {
   const k = list.findIndex(x => x.id === i.id);
   const prev = list[k - 1], next = list[k + 1];
   const lnk = (x, cls, lab) => x ? `<a class="${cls}" href="#/item/${x.id}"><small>${lab}${x.status === 'planned' ? ' · 예정' : ''}</small>${esc(x.title)}</a>` : '';
-  return `<nav class="pager" aria-label="이전·다음" style="margin-top:20px">${lnk(prev, 'prev', '이전')}${lnk(next, 'next', '다음')}</nav>`;
+  return `<nav class="pager cs-a26bda" aria-label="이전·다음">${lnk(prev, 'prev', '이전')}${lnk(next, 'next', '다음')}</nav>`;
 }
 
 /* ---------- 페이지: 핸즈온 목록 (검색·필터) ---------- */
@@ -1626,9 +1627,9 @@ function drawLabs() {
   $('#labCount').textContent = `${shown.length}개`;
   $('#labList').innerHTML = shown.length ? shown.map(i => {
     const na = f.version !== 'all' && !supports(i, f.version);
-    return `<article class="lab-row ${na ? 'unavailable' : ''}"><div style="min-width:0"><h3><a href="#/item/${i.id}">${hlq(i.title, q)}</a></h3><p>${hlq(i.summary || '', q)}</p>
+    return `<article class="lab-row ${na ? 'unavailable' : ''}"><div class="cs-3922d3"><h3><a href="#/item/${i.id}">${hlq(i.title, q)}</a></h3><p>${hlq(i.summary || '', q)}</p>
       <div class="chips">${levelChip(i.level)}<span class="chip">${typeName(i.type)}</span>${i.status === 'planned' ? '<span class="chip planned">예정</span>' : '<span class="chip published">공개</span>'}${verChip(i)}<span class="chip">지원 ${esc((i.versions || []).join(' · '))}</span>${statusChips(i.id)}</div>
-      ${na ? `<p style="color:var(--bad);margin:8px 0 0;font-size:.88rem"><strong>${esc(f.version)}에서 사용 불가:</strong> ${esc((i.versionNotes || {})[f.version] || '이 버전에서 지원하지 않는 기능을 사용합니다.')}</p>` : ''}</div>
+      ${na ? `<p class="cs-e40178"><strong>${esc(f.version)}에서 사용 불가:</strong> ${esc((i.versionNotes || {})[f.version] || '이 버전에서 지원하지 않는 기능을 사용합니다.')}</p>` : ''}</div>
       <div class="time">${fmtMin(sumT(totals([i])))}</div></article>`; }).join('')
     : '<p>조건에 맞는 항목이 없습니다. 검색어를 줄이거나 필터를 「전체」로 바꿔 보세요.</p>';
 }
@@ -1639,7 +1640,7 @@ function mdPlain(md) { return md.replace(/```[\s\S]*?```/g, m => m.replace(/^```
 async function renderDoc(file, nav, eyebrow, title, lede) {
   setNav(nav); setSide(null);
   const md = await loadMd(file);
-  const m = setMain(`<div class="article-grid"><article style="min-width:0"><div class="page-head"><div class="eyebrow">${esc(eyebrow)}<span>마지막 확인 ${esc(C.meta.lastChecked)}</span></div><h1>${esc(title)}</h1><p class="lede">${esc(lede)}</p></div><div class="prose">${mdToHtml(md)}</div></article><div id="tocSlot"></div></div>`);
+  const m = setMain(`<div class="article-grid"><article class="cs-3922d3"><div class="page-head"><div class="eyebrow">${esc(eyebrow)}<span>마지막 확인 ${esc(C.meta.lastChecked)}</span></div><h1>${esc(title)}</h1><p class="lede">${esc(lede)}</p></div><div class="prose">${mdToHtml(md)}</div></article><div id="tocSlot"></div></div>`);
   wire(m, null); $('#tocSlot').innerHTML = buildToc(m); wireToc(m); focusMain();
 }
 
