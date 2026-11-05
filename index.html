@@ -2409,13 +2409,23 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- return-to:end -->
-<!-- feedback:start v2.1.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<!-- feedback:start v2.2.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>·style 속성을 만들지 않음 */
 /* 오른쪽 아래 사용자 도구 영역(dock): 늘 떠 있는 것은 「도움·의견」 하나, 계정 메뉴·통합 검색(머리말 자리가 없는 화면)은 그 옆에 — 서로 겹치지 않음 (2.0.1) */
-#hangdo-dock{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:58;display:flex;flex-direction:row-reverse;align-items:flex-end;gap:8px;max-width:calc(100vw - 120px);pointer-events:none}
+#hangdo-dock{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:58;display:flex;flex-direction:row-reverse;flex-wrap:wrap-reverse;align-items:flex-end;gap:8px;max-width:calc(100vw - 120px);pointer-events:none}
 #hangdo-dock>*{pointer-events:auto;flex:none}
-@media (max-width:600px){#hangdo-dock{flex-direction:column-reverse;max-width:calc(100vw - 32px)}}
+@media (max-width:600px){#hangdo-dock{flex-direction:column-reverse;flex-wrap:nowrap;align-items:flex-end;max-width:calc(100vw - 32px)}}
+/* 페이지 이동 묶음(2.2.0): 「허브 홈」·「맨 위로」 — 도움·의견·계정 줄 위에 따로 한 줄(작은 간격으로 구분). 각자 fixed 좌표를 두지 않고 dock 안에서 배치 */
+#hangdo-dock>.hd-nav{order:99;flex:0 0 100%;display:flex;flex-direction:row-reverse;gap:8px;margin-bottom:4px;pointer-events:none}
+#hangdo-dock>.hd-nav>*{pointer-events:auto}
+.hd-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--rule,var(--line,#c9d3dd));background:var(--sheet,var(--surface,#fff));color:var(--ink,var(--text,#142231));font:600 14px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;text-decoration:none;cursor:pointer;box-shadow:0 2px 10px rgb(0 0 0 / .14)}
+.hd-btn svg{width:18px;height:18px;flex:none}
+.hd-btn:hover{border-color:var(--chart,var(--accent,#2c6fb3))}
+.hd-btn:focus-visible{outline:3px solid var(--chart,var(--accent,#2c6fb3));outline-offset:2px}
+.hd-btn.is-off{visibility:hidden}
+@media (max-width:600px){#hangdo-dock>.hd-nav{flex:none;margin:0 0 2px}.hd-btn{padding:0;width:44px}.hd-btn .hd-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
+@media print{#hangdo-dock>.hd-nav{display:none}}
 #hangdo-fb-open{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--chart,var(--accent,#2c6fb3));background:var(--chart,var(--accent,#2c6fb3));color:#fff;font:600 15px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 4px 16px rgb(0 0 0 / .18)}
 #hangdo-fb-open svg{width:22px;height:22px;flex:none}
 #hangdo-fb-open[hidden]{display:none}
@@ -2593,6 +2603,51 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' }).then(r => { state = r.ok ? 'cloud' : r.status === 401 ? 'login' : 'local'; return r.ok ? r.json() : null; })
     .then(d => { me = d; }).catch(() => { state = 'local'; })
     .finally(() => { if (document.body) go(); else document.addEventListener('DOMContentLoaded', go); });
+})();
+/* 페이지 이동(2.2.0): 오른쪽 아래 dock에 「허브 홈」(링크)·「맨 위로」(단추) — 각각 독립 요소, 도움·의견과 다른 줄
+   - 허브 홈: 항상 같은 사이트의 상대 경로 "/"(허브 포털). 운영 주소를 적지 않고 뒤로 가기를 쓰지 않음. 보이는 곳은 기존 「← 전체 항해도」 규칙과 같음:
+     허브 화면(포털 첫 화면 제외)과 /<항해도>/… 아래. 단독 실행(경로 /)·포털 첫 화면에는 넣지 않음
+   - 맨 위로: 한 화면 넘게 내렸을 때만 보임(visibility — 자리는 그대로라 다른 단추가 움직이지 않음). 누르면 문서 맨 위로(움직임 줄이기 설정이면 바로),
+     초점은 빼앗지 않고 단추에 둠(초점이 있는 동안은 숨기지 않음). 화면 읽기 프로그램에 따로 알리지 않음
+   - 관리·권한 관리·로그인 화면에는 넣지 않음. 화면 글은 textContent, CSP: 인라인 style 없음(클래스만) */
+(() => {
+  if (location.protocol === 'file:' || document.getElementById('hangdo-top')) return;
+  const path = location.pathname, seg = path.split('/')[1] || '';
+  if (['admin', 'manage', 'auth', 'api'].includes(seg)) return;
+  const HUBPAGE = /^\/(guide|level-test|capstones|version|environment|me|leaderboard)(\.html)?$/.test(path);
+  const ROOT = path === '/' || path === '/index.html';
+  const UNDER = /^\/[a-z0-9-]{1,40}\//.test(path);
+  const showHome = HUBPAGE || UNDER;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = d => { const s = document.createElementNS(NS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('focusable', 'false');
+    const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'currentColor'); p.setAttribute('stroke-width', '2'); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round'); s.append(p); return s; };
+  const label = t => { const e = document.createElement('span'); e.className = 'hd-t'; e.textContent = t; return e; };
+  function go() {
+    if (document.getElementById('hangdo-top')) return;
+    const nav = document.createElement('div'); nav.className = 'hd-nav'; nav.setAttribute('role', 'group'); nav.setAttribute('aria-label', '페이지 이동');
+    const top = document.createElement('button'); top.type = 'button'; top.id = 'hangdo-top'; top.className = 'hd-btn is-off'; top.title = '맨 위로';
+    top.setAttribute('aria-label', '맨 위로'); top.append(svg('M12 19V5M5 12l7-7 7 7'), label('맨 위로'));
+    nav.append(top);   // row-reverse: 맨 앞 = 맨 오른쪽
+    if (showHome && !ROOT) {
+      const home = document.createElement('a'); home.id = 'hangdo-home'; home.className = 'hd-btn'; home.href = '/'; home.title = '허브 홈(실습 항해도 포털)';
+      home.setAttribute('aria-label', '허브 홈 — 실습 항해도 포털로'); home.append(svg('M4 11l8-7 8 7M6 9.5V20h12V9.5'), label('허브 홈'));
+      nav.append(home);
+    }
+    const dock = document.getElementById('hangdo-dock') || Object.assign(document.createElement('div'), { id: 'hangdo-dock' });
+    if (!dock.isConnected) document.body.append(dock);
+    dock.append(nav);
+    const far = () => (window.scrollY || document.documentElement.scrollTop) > Math.max(400, window.innerHeight);
+    let off = true;
+    const paint = () => { const want = !far() && document.activeElement !== top; if (want !== off) { off = want; top.classList.toggle('is-off', off); } };
+    window.addEventListener('scroll', paint, { passive: true }); window.addEventListener('resize', paint);
+    top.addEventListener('blur', paint);
+    top.addEventListener('click', () => {
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
+    paint();
+  }
+  if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
 })();
 </script>
 <!-- feedback:end -->
