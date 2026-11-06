@@ -2,6 +2,19 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.9.0 — 2026-11-07
+
+응용 과제 힌트·해설 2층, 공통 완료 규칙·화면 틀 갱신
+
+- 공통 완료 규칙으로 목차·진도·학습 현황 계산, 「배지 받으러 가기」 — 허브 templates/completion.js 1.0.0 · app-ui 2.2.0 · progress-sync 2.1.0
+- 초기화·되돌리기 알림을 받은 열린 탭은 첫 화면(#/)으로 다시 열고 한 줄 안내 — 허브 templates/progress-sync.html 2.1.0
+- 공통 화면 틀: 맨 아래 여백을 필요한 만큼만·허브 홈 아래·맨 위로 위, 목차 맨 아래 버전, 지금 묶음도 접기, 힌트·해설 문법 — 허브 templates feedback 2.3.0 · app-ui 2.2.0 · deep-drawer 1.5.0 · return-to 1.0.3
+- 그림에 height 속성 — 받기 전에도 자리를 잡아 스크롤 위치가 밀리지 않게 (허브 tools/visuals.py)
+- 응용 과제: 과제 → 스스로 해 볼 시간 → 힌트(접힘) → 해설(접힘)으로 나눔 — 허브 docs/HINTS.md
+- 항해도 id·항목 id·저장 키·URL 그대로, D1 마이그레이션 없음
+
+공통 템플릿: deep-drawer v1.5.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.8.5 — 2026-11-06
 
 README 자매 사이트·포트 안내에 자격증 준비 항해도 3개
