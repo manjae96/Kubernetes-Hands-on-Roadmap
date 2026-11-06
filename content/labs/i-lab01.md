@@ -446,19 +446,35 @@ criteria: 버전 2 maintenance
 
 **과제 1.** `web-nginx-conf`의 `default.conf`에 `location = /mode { return 200 "$host\n"; }`를 추가하고 apply했습니다. 1분을 기다려도 `/mode`가 404라면 왜일까요? 재시작 없이 반영하는 방법은?
 
-:::answer 힌트와 해설
-힌트: 파일은 바뀌었는지 `kubectl exec deploy/web -c nginx -n lab-i01 -- cat /etc/nginx/conf.d/default.conf`로 확인하세요.
+*스스로 해 볼 시간: 약 5분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
 
-해설: 파일은 갱신되었지만 nginx는 시작할 때 읽은 설정을 그대로 씁니다. `kubectl exec <파드> -c nginx -n lab-i01 -- nginx -s reload`로 파드마다 다시 불러오거나, `kubectl rollout restart`로 파드를 교체합니다. 운영에서는 ConfigMap 내용의 해시를 파드 템플릿 어노테이션에 넣어 설정이 바뀌면 자동으로 롤링 업데이트되게 하는 방법을 많이 씁니다.
+:::hint
+파일은 바뀌었는지 `kubectl exec deploy/web -c nginx -n lab-i01 -- cat /etc/nginx/conf.d/default.conf`로 확인하세요.
+:::
+
+:::answer 해설
+파일은 갱신되었지만 nginx는 시작할 때 읽은 설정을 그대로 씁니다. `kubectl exec <파드> -c nginx -n lab-i01 -- nginx -s reload`로 파드마다 다시 불러오거나, `kubectl rollout restart`로 파드를 교체합니다. 운영에서는 ConfigMap 내용의 해시를 파드 템플릿 어노테이션에 넣어 설정이 바뀌면 자동으로 롤링 업데이트되게 하는 방법을 많이 씁니다.
 :::
 
 **과제 2.** Secret을 YAML로 관리해야 한다면 `data` 대신 어떤 필드를 쓰면 base64 변환 없이 쓸 수 있나요? 그 파일을 Git에 올려도 될까요?
+
+*스스로 해 볼 시간: 약 5분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+Secret 스펙에서 base64가 아닌 평문을 받는 필드를 `kubectl explain secret`으로 찾아보세요. Git에 올려도 될지는 그 파일에 무엇이 들어 있는지로 판단합니다.
+:::
 
 :::answer 해설
 `stringData` 필드에 평문을 쓰면 API 서버가 저장할 때 base64로 바꿉니다. 하지만 평문 비밀번호가 담긴 파일이므로 그대로 Git에 올리면 안 됩니다. 외부 비밀 관리 도구(외부 생태계: Sealed Secrets, External Secrets Operator 등)를 쓰거나 배포 파이프라인에서 주입합니다.
 :::
 
 **과제 3.** readinessProbe만 지우고 4단계를 반복하면 어떻게 되나요?
+
+*스스로 해 볼 시간: 약 10분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+readiness 프로브가 없을 때 쿠버네티스는 파드를 언제 「준비됨」으로 볼까요? 4단계에서 본 엔드포인트(`kubectl get endpointslices`) 변화를 비교해 보세요.
+:::
 
 :::answer 해설
 readiness 프로브가 없으면 컨테이너가 실행 중인 한 항상 준비된 것으로 봅니다. 준비 파일을 지워도 엔드포인트에 남아 있어, 요청 일부가 `/`는 성공하더라도 실제로 준비되지 않은 파드로 갈 수 있습니다. 「준비되지 않았음」을 앱이 알릴 방법이 없어집니다.

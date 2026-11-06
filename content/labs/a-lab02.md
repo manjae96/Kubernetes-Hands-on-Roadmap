@@ -403,17 +403,35 @@ criteria: partner=ok
 
 **과제 1.** `np-egress.yaml`에서 DNS 규칙(첫 번째 `to`)을 지우고 apply하세요. api에서 `wget http://db`와 `wget http://<db 파드 IP>`의 결과를 비교하세요.
 
+*스스로 해 볼 시간: 약 10분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+이름으로 접속하려면 먼저 무엇을 해야 하나요? 이름 해석(DNS 질의)도 파드에서 **나가는** 트래픽인지 생각해 보세요.
+:::
+
 :::answer 해설
 이름으로는 `bad address 'db'`(이름 해석 실패)가 나고, 파드 IP로는 성공합니다. egress를 막으면 DNS 질의도 나가는 트래픽이므로 함께 막힙니다. 실습 후 원래 파일로 되돌려 apply합니다.
 :::
 
 **과제 2.** 4단계 정책을 OR 형태로 바꾸면 lab-a02의 stranger가 DB에 접근할 수 있게 될까요? 실제로 바꿔 보고 `describe` 출력과 `check` 결과로 확인하세요.
 
+*스스로 해 볼 시간: 약 15분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+AND는 한 항목 안에 `namespaceSelector`와 `podSelector`를 함께, OR는 `-`로 나눈 별도 항목입니다. 나눴을 때 각 항목이 **따로** 무엇을 허용하는지 하나씩 읽어 보세요.
+:::
+
 :::answer 해설
 OR 형태(`- namespaceSelector: ...`와 `- podSelector: ...`를 별도 항목으로)에서 podSelector 항목은 「lab-a02의 role=api」이므로 stranger는 여전히 막힙니다. 하지만 lab-a02-partner 네임스페이스의 **모든 파드**가 DB에 접근할 수 있게 됩니다. `describe`에서 `From:` 아래 항목이 두 묶음으로 나뉘어 보입니다.
 :::
 
 **과제 3.** 네임스페이스의 모든 파드에 대해 egress까지 기본 차단하는 정책을 만들고, 그 상태에서 필요한 통신만 여는 순서를 설계해 보세요.
+
+*스스로 해 볼 시간: 약 10분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+빈 `podSelector`와 `policyTypes` 두 가지로 「모두 막기」부터 만들고, 모든 앱에 공통으로 필요한 통신(이름 해석)을 먼저 엽니다. 그다음 앱별로 하나씩.
+:::
 
 :::answer 해설
 `podSelector: {}`, `policyTypes: [Ingress, Egress]`, 규칙 없음으로 전체 차단 정책을 만들고, 곧바로 모든 파드에 DNS egress 허용 정책을 더한 뒤, 앱별 ingress·egress를 하나씩 엽니다. 고급 종합 과제에서 이 순서를 사용합니다.

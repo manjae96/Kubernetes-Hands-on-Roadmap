@@ -285,21 +285,31 @@ criteria: ready=4 endpoints=4
 
 **과제 1.** 파일의 `replicas`를 3으로 고치고 `kubectl apply`로 반영하세요. `kubectl scale`로 4개였던 상태가 어떻게 바뀌나요?
 
-:::answer 힌트와 해설
-힌트: apply는 파일에 적힌 값을 원하는 상태로 삼습니다.
+*스스로 해 볼 시간: 약 5분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
 
-해설: 3개로 줄어듭니다. ReplicaSet은 남는 파드 하나를 지웁니다. `kubectl get pods -n lab-b01 -w`로 지켜보면 하나가 `Terminating`이 되는 것을 볼 수 있습니다. 운영에서 scale과 apply를 섞어 쓰면 이렇게 서로의 변경을 덮어쓰므로, 한 가지 방식을 정해 둡니다.
+:::hint
+apply는 파일에 적힌 값을 원하는 상태로 삼습니다.
+:::
+
+:::answer 해설
+3개로 줄어듭니다. ReplicaSet은 남는 파드 하나를 지웁니다. `kubectl get pods -n lab-b01 -w`로 지켜보면 하나가 `Terminating`이 되는 것을 볼 수 있습니다. 운영에서 scale과 apply를 섞어 쓰면 이렇게 서로의 변경을 덮어쓰므로, 한 가지 방식을 정해 둡니다.
 :::
 
 **과제 2.** Service의 셀렉터를 `app.kubernetes.io/name: webb`으로 일부러 틀리게 바꿔 apply한 뒤, 클라이언트 파드에서 `wget`이 어떻게 실패하는지, 엔드포인트가 어떻게 보이는지 확인하세요. 확인 후 원래대로 돌려놓습니다.
 
-:::answer 힌트와 해설
-힌트: `kubectl get endpointslices -n lab-b01 -l kubernetes.io/service-name=web`
+*스스로 해 볼 시간: 약 5분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
 
-해설: Service 자체는 정상적으로 만들어지고 ClusterIP도 그대로지만, 고를 파드가 없어 ENDPOINTS가 `<unset>`이 됩니다. 이름 해석은 되므로 `bad address`가 아니라 `can't connect to remote host ...: Connection refused`가 납니다. 엔드포인트가 없는 Service로 온 연결을 kube-proxy가 거부하기 때문입니다(검증 환경 iptables 모드에서 확인). 「Service는 있는데 연결이 안 된다」면 엔드포인트부터 확인하는 습관을 들이세요.
+:::hint
+`kubectl get endpointslices -n lab-b01 -l kubernetes.io/service-name=web`
+:::
+
+:::answer 해설
+Service 자체는 정상적으로 만들어지고 ClusterIP도 그대로지만, 고를 파드가 없어 ENDPOINTS가 `<unset>`이 됩니다. 이름 해석은 되므로 `bad address`가 아니라 `can't connect to remote host ...: Connection refused`가 납니다. 엔드포인트가 없는 Service로 온 연결을 kube-proxy가 거부하기 때문입니다(검증 환경 iptables 모드에서 확인). 「Service는 있는데 연결이 안 된다」면 엔드포인트부터 확인하는 습관을 들이세요.
 :::
 
 **과제 3.** `kubectl explain`으로 `deployment.spec.revisionHistoryLimit`의 의미와 기본값을 찾아 보세요.
+
+*스스로 해 볼 시간: 약 5분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
 
 :::answer 해설
 Deployment가 롤백용으로 보관할 이전 ReplicaSet 수이며 기본값은 10입니다. 다음 실습의 `rollout undo`가 이 기록을 사용합니다.

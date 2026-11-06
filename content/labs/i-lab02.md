@@ -666,13 +666,23 @@ Conditions:
 
 **과제 1.** `qos-burstable`의 limits에 `cpu: 100m`을 추가하면 QoS가 Guaranteed가 될까요? 실행 중인 파드의 resources를 그대로 고쳐 apply할 수 있을까요?
 
-:::answer 힌트와 해설
-힌트: Guaranteed 조건은 「CPU·메모리 각각 requests와 limits가 같을 것」입니다.
+*스스로 해 볼 시간: 약 5분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
 
-해설: 메모리 requests(64Mi)와 limits(128Mi)가 달라 여전히 Burstable입니다. 또한 실행 중인 파드의 resources는 1.35부터 GA인 「In-place Pod Resize」 기능으로 `kubectl patch ... --subresource resize`를 통해 바꿀 수 있지만, QoS 클래스는 생성 시 정해지며 바뀌는 수정은 거부됩니다. 보통은 Deployment 템플릿을 고쳐 새 파드로 교체합니다.
+:::hint
+Guaranteed 조건은 「CPU·메모리 각각 requests와 limits가 같을 것」입니다.
+:::
+
+:::answer 해설
+메모리 requests(64Mi)와 limits(128Mi)가 달라 여전히 Burstable입니다. 또한 실행 중인 파드의 resources는 1.35부터 GA인 「In-place Pod Resize」 기능으로 `kubectl patch ... --subresource resize`를 통해 바꿀 수 있지만, QoS 클래스는 생성 시 정해지며 바뀌는 수정은 거부됩니다. 보통은 Deployment 템플릿을 고쳐 새 파드로 교체합니다.
 :::
 
 **과제 2.** `memory-hog`의 limits를 `256Mi`로 올리면 어떻게 될까요? 노드 메모리보다 큰 limits를 주면 스케줄링이 거절될까요?
+
+*스스로 해 볼 시간: 약 10분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+스케줄러가 노드를 고를 때 보는 값은 requests와 limits 중 무엇일까요? 1단계 `kubectl describe node`의 Allocated resources 표를 떠올려 보세요.
+:::
 
 :::answer 해설
 200MiB를 다 올린 뒤 `tail`이 끝나며 정상 종료(Completed)합니다. 스케줄링은 requests만 보므로 limits가 노드 메모리보다 커도 거절되지 않습니다. 이것이 「limits 합계가 100%를 넘을 수 있다(overcommitted)」는 1단계 출력의 의미입니다.
@@ -680,11 +690,23 @@ Conditions:
 
 **과제 3.** HPA의 목표를 `averageUtilization: 80`으로 바꾸면 같은 부하에서 레플리카 수는 늘까요, 줄까요?
 
+*스스로 해 볼 시간: 약 5분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+HPA 공식: 원하는 레플리카 = ceil(현재 레플리카 × 현재 사용률 ÷ 목표 사용률). 목표 값이 분모에 있습니다.
+:::
+
 :::answer 해설
 줄어듭니다. 원하는 레플리카 = ceil(현재 × 현재 사용률 ÷ 목표)이므로 목표가 커지면 필요한 파드 수가 줄어듭니다. 대신 파드 하나가 더 바쁘게 일합니다.
 :::
 
 **과제 4.** 6단계와 같은 조건(파드 2개, 각 requests 200m, 목표 50%, maxReplicas 5)인데, 이번에는 모니터링 화면이 「두 파드의 CPU 사용량 **합계** 340m」를 보여 줍니다. 원하는 레플리카는 몇 개일까요? 340m를 그대로 200m로 나누면 어떤 실수가 될까요?
+
+*스스로 해 볼 시간: 약 10분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+HPA가 쓰는 사용률은 **파드별 사용률의 평균**입니다. 화면의 합계를 먼저 파드 수로 나누세요.
+:::
 
 :::answer 해설
 합계 340m는 파드당 평균 170m입니다. 평균 사용률 = 170 ÷ 200 = **85%**, desiredReplicas = ceil(2 × 85 ÷ 50) = ceil(3.4) = **4개**(maxReplicas 5 이내라 그대로).

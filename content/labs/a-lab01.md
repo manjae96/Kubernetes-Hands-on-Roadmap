@@ -239,6 +239,12 @@ criteria: system:serviceaccount:lab-a01:log-reader
 
 **과제 1.** log-reader가 같은 네임스페이스의 Deployment 목록도 볼 수 있게 Role을 고치세요. 바꾼 뒤 `can-i`로 확인합니다.
 
+*스스로 해 볼 시간: 약 10분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+Deployment는 어느 API 그룹에 있나요(`kubectl api-resources | grep deployments`)? Role의 `rules`에 그 그룹·리소스·읽기 동사를 더하고, `kubectl auth can-i … --as=system:serviceaccount:<네임스페이스>:<SA>`로 확인합니다.
+:::
+
 :::answer 해설
 규칙을 하나 추가합니다.
 
@@ -253,11 +259,23 @@ apply 후 `kubectl auth can-i list deployments -n lab-a01 --as=system:serviceacc
 
 **과제 2.** 「모든 네임스페이스의 파드 로그를 읽는」 권한이 필요하다면 어떤 객체 조합을 써야 하나요? 그 권한이 왜 위험할 수 있나요?
 
+*스스로 해 볼 시간: 약 5분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+네임스페이스 하나가 아니라 **클러스터 전체**에 주는 Role·Binding 짝이 무엇인지, 그리고 로그 안에 어떤 내용이 들어갈 수 있는지 생각해 보세요.
+:::
+
 :::answer 해설
 같은 규칙을 가진 ClusterRole과 ClusterRoleBinding이 필요합니다. 로그에는 요청 내용, 토큰, 개인정보가 섞여 들어갈 수 있으므로 클러스터 전체 로그 읽기는 사실상 민감 정보 접근 권한입니다. 꼭 필요한 네임스페이스마다 RoleBinding을 만드는 편이 안전합니다.
 :::
 
 **과제 3.** log-reader를 쓰는 파드를 만들고(`serviceAccountName: log-reader`), 컨테이너 안에 토큰이 마운트되는지 확인하세요. `automountServiceAccountToken`을 어디에 설정하면 파드별로 바꿀 수 있나요?
+
+*스스로 해 볼 시간: 약 10분 — 막히면 힌트부터, 그래도 막히면 해설을 엽니다.*
+
+:::hint
+파드 안에서 `ls /var/run/secrets/kubernetes.io/serviceaccount/`로 확인합니다. 같은 이름의 필드가 ServiceAccount와 파드 스펙 두 곳에 있습니다 — 어느 쪽이 우선할까요?
+:::
 
 :::answer 해설
 SA에 `false`를 줬으므로 `/var/run/secrets/kubernetes.io/serviceaccount/`가 생기지 않습니다. 파드 스펙의 `spec.automountServiceAccountToken: true`가 SA 설정보다 우선하므로 파드별로 켤 수 있습니다. API를 호출하지 않는 앱은 끄는 것이 좋습니다.
