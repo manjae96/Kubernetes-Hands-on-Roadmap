@@ -2,6 +2,14 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.8.5 — 2026-11-06
+
+README 자매 사이트·포트 안내에 자격증 준비 항해도 3개
+
+- 허브 v1.29.0의 자격증 준비 영역(CKA·CKAD·CKS) 추가에 맞춘 README 갱신 — 화면·콘텐츠 변경 없음
+
+공통 템플릿: deep-drawer v1.4.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.8.4 — 2026-11-06
 
 CSP 강제 준비 — 인라인 스타일을 클래스로
