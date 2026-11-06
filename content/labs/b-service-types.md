@@ -28,7 +28,7 @@ deployment "web" successfully rolled out
 
 <!-- visual:service-types start — 생성: tools/visuals.py, 원본 content/visuals/src/service-types.json -->
 <figure class="visual" id="visual-service-types">
-<div class="visual-scroll"><a href="content/visuals/svg/service-types.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/service-types.svg" alt="Service 유형의 포함 관계 — ClusterIP는 클러스터 안의 가상 IP, NodePort는 모든 노드의 IP:30000~32767을 더하고(ClusterIP 포함), LoadBalancer는 클라우드 LB의 외부 IP를 더합니다(NodePort 포함). 세 유형 모두 kube-proxy가 selector로 고른 파드로 전달합니다. ExternalName은 프록시 없이 바깥 DNS 이름으로 CNAME만 돌려줍니다." width="581" loading="lazy" decoding="async"></a></div>
+<div class="visual-scroll"><a href="content/visuals/svg/service-types.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/service-types.svg" alt="Service 유형의 포함 관계 — ClusterIP는 클러스터 안의 가상 IP, NodePort는 모든 노드의 IP:30000~32767을 더하고(ClusterIP 포함), LoadBalancer는 클라우드 LB의 외부 IP를 더합니다(NodePort 포함). 세 유형 모두 kube-proxy가 selector로 고른 파드로 전달합니다. ExternalName은 프록시 없이 바깥 DNS 이름으로 CNAME만 돌려줍니다." width="581" height="506" loading="lazy" decoding="async"></a></div>
 <figcaption><b>Service 유형의 포함 관계</b> — ClusterIP는 클러스터 안의 가상 IP, NodePort는 모든 노드의 IP:30000~32767을 더하고(ClusterIP 포함), LoadBalancer는 클라우드 LB의 외부 IP를 더합니다(NodePort 포함). 세 유형 모두 kube-proxy가 selector로 고른 파드로 전달합니다. ExternalName은 프록시 없이 바깥 DNS 이름으로 CNAME만 돌려줍니다. <span class="visual-links"><a href="content/visuals/svg/service-types.svg" target="_blank" rel="noopener">크게 보기</a> · <a href="content/visuals/svg/service-types.svg" download="service-types.svg">SVG 받기</a></span></figcaption>
 </figure>
 <!-- visual:service-types end -->

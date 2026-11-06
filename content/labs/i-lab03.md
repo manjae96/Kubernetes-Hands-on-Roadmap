@@ -49,7 +49,7 @@ minikube에는 `standard`라는 **기본 StorageClass**가 있습니다. 노드(
 
 <!-- visual:pvc-lifecycle start — 생성: tools/visuals.py, 원본 content/visuals/src/pvc-lifecycle.json -->
 <figure class="visual" id="visual-pvc-lifecycle">
-<div class="visual-scroll"><a href="content/visuals/svg/pvc-lifecycle.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/pvc-lifecycle.svg" alt="PVC의 상태 변화와 회수 정책 — PVC를 만들면 Pending이었다가 StorageClass가 PV를 만들어 묶으면 Bound가 되고 파드가 마운트해 씁니다. PVC를 지우면 회수 정책에 따라 Delete는 PV와 데이터를 지우고, Retain은 PV를 Released 상태로 남깁니다." width="862" loading="lazy" decoding="async"></a></div>
+<div class="visual-scroll"><a href="content/visuals/svg/pvc-lifecycle.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/pvc-lifecycle.svg" alt="PVC의 상태 변화와 회수 정책 — PVC를 만들면 Pending이었다가 StorageClass가 PV를 만들어 묶으면 Bound가 되고 파드가 마운트해 씁니다. PVC를 지우면 회수 정책에 따라 Delete는 PV와 데이터를 지우고, Retain은 PV를 Released 상태로 남깁니다." width="862" height="310" loading="lazy" decoding="async"></a></div>
 <figcaption><b>PVC의 상태 변화와 회수 정책</b> — PVC를 만들면 Pending이었다가 StorageClass가 PV를 만들어 묶으면 Bound가 되고 파드가 마운트해 씁니다. PVC를 지우면 회수 정책에 따라 Delete는 PV와 데이터를 지우고, Retain은 PV를 Released 상태로 남깁니다. <span class="visual-links"><a href="content/visuals/svg/pvc-lifecycle.svg" target="_blank" rel="noopener">크게 보기</a> · <a href="content/visuals/svg/pvc-lifecycle.svg" download="pvc-lifecycle.svg">SVG 받기</a></span></figcaption>
 </figure>
 <!-- visual:pvc-lifecycle end -->

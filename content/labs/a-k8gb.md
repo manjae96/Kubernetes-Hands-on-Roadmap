@@ -26,7 +26,7 @@
 
 <!-- visual:k8gb-delegation start — 생성: tools/visuals.py, 원본 content/visuals/src/k8gb-delegation.json -->
 <figure class="visual" id="visual-k8gb-delegation">
-<div class="visual-scroll"><a href="content/visuals/svg/k8gb-delegation.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/k8gb-delegation.svg" alt="k8gb: 존 위임과 failover — 엣지 DNS(example.com 권한)가 cloud.example.com을 eu·us 두 클러스터의 CoreDNS에 위임하고, 각 클러스터의 external-dns가 그 NS·glue를 TSIG로 서명한 RFC 2136 업데이트로 씁니다. 두 CoreDNS는 서로의 상태를 DNS로 묻고, failover(primary eu)에서는 eu가 건강하면 둘 다 eu 앱 주소로, eu가 아프면 둘 다 us 앱 주소로 답합니다." width="499" loading="lazy" decoding="async"></a></div>
+<div class="visual-scroll"><a href="content/visuals/svg/k8gb-delegation.svg" target="_blank" rel="noopener"><img src="content/visuals/svg/k8gb-delegation.svg" alt="k8gb: 존 위임과 failover — 엣지 DNS(example.com 권한)가 cloud.example.com을 eu·us 두 클러스터의 CoreDNS에 위임하고, 각 클러스터의 external-dns가 그 NS·glue를 TSIG로 서명한 RFC 2136 업데이트로 씁니다. 두 CoreDNS는 서로의 상태를 DNS로 묻고, failover(primary eu)에서는 eu가 건강하면 둘 다 eu 앱 주소로, eu가 아프면 둘 다 us 앱 주소로 답합니다." width="499" height="466" loading="lazy" decoding="async"></a></div>
 <figcaption><b>k8gb: 존 위임과 failover</b> — 엣지 DNS(example.com 권한)가 cloud.example.com을 eu·us 두 클러스터의 CoreDNS에 위임하고, 각 클러스터의 external-dns가 그 NS·glue를 TSIG로 서명한 RFC 2136 업데이트로 씁니다. 두 CoreDNS는 서로의 상태를 DNS로 묻고, failover(primary eu)에서는 eu가 건강하면 둘 다 eu 앱 주소로, eu가 아프면 둘 다 us 앱 주소로 답합니다. <span class="visual-links"><a href="content/visuals/svg/k8gb-delegation.svg" target="_blank" rel="noopener">크게 보기</a> · <a href="content/visuals/svg/k8gb-delegation.svg" download="k8gb-delegation.svg">SVG 받기</a></span></figcaption>
 </figure>
 <!-- visual:k8gb-delegation end -->
