@@ -93,12 +93,12 @@ html.hs .hs-prog progress::-moz-progress-bar { background: var(--primary); }
 html.hs #shell { display: grid; grid-template-columns: var(--nav-w) minmax(0, 1fr) var(--toc-w); gap: 0; max-width: var(--page-max); margin: 0 auto; padding: 0; }
 html.hs #shell.no-side { grid-template-columns: var(--nav-w) minmax(0, 1fr) var(--toc-w); }
 html.hs #shell > #side { display: none !important; }
-html.hs #shell > main#main { min-width: 0; min-height: calc(100vh - var(--header-h)); padding: 28px 40px 120px; }
+html.hs #shell > main#main { min-width: 0; min-height: calc(100vh - var(--header-h)); padding: 28px 40px 48px; }   /* 아래 여백은 본문 숨 쉴 자리만 — 떠 있는 단추 자리는 feedback 2.3.0이 잰 만큼(--hd-pad) */
 html.hs #main > * { max-width: var(--content-w); margin-left: auto; margin-right: auto; }
 html.hs #main .article-grid { display: block; }
 html.hs #main .article-grid > #tocSlot, html.hs #main .toc { display: none !important; }
 html.hs #main .prose, html.hs #main .prose :is(p, li), html.hs #main .lede { max-width: none; }
-html.hs .hs-nav { position: sticky; top: var(--header-h); align-self: start; height: calc(100vh - var(--header-h)); overflow: auto; overscroll-behavior: contain; padding: 18px 10px 40px 16px; border-right: 1px solid var(--line-2); font-size: 14px; line-height: 1.45; min-width: 0; }
+html.hs .hs-nav { position: sticky; top: var(--header-h); align-self: start; height: calc(100vh - var(--header-h)); overflow: auto; overscroll-behavior: contain; padding: 18px 10px calc(64px + env(safe-area-inset-bottom, 0px)) 16px;   /* 아래: 왼쪽 아래 테마 단추에 마지막 줄(버전)이 가리지 않게 */ border-right: 1px solid var(--line-2); font-size: 14px; line-height: 1.45; min-width: 0; }
 html.hs .hs-toc { position: sticky; top: var(--header-h); align-self: start; max-height: calc(100vh - var(--header-h)); overflow: auto; padding: 28px 16px 40px 8px; font-size: 13px; min-width: 0; }
 /* 첫 그리기 전(앱이 #main을 처음 그릴 때까지): 본문 칸만 보이지 않게(늦어도 3초) — 틀(목차 칸)은 처음부터 같은 자리 */
 :root.hangdo-boot #shell > main { visibility: hidden; }
@@ -122,8 +122,9 @@ html.hs .hs-toc { position: sticky; top: var(--header-h); align-self: start; max
 @media (min-width: 861px) and (max-width: 1180px) { :root[data-nav="collapsed"] .layout { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 860px) {
   html.hs #shell, html.hs #shell.no-side { grid-template-columns: minmax(0, 1fr); }
-  html.hs #shell > main#main { padding: 20px max(16px, env(safe-area-inset-right, 0px)) 120px max(16px, env(safe-area-inset-left, 0px)); }
-  html.hs .hs-nav { position: fixed; z-index: 60; top: 0; bottom: 0; left: 0; height: auto; width: min(320px, 86vw); padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(40px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--surface); border-right: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(-102%); visibility: hidden; transition: transform .18s ease, visibility .18s; }
+  html.hs #shell > main#main { padding: 20px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); }
+  /* align-self: stretch — 넓은 화면의 start가 남으면 격자 안 fixed 상자가 내용 높이로 늘어나 서랍이 화면보다 길어지고 스크롤되지 않았음(아래 항목·버전에 닿지 못함, 2.2.0에서 고침) */
+  html.hs .hs-nav { position: fixed; z-index: 60; top: 0; bottom: 0; left: 0; height: auto; align-self: stretch; width: min(320px, 86vw); padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(40px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--surface); border-right: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(-102%); visibility: hidden; transition: transform .18s ease, visibility .18s; }
   html.hs.hs-drawer .hs-nav { transform: none; visibility: visible; }
   html.hs.hs-drawer body { overflow: hidden; }
   html.hs .hs-scrim:not([hidden]) { position: fixed; inset: 0; z-index: 55; background: rgba(10, 16, 24, .45); }
@@ -178,6 +179,25 @@ html.hs .hs-item .st.guide { border: 0; border-radius: 0; color: var(--faint); f
 html.hs .hs-item.planned { color: var(--faint); }
 html.hs .hs-item.planned .st { border-style: dashed; }
 html.hs .hs-item .opt { color: var(--faint); font-size: 12px; font-weight: 400; }
+/* 힌트·해설(2.2.0): 둘 다 닫힌 상자. 힌트는 가볍게(점선), 해설은 실선 — 정답·완성된 설명이 바로 보이지 않게 */
+:is(html.hs #main, html.hs-ag main) details.hs-aid { margin: 12px 0; border: 1px solid var(--line, var(--rule)); border-radius: var(--radius, 8px); background: var(--surface, var(--sheet)); }
+:is(html.hs #main, html.hs-ag main) details.hs-hint { border-style: dashed; }
+:is(html.hs #main, html.hs-ag main) details.hs-aid > summary { list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-height: 44px; box-sizing: border-box; padding: 10px 14px; cursor: pointer; font-weight: 600; color: var(--ink); }
+:is(html.hs #main, html.hs-ag main) details.hs-aid > summary::-webkit-details-marker { display: none; }
+:is(html.hs #main, html.hs-ag main) details.hs-aid > summary::before { content: "▶"; flex: none; font-size: .75em; color: var(--muted); transition: transform .15s; }
+:is(html.hs #main, html.hs-ag main) details.hs-aid[open] > summary::before { transform: rotate(90deg); }
+:is(html.hs #main, html.hs-ag main) details.hs-aid > summary:focus-visible { outline: 2px solid var(--primary, var(--chart)); outline-offset: 2px; border-radius: var(--radius, 8px); }
+:is(html.hs #main, html.hs-ag main) details.hs-aid .hs-aid-k { color: var(--primary-ink, var(--chart)); }
+:is(html.hs #main, html.hs-ag main) details.hs-aid .hs-aid-t { font-weight: 500; }
+:is(html.hs #main, html.hs-ag main) details.hs-aid .hs-aid-try { flex-basis: 100%; padding-left: 1.1em; font-size: 12.5px; font-weight: 400; color: var(--muted); }
+:is(html.hs #main, html.hs-ag main) details.hs-aid[open] .hs-aid-try { display: none; }
+:is(html.hs #main, html.hs-ag main) details.hs-aid > .hs-aid-body { padding: 0 16px 12px; border-top: 1px solid var(--line-2, var(--rule)); }
+@media (prefers-reduced-motion: reduce) { :is(html.hs #main, html.hs-ag main) details.hs-aid > summary::before { transition: none; } }
+@media print { :is(html.hs #main, html.hs-ag main) details.hs-aid .hs-aid-try { display: none; } }
+/* 목차 맨 아래 버전(2.2.0): 본문보다 작고 흐리게 — 서랍(모바일)에서도 같은 자리 */
+:is(html.hs .hs-nav, html.hs-ag .layout > nav.nav) .hs-ver { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin: 20px 0 0; padding: 10px 8px 0; border-top: 1px solid var(--line-2, var(--rule)); font-size: 12px; line-height: 1.5; color: var(--faint, var(--muted)); font-variant-numeric: tabular-nums; }
+:is(html.hs .hs-nav, html.hs-ag .layout > nav.nav) .hs-ver a { color: var(--muted); text-underline-offset: 2px; padding: 4px 0; }
+html.hs .hs-part > summary .hs-here { flex: none; padding: 0 6px; border-radius: 999px; background: var(--primary-weak); color: var(--primary-ink); font-size: 11px; font-weight: 600; line-height: 18px; }
 html.hs .hs-foot { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line-2); }
 html.hs .hs-foot h2 { margin: 0 0 4px; padding: 0 8px; font-size: 12.5px; color: var(--muted); font-weight: 600; letter-spacing: 0; font-family: var(--font); }
 
@@ -373,6 +393,28 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
 /* completion:end */
 </script>
 <script>
+/* 학습 보조: 힌트와 해설(2.2.0, docs/HINTS.md) — 공통 마크다운 문법의 단일 원본
+     :::hint 제목        → 「힌트 보기」(방향·확인할 명령·핵심 낱말 일부만)
+     :::answer 제목      → 「해설 보기」(전체 사고 과정·원인·예시 명령·결과) — :::explanation 도 같음
+   각 항해도 앱의 ::: 처리기가 이 함수를 불러 같은 HTML을 씀(앱별 처리기는 tools/apply_series.py가 이 함수로 이어 줌).
+   - 둘 다 처음에는 닫힌 <details>(Enter·Space로 열고 닫음, 키보드·화면 읽기 프로그램 기본 지원), 힌트를 열어도 해설은 열리지 않음(서로 다른 상자)
+   - 해설 제목에는 「먼저 스스로 시도해 본 뒤 여세요」를 함께 — 열기 전에 보임
+   - 제목 글은 앱이 넘긴 esc로 이스케이프. 스크립트·인라인 이벤트·style 속성 없음(CSP 그대로). 객관식 시험의 채점 결과(정답 표시)와는 관계없음 */
+window.hangdoAids = window.hangdoAids || (() => {
+  const GENERIC = /^(해설|해설 보기|힌트|힌트 보기|힌트와 해설|모범 답안|모범 답안 보기|해설과 모범 답안)$/;
+  const KIND = { hint: 'hint', answer: 'expl', explanation: 'expl' };
+  function block(type, title, esc) {
+    const k = KIND[type]; if (!k) return null;
+    const e = typeof esc === 'function' ? esc : (x => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])));
+    const t = String(title || '').trim().replace(/\s*\((?:먼저 스스로 시도하세요|직접 해 본 뒤에)\)\s*$/, '');
+    const sub = t && !GENERIC.test(t) ? `<span class="hs-aid-t"> — ${e(t)}</span>` : '';
+    if (k === 'hint') return [`<details class="hs-aid hs-hint"><summary><span class="hs-aid-k">힌트 보기</span>${sub}</summary><div class="hs-aid-body">`, '</div></details>'];
+    return [`<details class="answer hs-aid hs-expl"><summary><span class="hs-aid-k">해설 보기</span>${sub}<span class="hs-aid-try">먼저 스스로 시도해 본 뒤 여세요</span></summary><div class="hs-aid-body">`, '</div></details>'];
+  }
+  return Object.freeze({ block, kinds: Object.keys(KIND) });
+})();
+</script>
+<script>
 /* 공통 화면 틀 2.0 — 앱 코드는 그대로 두고 틀만 그립니다(앱별 차이는 위 hangdo-app 어댑터: id·storageKey·선수/연관 항해도).
    - 과정 목록: 앱이 content/catalog.json을 받을 때 그 응답을 복제해서 씀(추가 요청 0). 완료 표시는 앱이 쓰는 storageKey(localStorage)를 읽기만 함
    - 화면 설정 저장: localStorage 'hangdo-ui:v1' = {"nav":"open|collapsed","closed":{"<항해도>":["basic",…]}} — 진도 영역(progress-scope)이 사람·이용권별로 나눔, 서버로 보내지 않음
@@ -431,6 +473,19 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
   const MAINRE = /^#\/(roadmap|env|item\/setup)$/;
 
   let nav, toc, btn, scrim, prog, lastNavHtml = '', lastCurHref = '';
+  // 버전(2.2.0): 이 항해도 저장소의 VERSION 파일(배포 이미지·허브 모두 <항해도>/VERSION)을 한 번 읽어 목차 맨 아래에 — 화면에 숫자를 따로 적지 않음.
+  //   공개 버전만(커밋·빌드 시각 등 내부 정보는 허브 「버전 정보」에서 관리자에게만). 같은 탭에서는 10분 동안 다시 받지 않음(sessionStorage)
+  let VER = null;
+  const VKEY = 'hangdo-ver:' + location.pathname;
+  try { const c = JSON.parse(sessionStorage.getItem(VKEY) || 'null'); if (c && /^\d+\.\d+\.\d+$/.test(c.v) && Date.now() - c.at < 600e3) VER = c.v; } catch (e) {}
+  if (!VER && typeof of === 'function') of.call(window, 'VERSION', { credentials: 'same-origin', cache: 'no-cache' }).then(r => r.ok ? r.text() : '').then(t => {
+    const v = String(t).trim(); if (!/^\d+\.\d+\.\d+$/.test(v)) return;
+    VER = v; try { sessionStorage.setItem(VKEY, JSON.stringify({ v, at: Date.now() })); } catch (e) {}
+    lastNavHtml = ''; paintAll(); if (AG) paintAgVer();
+  }).catch(() => {});
+  const verHtml = () => VER ? `<div class="hs-ver"><span>v${esc(VER)}</span>${inHub() ? '<a href="/version.html">버전 정보 보기</a>' : ''}</div>` : '';
+  const paintAgVer = () => { const side = document.querySelector('.layout > nav.nav'); if (!side || !VER) return; let b = side.querySelector(':scope > .hs-ver');
+    const html = verHtml(); if (!b) { b = document.createElement('div'); side.append(b); } if (b.outerHTML !== html) b.outerHTML = html; };
   function navHtml() {
     const st = state(), c = cur(), closed = ((readUI().closed || {})[APP.id]) || [];
     const link = (href, label) => `<a class="hs-link" href="${esc(href)}"${curLink(href, c) ? ' aria-current="page"' : ''}>${label}</a>`;
@@ -450,8 +505,10 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
     levels().forEach(L => {
       const its = CAT.items.filter(i => i.level === L.id); if (!its.length) return;
       const pub = its.filter(i => i.status === 'published'), done = pub.filter(i => doneOf(st, i)).length;
+      // 펼침은 사람의 선택만 따름(2.2.0): 처음에는 모든 묶음이 펼쳐져 있고(지금 과정의 묶음 포함), 접은 묶음은 지금 과정이 그 안에 있어도 다시 펼치지 않음.
+      //   예전에는 hasCur(지금 과정이 든 묶음)를 늘 펼쳐 접어도 바로 다시 열렸음. 지금 위치는 본문 제목·aria-current·묶음 제목의 「현재」 표시로 계속 알 수 있음
       const hasCur = its.some(i => i.id === c.item) || !!(c.guide && (c.guide === L.id || c.guide.endsWith('/' + L.id)));
-      const open = hasCur || !closed.includes(L.id);
+      const open = !closed.includes(L.id);
       let body = '';
       if (tracks.length && L.id !== 'prep') {
         its.filter(i => !tracks.some(t => t.id === i.product)).forEach(i => { body += itemLink(i); });
@@ -461,9 +518,10 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
         if (L.id !== 'prep') body += guide(`#/level/${L.id}`);
         body += its.map(itemLink).join('');
       }
-      h += `<details class="hs-part lv-${esc(L.id)}" data-lv="${esc(L.id)}"${open ? ' open' : ''}><summary><span class="no">${esc(L.name)}</span><span>${esc(L.title)}</span><span class="cnt"><span aria-hidden="true">${done}/${pub.length}</span><span class="hs-sr">공개 ${pub.length}개 중 ${done}개 완료</span></span></summary>${body}</details>`;
+      h += `<details class="hs-part lv-${esc(L.id)}" data-lv="${esc(L.id)}"${open ? ' open' : ''}><summary><span class="no">${esc(L.name)}</span><span>${esc(L.title)}</span>${hasCur ? '<span class="hs-here" aria-hidden="true">현재</span><span class="hs-sr">(지금 보는 과정이 이 묶음에 있음)</span>' : ''}<span class="cnt"><span aria-hidden="true">${done}/${pub.length}</span><span class="hs-sr">공개 ${pub.length}개 중 ${done}개 완료</span></span></summary>${body}</details>`;
     });
     if (rest.length) h += `<div class="hs-sec hs-foot"><h2>자료</h2>${rest.map(([href, t]) => link(href, esc(t))).join('')}</div>`;
+    h += verHtml();
     return h;
   }
   function paintNav() {
@@ -474,10 +532,10 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
       const top = nav.scrollTop; nav.innerHTML = html; nav.scrollTop = top; lastNavHtml = html;
       if (had !== null) { const a = had && nav.querySelector(`a[href="${CSS.escape(had)}"]`); (a || nav.querySelector('.hs-close')).focus({ preventScroll: true }); }
     }
-    if (c.href !== lastCurHref) {   // 경로가 바뀌면 현재 항목이 목차 화면 안에 오게
+    if (c.href !== lastCurHref) {   // 경로가 바뀌면 현재 항목이 목차 화면 안에 오게 (접힌 묶음 안이면 그대로 — 강제로 펼치지 않음)
       lastCurHref = c.href;
       const a = nav.querySelector('a[aria-current]:not([href="#/"])');
-      if (a) { const r = a.getBoundingClientRect(), n = nav.getBoundingClientRect(); if (r.top < n.top + 40 || r.bottom > n.bottom - 20) nav.scrollTop += r.top - n.top - n.height / 3; }
+      if (a && a.getClientRects().length) { const r = a.getBoundingClientRect(), n = nav.getBoundingClientRect(); if (r.top < n.top + 40 || r.bottom > n.bottom - 20) nav.scrollTop += r.top - n.top - n.height / 3; }
     }
   }
   function paintProg() {
@@ -607,6 +665,8 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
     scrim.addEventListener('click', () => document.body.classList.remove('nav-open'));
     document.body.appendChild(scrim);
     if (mb) { mb.setAttribute('aria-controls', side.id); mb.setAttribute('aria-expanded', 'false'); }
+    // 앱이 목차를 다시 그리면(innerHTML) 맨 아래 버전 줄을 다시 붙임 (붙인 뒤 같은 내용이면 아무것도 안 함 — 되풀이 없음)
+    new MutationObserver(paintAgVer).observe(side, { childList: true }); paintAgVer();
     let was = false;
     new MutationObserver(() => {
       const open = document.body.classList.contains('nav-open') && mq.matches;
@@ -1360,7 +1420,9 @@ function preprocess(md) {
       const open = line.match(/^:::(\w+)[ \t]*(.*)$/);
       if (open) {
         const [, type, title] = open;
-        if (type === 'answer') { out.push('', `<details class="answer"><summary>${esc(title || '해설 보기')}</summary><div>`, ''); stack.push('</div></details>'); }
+        const aid = window.hangdoAids && window.hangdoAids.block(type, title, esc);   // 힌트·해설 — 공통 화면 틀(app-ui)의 단일 원본
+        if (aid) { out.push('', aid[0], ''); stack.push(aid[1]); }
+        else if (type === 'answer') { out.push('', `<details class="answer"><summary>${esc(title || '해설 보기')}</summary><div>`, ''); stack.push('</div></details>'); }
         else { out.push('', `<div class="callout ${type}">${title ? `<p class="callout-title">${esc(title)}</p>` : ''}`, ''); stack.push('</div>'); }
         continue;
       }
@@ -1881,7 +1943,7 @@ fetch('/roadmaps.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null)
   a.hidden = false;
 }).catch(() => {});
 </script>
-<!-- deep-drawer:start v1.4.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
+<!-- deep-drawer:start v1.5.0 — 실습 항해도 공통 「심화 노트 서랍」 (Hands-On-Roadmap/templates/deep-drawer.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .deep-scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .28); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 60; }
 .deep-scrim.open { opacity: 1; pointer-events: auto; }
@@ -1923,7 +1985,8 @@ body.deep-pinned h1 { font-size: clamp(1.6rem, 2.4vw, 2.1rem); overflow-wrap: no
 .deep-foot a { font-size: .88rem; }
 .deep-chip { display: inline-block; font-size: .78rem; padding: 1px 9px; border-radius: 999px; background: var(--buoy-soft); color: var(--buoy); }
 a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; vertical-align: super; }
-.deep-peek { position: absolute; z-index: 65; max-width: 320px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px;
+/* 미리보기 카드는 화면 기준(fixed, 1.5.0): 문서 끝 근처 용어에서도 문서 높이를 늘리지 않음 — 예전 absolute는 숨은 뒤에도 그 자리에 남아 scrollHeight를 바꿀 수 있었음(맨 아래 스크롤 위치가 움직임) */
+.deep-peek { position: fixed; z-index: 65; max-width: 320px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px;
   box-shadow: 0 8px 24px rgb(0 0 0 / .18); font-size: .85rem; line-height: 1.55; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; }
 .deep-peek.show { opacity: 1; transform: none; }
 .deep-peek b { display: block; margin-bottom: 2px; }
@@ -1987,8 +2050,9 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     peek.innerHTML = `<b>${esc(t.ko)}<small>${esc(t.en)}</small></b><p>${esc(t.desc || t.short || '')}</p>
       <span class="hint">${n?.status === 'ready' ? `🔎 심화 노트 약 ${n.minutes}분 — 클릭해서 열기` : '클릭해서 용어 설명 열기'}</span>`;
     const r = a.getBoundingClientRect();
-    peek.style.left = Math.max(8, Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - 336)) + 'px';
-    peek.style.top = (window.scrollY + r.bottom + 8) + 'px';
+    peek.style.left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - 336)) + 'px';
+    peek.style.top = '0px'; const ph = peek.getBoundingClientRect().height;   // 아래에 자리가 없으면 용어 위에
+    peek.style.top = Math.max(8, r.bottom + 8 + ph > window.innerHeight - 8 ? r.top - ph - 8 : r.bottom + 8) + 'px';
     peek.classList.add('show'); }, 250); };
   const hidePeek = () => { clearTimeout(peekTimer); peekFor = null; peek.classList.remove('show'); };
   // 마우스는 올려 둘 때만, 터치는 미리보기 없이 누르면 바로 상세 서랍 (터치의 가짜 hover 무시)
@@ -2481,7 +2545,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- progress-sync:end -->
-<!-- return-to:start v1.0.2 — 실습 항해도 공통 「이전 실습으로 돌아가기」 (Hands-On-Roadmap/templates/return-to.html에서 관리, 직접 고치지 말 것) -->
+<!-- return-to:start v1.0.3 — 실습 항해도 공통 「이전 실습으로 돌아가기」 (Hands-On-Roadmap/templates/return-to.html에서 관리, 직접 고치지 말 것) -->
 <script>
 /* 이전 실습으로 돌아가기: 기본·중급·고급 실습 화면에서 준비 과정·선수 학습 링크(같은 항해도 또는 다른 항해도의 #/item/…)를 누르면
    그 목적지 화면에 「이전 실습으로 돌아가기」(원래 항해도·과정 이름·돌아갈 경로)를 보여 줍니다.
@@ -2563,7 +2627,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     fit(); setTimeout(fit, 400); setTimeout(fit, 1500);   // dock 단추(계정 메뉴 등)는 나중에 붙을 수 있음
   };
   // 오른쪽 아래 dock(도움·의견·계정·허브 홈·맨 위로)과 겹치지 않게: 실제 단추 위치를 보고 왼쪽 남는 폭에 맞추고, 너무 좁으면 dock 위로 올림(2026-11-05)
-  //   CSSOM(style 속성 아님)이라 CSP 대상이 아님. 숨어 있는 「맨 위로」 자리도 포함(나중에 나타나도 겹치지 않게)
+  //   CSSOM(style 속성 아님)이라 CSP 대상이 아님. 「맨 위로」가 나타나면(hangdo-dock 이벤트) 다시 맞춤
   function fit() {
     const nav = document.getElementById('hangdo-return'); if (!nav) return;
     const rs = [...document.querySelectorAll('#hangdo-dock > :not(.hd-nav), #hangdo-dock .hd-nav > *')].map(e => e.getBoundingClientRect()).filter(r => r.width && r.height);
@@ -2574,32 +2638,34 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     else nav.style.bottom = Math.ceil(window.innerHeight - top + 12) + 'px';
   }
   addEventListener('resize', fit);
+  addEventListener('hangdo-dock', fit);   // dock 단추가 나타나거나 사라질 때(「맨 위로」는 숨으면 자리를 차지하지 않음 — feedback 2.3.0)
   addEventListener('hashchange', show);
   addEventListener('pageshow', show);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();
 })();
 </script>
 <!-- return-to:end -->
-<!-- feedback:start v2.2.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<!-- feedback:start v2.3.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>·style 속성을 만들지 않음 */
 /* 오른쪽 아래 사용자 도구 영역(dock): 늘 떠 있는 것은 「도움·의견」 하나, 계정 메뉴·통합 검색(머리말 자리가 없는 화면)은 그 옆에 — 서로 겹치지 않음 (2.0.1) */
 #hangdo-dock{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:58;display:flex;flex-direction:row-reverse;flex-wrap:wrap-reverse;align-items:flex-end;gap:8px;max-width:calc(100vw - 120px);pointer-events:none}
 #hangdo-dock>*{pointer-events:auto;flex:none}
 @media (max-width:600px){#hangdo-dock{flex-direction:column-reverse;flex-wrap:nowrap;align-items:flex-end;max-width:calc(100vw - 32px)}}
-/* 페이지 이동 묶음(2.2.0): 「허브 홈」·「맨 위로」 — 도움·의견·계정 줄 위에 따로 한 줄(작은 간격으로 구분). 각자 fixed 좌표를 두지 않고 dock 안에서 배치 */
-#hangdo-dock>.hd-nav{order:99;flex:0 0 100%;display:flex;flex-direction:row-reverse;gap:8px;margin-bottom:4px;pointer-events:none}
+/* 페이지 이동 묶음(2.3.0): 「허브 홈」은 늘 이 묶음의 맨 아래, 「맨 위로」는 한 화면 넘게 내렸을 때만 그 위에 나타남(세로 한 줄).
+   도움·의견·계정 줄 위에 따로 — 각자 fixed 좌표를 두지 않고 dock 안에서 배치. 숨은 「맨 위로」는 자리를 차지하지 않음(display:none) */
+#hangdo-dock>.hd-nav{order:99;flex:0 0 100%;display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-bottom:4px;pointer-events:none}
 #hangdo-dock>.hd-nav>*{pointer-events:auto}
 .hd-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--rule,var(--line,#c9d3dd));background:var(--sheet,var(--surface,#fff));color:var(--ink,var(--text,#142231));font:600 14px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;text-decoration:none;cursor:pointer;box-shadow:0 2px 10px rgb(0 0 0 / .14)}
 .hd-btn svg{width:18px;height:18px;flex:none}
 .hd-btn:hover{border-color:var(--chart,var(--accent,#2c6fb3))}
 .hd-btn:focus-visible{outline:3px solid var(--chart,var(--accent,#2c6fb3));outline-offset:2px}
-.hd-btn.is-off{visibility:hidden}
+.hd-btn.is-off{display:none}
 @media (max-width:600px){#hangdo-dock>.hd-nav{flex:none;margin:0 0 2px}.hd-btn{padding:0;width:44px}.hd-btn .hd-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
 @media print{#hangdo-dock>.hd-nav{display:none}}
-/* 문서 끝의 마지막 줄을 dock(두 줄)이 가리지 않게 아래 여백(본문 위 내용은 움직이지 않음) */
-html.hd-pad body{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}
-@media (max-width:600px){html.hd-pad body{padding-bottom:calc(196px + env(safe-area-inset-bottom,0px))}}
+/* 문서 끝의 마지막 줄이 떠 있는 단추(dock·테마)에 가리지 않을 만큼만 아래 여백(2.3.0): 고정 값(PC 136px·모바일 196px) 대신
+   실제 단추 위치(안전 영역 포함)와 끝부분 콘텐츠 위치를 재서 --hd-pad로. 「맨 위로」가 나타나도 여백은 바뀌지 않음(아래 스크립트) */
+html.hd-pad body{padding-bottom:var(--hd-pad,0px)}
 @media print{html.hd-pad body{padding-bottom:0}}
 #hangdo-fb-open{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--chart,var(--accent,#2c6fb3));background:var(--chart,var(--accent,#2c6fb3));color:#fff;font:600 15px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 4px 16px rgb(0 0 0 / .18)}
 #hangdo-fb-open svg{width:22px;height:22px;flex:none}
@@ -2781,12 +2847,15 @@ html.hd-pad body{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}
     .then(d => { me = d; }).catch(() => { state = 'local'; })
     .finally(() => { if (document.body) go(); else document.addEventListener('DOMContentLoaded', go); });
 })();
-/* 페이지 이동(2.2.0): 오른쪽 아래 dock에 「허브 홈」(링크)·「맨 위로」(단추) — 각각 독립 요소, 도움·의견과 다른 줄
-   - 허브 홈: 항상 같은 사이트의 상대 경로 "/"(허브 포털). 운영 주소를 적지 않고 뒤로 가기를 쓰지 않음. 보이는 곳은 기존 「← 전체 항해도」 규칙과 같음:
+/* 페이지 이동(2.3.0): 오른쪽 아래 dock에 「허브 홈」(링크)·「맨 위로」(단추) — 각각 독립 요소, 도움·의견과 다른 줄
+   - 허브 홈: 늘 이 묶음의 맨 아래. 같은 사이트의 상대 경로 "/"(허브 포털) — 운영 주소를 적지 않고 뒤로 가기를 쓰지 않음. 보이는 곳은 기존 「← 전체 항해도」 규칙과 같음:
      허브 화면(포털 첫 화면 제외)과 /<항해도>/… 아래. 단독 실행(경로 /)·포털 첫 화면에는 넣지 않음
-   - 맨 위로: 한 화면(최대 600px) 넘게 내렸을 때만 보임(visibility — 자리는 그대로라 다른 단추가 움직이지 않음). 누르면 문서 맨 위로(움직임 줄이기 설정이면 바로),
-     초점은 빼앗지 않고 단추에 둠(초점이 있는 동안은 숨기지 않음). 화면 읽기 프로그램에 따로 알리지 않음
-   - 관리·권한 관리·로그인 화면에는 넣지 않음. 화면 글은 textContent, CSP: 인라인 style 없음(클래스만) */
+   - 맨 위로: 한 화면(최대 600px) 넘게 내렸을 때만 허브 홈 위에 나타남(숨어 있을 때는 자리를 차지하지 않음 — dock은 화면 아래에 붙어 있어 위로 늘어나고 본문은 움직이지 않음).
+     누르면 문서 맨 위로(움직임 줄이기 설정이면 바로), 초점은 빼앗지 않고 단추에 둠(초점이 있는 동안은 숨기지 않음). 화면 읽기 프로그램에 따로 알리지 않음
+   - 문서 끝 여백(--hd-pad): 끝부분 콘텐츠 가운데 떠 있는 단추(dock·테마)와 가로로 겹치는 것이 맨 아래로 내렸을 때 단추 위 8px까지 오게 하는 만큼만.
+     「맨 위로」가 맨 아래에서 보일 문서(내린 거리 > 한 화면)는 그 단추가 보이는 높이로, 아니면 숨은 높이로 계산 → 단추가 나타나고 사라져도 여백·scrollHeight가 그대로.
+     다시 계산: 처음·크기 바뀜·dock 단추 추가(계정 메뉴 등)·본문 바뀜(앱의 화면 전환) — 「맨 위로」 표시 변화로는 다시 계산하지 않음
+   - 관리·권한 관리·로그인 화면에는 넣지 않음. 화면 글은 textContent, CSP: 인라인 style 없음(클래스·CSSOM 변수만) */
 (() => {
   if (location.protocol === 'file:' || document.getElementById('hangdo-top')) return;
   const path = location.pathname, seg = path.split('/')[1] || '';
@@ -2795,17 +2864,19 @@ html.hd-pad body{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}
   const ROOT = path === '/' || path === '/index.html';
   const UNDER = /^\/[a-z0-9-]{1,40}\//.test(path);
   const showHome = HUBPAGE || UNDER;
-  document.documentElement.classList.add('hd-pad');   // dock이 있는 화면: 문서 끝에 dock 높이만큼 여백(위 CSS) — 마지막 줄이 가려지지 않게
+  const root = document.documentElement;
+  root.classList.add('hd-pad');   // dock이 있는 화면: 문서 끝에 필요한 만큼 여백(--hd-pad, 아래 measure)
   const NS = 'http://www.w3.org/2000/svg';
   const svg = d => { const s = document.createElementNS(NS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('focusable', 'false');
     const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'currentColor'); p.setAttribute('stroke-width', '2'); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round'); s.append(p); return s; };
   const label = t => { const e = document.createElement('span'); e.className = 'hd-t'; e.textContent = t; return e; };
+  const threshold = () => Math.min(window.innerHeight, 600);
   function go() {
     if (document.getElementById('hangdo-top')) return;
     const nav = document.createElement('div'); nav.className = 'hd-nav'; nav.setAttribute('role', 'group'); nav.setAttribute('aria-label', '페이지 이동');
     const top = document.createElement('button'); top.type = 'button'; top.id = 'hangdo-top'; top.className = 'hd-btn is-off'; top.title = '맨 위로';
     top.setAttribute('aria-label', '맨 위로'); top.append(svg('M12 19V5M5 12l7-7 7 7'), label('맨 위로'));
-    nav.append(top);   // row-reverse: 맨 앞 = 맨 오른쪽
+    nav.append(top);   // 세로(column): 맨 위로 → 그 아래 허브 홈
     if (showHome && !ROOT) {
       const home = document.createElement('a'); home.id = 'hangdo-home'; home.className = 'hd-btn'; home.href = '/'; home.title = '허브 홈(실습 항해도 포털)';
       home.setAttribute('aria-label', '허브 홈 — 실습 항해도 포털로'); home.append(svg('M4 11l8-7 8 7M6 9.5V20h12V9.5'), label('허브 홈'));
@@ -2814,9 +2885,9 @@ html.hd-pad body{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}
     const dock = document.getElementById('hangdo-dock') || Object.assign(document.createElement('div'), { id: 'hangdo-dock' });
     if (!dock.isConnected) document.body.append(dock);
     dock.append(nav);
-    const far = () => (window.scrollY || document.documentElement.scrollTop) > Math.min(window.innerHeight, 600);   // 한 화면(최대 600px) 넘게 내렸을 때
+    const far = () => (window.scrollY || document.documentElement.scrollTop) > threshold();   // 한 화면(최대 600px) 넘게 내렸을 때
     let off = true;
-    const paint = () => { const want = !far() && document.activeElement !== top; if (want !== off) { off = want; top.classList.toggle('is-off', off); } };
+    const paint = () => { const want = !far() && document.activeElement !== top; if (want !== off) { off = want; top.classList.toggle('is-off', off); window.dispatchEvent(new Event('hangdo-dock')); } };
     window.addEventListener('scroll', paint, { passive: true }); window.addEventListener('resize', paint);
     top.addEventListener('blur', paint);
     top.addEventListener('click', () => {
@@ -2824,6 +2895,52 @@ html.hd-pad body{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}
       window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
     });
     paint();
+
+    // ---- 문서 끝 여백 계산 ----
+    // 끝부분 콘텐츠에서 뺄 것: 떠 있는 단추·안내 자신, 고정·붙박이 영역(목차·이 페이지·머리말·서랍)의 안쪽, 닫힌 대화상자
+    const SKIP = ['#hangdo-dock', '.theme-toggle', '#hangdo-return', '#deepPeek', '.deep-drawer', '#hangdo-fb', '.hs-nav', '.hs-toc', 'header', '.topbar', '.layout > nav', '.layout > .toc', '.ps-import', 'dialog:not([open])']
+      .flatMap(x => [x, x + ' *']).concat(['script', 'style']).join(', ');
+    const floaters = withTop => {
+      const was = top.classList.contains('is-off');
+      if (withTop && was) top.classList.remove('is-off');   // 읽는 동안만(그리기 전 되돌림 — 깜빡임 없음)
+      const rs = [...dock.querySelectorAll(':scope > :not(.hd-nav), :scope > .hd-nav > *'), ...document.querySelectorAll('.theme-toggle')]
+        .filter(e => getComputedStyle(e).position === 'fixed' || e.closest('#hangdo-dock')).map(e => e.getBoundingClientRect()).filter(r => r.width && r.height);
+      if (withTop && was) top.classList.add('is-off');
+      return rs;
+    };
+    // 그려지는 것만(닫힌 <details> 안은 상자가 있어도 그려지지 않음 — checkVisibility), 글자가 있거나 누를 수 있는 것(요약 줄·링크·단추는 상자 전체)
+    const seen = e => !e.checkVisibility || e.checkVisibility({ contentVisibilityAuto: true, visibilityProperty: true, opacityProperty: true });
+    const ink = e => { if (e.matches('img, svg, video, canvas, input, select, textarea, button, pre, code, table, progress, iframe, hr, summary, a[href], label, .btn')) return true;
+      for (const c of e.childNodes) if (c.nodeType === 3 && c.nodeValue.trim()) return true; return false; };
+    let last = '';
+    const measure = () => {
+      if (!document.body) return;
+      const H = window.innerHeight, sy = window.scrollY, pad = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+      const end = document.documentElement.scrollHeight - pad;              // 여백을 뺀 문서 끝(문서 좌표)
+      const need = rs => { let n = 0;
+        if (!rs.length) return 0;
+        const L = Math.min(...rs.map(r => r.left)), R = Math.max(...rs.map(r => r.right));
+        for (const e of document.body.querySelectorAll('*')) {
+          const r = e.getBoundingClientRect(); if (!r.width || !r.height || r.right <= L || r.left >= R) continue;
+          const bottom = r.bottom + sy; if (bottom < end - H || bottom > end + 1) continue;   // 끝부분(한 화면) 안의 것만
+          if (e.matches(SKIP) || !ink(e) || !seen(e)) continue;
+          const st = getComputedStyle(e); if (st.position === 'fixed' || st.position === 'sticky' || st.visibility === 'hidden') continue;
+          for (const f of rs) if (r.right > f.left && r.left < f.right) n = Math.max(n, (H - f.top) + 8 - (end - bottom));   // 맨 아래에서 이 줄의 아래 끝이 단추 위 8px
+        }
+        return Math.max(0, Math.ceil(n));
+      };
+      const shown = need(floaters(true));
+      const want = (end + shown - H) > threshold() ? shown : need(floaters(false));   // 맨 아래에서 「맨 위로」가 보일 문서면 보이는 높이 기준
+      const v = want + 'px';
+      if (v !== last) { last = v; root.style.setProperty('--hd-pad', v); }
+    };
+    let qt = 0; const queue = () => { clearTimeout(qt); qt = setTimeout(measure, 150); };
+    measure(); setTimeout(measure, 600); setTimeout(measure, 2000);
+    window.addEventListener('resize', queue);
+    new MutationObserver(queue).observe(dock, { childList: true, subtree: false });   // 계정 메뉴·검색 단추가 나중에 붙음
+    const main = document.getElementById('main') || document.querySelector('main') || document.body;
+    new MutationObserver(m => { if (m.some(x => !x.target.closest || !x.target.closest(SKIP))) queue(); }).observe(main, { childList: true, subtree: true, characterData: false });
+    window.hangdoDockPad = measure;
   }
   if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
 })();
