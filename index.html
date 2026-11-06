@@ -4,7 +4,7 @@
 <title>쿠버네티스 실습 항해도</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Kubernetes 공식 문서를 근거로 기본·중급·고급 과정을 minikube 실습으로 익히는 한국어 학습 사이트">
-<!-- app-ui:start v2.1.0 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<!-- app-ui:start v2.2.0 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
 <link rel="stylesheet" href="/assets/fonts/pretendard-1.3.9/pretendard.css">
 <script type="application/json" id="hangdo-app">{"id":"k8s","key":"k8s-hangdo-v1","title":"쿠버네티스","prereq":[{"id":"docker","title":"도커"}],"related":[{"id":"pv","title":"PV·PVC"},{"id":"cni","title":"CNI"},{"id":"ingress","title":"Ingress"},{"id":"helm","title":"헬름"}]}</script>
 <style>
@@ -265,6 +265,11 @@ html.hs .hs-dash progress::-moz-progress-bar { background: var(--primary); }
 html.hs .hs-dash .hs-lv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 12px; margin: 0; padding: 0; list-style: none; }
 html.hs .hs-dash .hs-lv .t { font-weight: 600; }
 html.hs .hs-dash .hs-lv .m { color: var(--muted); font-variant-numeric: tabular-nums; }
+html.hs .hs-dash .hs-cta a.hs-badge-go, html.hs #main a.hs-badge-go { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--ok); border-radius: var(--radius); background: var(--ok-weak); color: var(--ok); font-weight: 700; text-decoration: none; }
+html.hs #main a.hs-badge-go:hover { background: var(--surface); }
+html.hs #main .hs-badge-note { margin-top: 16px; padding: 12px 16px; border: 1px solid var(--line); border-left: 4px solid var(--ok); border-radius: var(--radius); background: var(--surface); }
+html.hs #main .hs-badge-note p { margin: 0 0 8px; } html.hs #main .hs-badge-note p:last-child { margin: 0; }
+html.hs .hs-dash .hs-why { margin: 6px 0 0; }
 html.hs .site-foot { border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 13px; }
 /* 망분리 어댑터: 자기 배치 그대로 — 「목차 접기」는 넓은 화면만, 좁은 화면 서랍은 바깥 어둡게 */
 @media (max-width: 860px) {
@@ -280,6 +285,86 @@ html.hs-ag { --font: "Pretendard", "Pretendard Variable", -apple-system, BlinkMa
 html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(--surface); border-color: var(--line); }
 @media print { .hangdo-nav-toggle, html.hs .hs-nav, html.hs .hs-toc, html.hs .hs-prog { display: none !important; } html.hs #shell { display: block; } }
 </style>
+<script>
+/* completion:start 1.0.0 — 공통 완료 규칙 (Hands-On-Roadmap/templates/completion.js에서 관리, 직접 고치지 말 것 · docs/COMPLETION.md)
+   쓰는 곳(모두 이 파일 하나): 클라우드 Worker 배지 판정(cloud/src/learning.js가 그대로 import) · 포털 카드·내 학습(/assets/hub/completion.js 복사본) ·
+   각 항해도의 공통 화면 틀(templates/app-ui.html 안에 끼워 넣음 — tools/apply_series.py)
+   - 진도 형식 두 가지: progress[id] = {manual, checks{판정 id: 통과 시각(ms) 또는 true}} (21개 앱) · done[id] = true (망분리)
+   - 「완료」(완료한 전체 과정): 수동 완료 표시 또는 지금 모드의 성공 판정을 모두 통과 — 각 항해도 앱의 isDone과 같은 뜻
+   - 「배지 인정」(배지 필수 과정): 성공 판정이 있으면 지금 모드의 판정을 모두 통과해야 함(수동 완료만으로는 안 됨), 판정이 없으면 수동 완료
+   - checkModes: 판정 id → 모드(예: sidecar·ambient). 지금 모드 = state.mode → catalog.meta.defaultMode. 다른 모드 판정은 세지 않음
+   - 공개(status published) 과정만, 게스트는 잠긴 단계(중급·고급)를 빼고 셈. 진도에 남은 모르는 id·미공개 과정은 세지 않음
+   - 배지 단계: 단계(level)가 있는 공개·필수(required ≠ false) 과정. 선택 과정은 배지를 막지 않음. 단계 없는 과정(망분리 강의·평가)은 배지와 무관
+   DOM·네트워크·저장소를 쓰지 않는 순수 함수만 — 서버와 브라우저가 같은 코드로 계산 */
+(function (G) {
+  'use strict';
+  if (G.HangdoCompletion) return;
+  const VERSION = '1.0.0';
+  const GUEST_LOCKED = ['intermediate', 'advanced', '중급', '고급'];   // cloud/src/worker.js GUEST_LEVELS_LOCKED · tools/build_static.py guest_deny와 같은 기준
+  const obj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+  // 성공 판정 기록: 앱은 통과한 시각(ms, Date.now())을 저장 — 예전 기록·시험 데이터의 true도 통과로 인정. false·0·문자열은 미통과
+  const passedMark = v => v === true || (typeof v === 'number' && isFinite(v) && v > 0);
+  const flat = st => obj(st) && obj(st.done) && !obj(st.progress);   // 망분리 형식
+  const modeOf = (cat, st) => (obj(st) && typeof st.mode === 'string' && st.mode) || (obj(cat) && obj(cat.meta) && typeof cat.meta.defaultMode === 'string' && cat.meta.defaultMode) || null;
+  const needOf = (it, mode) => (Array.isArray(it.checks) ? it.checks : []).filter(c => { const m = obj(it.checkModes) ? it.checkModes[c] : null; return !m || m === mode; });
+  const published = it => obj(it) && it.status === 'published';
+  const lockedFor = (it, guest) => !!guest && GUEST_LOCKED.includes(it.level);
+
+  // 과정 하나의 상태
+  function item(cat, st, it, mode) {
+    if (mode === undefined) mode = modeOf(cat, st);
+    if (flat(st)) { const d = st.done[it.id] === true; return { id: it.id, manual: d, need: 0, passed: 0, verified: false, done: d, badge: d, reason: d ? '' : '완료 표시 안 됨' }; }
+    const pr = obj(st) && obj(st.progress) ? st.progress : {};
+    const p = Object.prototype.hasOwnProperty.call(pr, it.id) && obj(pr[it.id]) ? pr[it.id] : null;
+    const need = needOf(it, mode), ch = p && obj(p.checks) ? p.checks : {};
+    const passed = need.filter(c => passedMark(ch[c])).length;
+    const manual = !!(p && p.manual === true);
+    const verified = need.length > 0 && passed === need.length;
+    const badge = need.length ? verified : manual;
+    const reason = badge ? '' : (need.length ? `성공 판정 ${need.length}개 중 ${need.length - passed}개 미통과` : '완료 표시 안 됨');
+    return { id: it.id, manual, need: need.length, passed, verified, done: manual || verified, badge, reason };
+  }
+
+  // 항해도 하나의 요약 — opts.guest: 게스트(잠긴 단계 제외)
+  function summary(cat, st, opts) {
+    const guest = !!(opts && opts.guest);
+    const all = (obj(cat) && Array.isArray(cat.items) ? cat.items : []).filter(published);
+    const mode = modeOf(cat, st);
+    const rows = all.map(it => Object.assign(item(cat, st, it, mode), { it, locked: lockedFor(it, guest), required: it.required !== false }));
+    const vis = rows.filter(r => !r.locked);
+    const cnt = list => ({ total: list.length, done: list.filter(r => r.done).length });
+    const order = [];
+    (obj(cat) && Array.isArray(cat.levels) ? cat.levels : []).forEach(l => { if (obj(l) && typeof l.id === 'string' && !order.includes(l.id)) order.push(l.id); });
+    all.forEach(it => { if (typeof it.level === 'string' && it.level && !order.includes(it.level)) order.push(it.level); });
+    const levels = order.map(level => {
+      const req = rows.filter(r => r.it.level === level && r.required);
+      if (!req.length) return null;
+      const locked = guest && GUEST_LOCKED.includes(level);
+      const missing = req.filter(r => !r.badge).map(r => ({ id: r.id, title: String(r.it.title || r.id), reason: r.reason, need: r.need, passed: r.passed, manual: r.manual }));
+      const done = req.length - missing.length;
+      const lv = cnt(rows.filter(r => r.it.level === level));
+      return { level, total: req.length, done, complete: !locked && done === req.length, locked, missing, items: req.map(r => r.id), all: lv };
+    }).filter(Boolean);
+    const optional = vis.filter(r => !r.required);
+    return { version: VERSION, mode, guest, total: vis.length, done: vis.filter(r => r.done).length, doneIds: vis.filter(r => r.done).map(r => r.id),
+      required: cnt(vis.filter(r => r.required)), optional: cnt(optional), badgeRequired: { total: levels.filter(l => !l.locked).reduce((a, l) => a + l.total, 0), done: levels.filter(l => !l.locked).reduce((a, l) => a + l.done, 0) },
+      levels, rows, lockedCount: rows.length - vis.length };
+  }
+  // 왜 「완료」 개수와 「배지 필수」 개수가 다른지 한 줄로 (화면 설명용)
+  function differences(s) {
+    const out = [];
+    const manualOnly = s.rows.filter(r => !r.locked && r.required && r.done && !r.badge && r.it.level).length;
+    if (s.optional.done) out.push(`선택 과정 ${s.optional.done}개는 완료 개수에만 들어가고 배지에는 필요 없습니다`);
+    if (manualOnly) out.push(`성공 판정이 있는 과정 ${manualOnly}개는 수동 완료로 표시했지만 판정을 아직 모두 통과하지 않아 배지에는 인정되지 않습니다`);
+    if (s.lockedCount) out.push(`게스트에게 잠긴 중급·고급 과정 ${s.lockedCount}개는 세지 않습니다`);
+    const noLevel = s.rows.filter(r => !r.locked && !r.it.level).length;
+    if (noLevel) out.push(`단계가 없는 과정 ${noLevel}개(강의·평가)는 완료 개수에만 들어갑니다`);
+    return out;
+  }
+  G.HangdoCompletion = Object.freeze({ VERSION, GUEST_LOCKED, passedMark, modeOf, needOf, item, summary, differences });
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+/* completion:end */
+</script>
 <script>
 /* 공통 화면 틀 2.0 — 앱 코드는 그대로 두고 틀만 그립니다(앱별 차이는 위 hangdo-app 어댑터: id·storageKey·선수/연관 항해도).
    - 과정 목록: 앱이 content/catalog.json을 받을 때 그 응답을 복제해서 씀(추가 요청 0). 완료 표시는 앱이 쓰는 storageKey(localStorage)를 읽기만 함
@@ -317,8 +402,10 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
     return p;
   };
   const state = () => { try { return JSON.parse(localStorage.getItem(APP.key) || '{}') || {}; } catch (e) { return {}; } };
-  // 앱과 같은 판정: 성공 판정을 모두 통과(done) 또는 수동 완료(manual)
-  const doneOf = (st, it) => { const p = (st.progress || {})[it.id]; if (!p) return ''; const need = it.checks || []; if (need.length && need.every(c => p.checks && p.checks[c])) return 'done'; return p.manual ? 'manual' : ''; };
+  // 완료 판정은 공통 완료 규칙(templates/completion.js — 포털·내 학습·배지 서버와 같은 코드): 'done' = 지금 모드의 성공 판정 모두 통과, 'manual' = 수동 완료만
+  const HC = window.HangdoCompletion;
+  const guestNow = () => { try { return (localStorage.getItem('hangdo-progress-scope') || '').charAt(0) === 'g'; } catch (e) { return false; } };
+  const doneOf = (st, it) => { const r = HC.item(CAT, st, it); return r.verified ? 'done' : (r.manual ? 'manual' : ''); };
   const LVNAME = { prep: '준비', basic: '기본', intermediate: '중급', advanced: '고급' };
   const levels = () => [{ id: 'prep', name: '준비', title: '환경 준비' }].concat((CAT.levels || []).map(l => ({ id: l.id, name: l.marker || l.name, title: (l.name || LVNAME[l.id] || l.id) + ' 과정' })));
   const minutes = it => { const m = it.minutes || {}; return (m.concept || 0) + (m.handson || 0) + (m.review || 0); };
@@ -355,7 +442,7 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
     const guide = href => `<a class="hs-link hs-item" href="${esc(href)}"${curLink(href, c) ? ' aria-current="page"' : ''}><span class="st guide" aria-hidden="true">◇</span><span>이렇게 학습하세요</span></a>`;
     levels().forEach(L => {
       const its = CAT.items.filter(i => i.level === L.id); if (!its.length) return;
-      const pub = its.filter(i => i.status !== 'planned'), done = pub.filter(i => doneOf(st, i)).length;
+      const pub = its.filter(i => i.status === 'published'), done = pub.filter(i => doneOf(st, i)).length;
       const hasCur = its.some(i => i.id === c.item) || !!(c.guide && (c.guide === L.id || c.guide.endsWith('/' + L.id)));
       const open = hasCur || !closed.includes(L.id);
       let body = '';
@@ -388,18 +475,43 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
   }
   function paintProg() {
     if (!prog || !CAT) return;
-    const st = state(), pub = CAT.items.filter(i => i.status !== 'planned'), done = pub.filter(i => doneOf(st, i)).length;
-    const pct = pub.length ? Math.round(done / pub.length * 100) : 0;
+    const s = HC.summary(CAT, state(), { guest: guestNow() });   // 포털 카드·내 학습과 같은 수(게스트는 잠긴 단계 제외)
+    const pct = s.total ? Math.round(s.done / s.total * 100) : 0;
     prog.querySelector('.pct').textContent = pct + '%'; prog.querySelector('progress').value = pct;
-    prog.title = `공개 ${pub.length}개 중 ${done}개 완료`;
+    prog.title = `완료한 전체 과정 ${s.done} / ${s.total}`;
+  }
+  // 배지(클라우드 허브만 — /me.html이 서버 판정 후 발급): 단계별 「배지 필수 과정 N / M」과 남은 과정, 마친 단계가 있으면 「배지 받으러 가기」
+  const LVN = id => { const L = levels().find(x => x.id === id); return L ? L.title.replace(/ 과정$/, '') : id; };
+  const badgeHref = () => `/me.html#badge-${encodeURIComponent(APP.id || '')}`;
+  const badgeGo = S => inHub() && S.levels.some(l => l.complete) ? `<a href="${badgeHref()}" class="hs-badge-go">배지 받으러 가기</a>` : '';
+  function badgeRow(S) {
+    const lv = S.levels.filter(l => !l.locked);
+    if (!lv.length) return '';
+    const items = lv.map(l => `<li class="t">${esc(LVN(l.level))}</li><li class="m">${l.done} / ${l.total}${l.complete ? ' · 마침' : (l.missing.length ? ` · 남음: ${l.missing.slice(0, 3).map(x => `<a href="#/item/${esc(x.id)}">${esc(x.id)}</a> — ${esc(x.reason)}`).join(', ')}${l.missing.length > 3 ? ` 외 ${l.missing.length - 3}개` : ''}` : '')}</li>`).join('');
+    const notes = HC.differences(S);
+    return `<ul class="hs-lv">${items}</ul>${notes.length ? `<p class="hs-m hs-why">완료 개수와 다른 이유: ${notes.map(esc).join(' · ')}</p>` : ''}`;
+  }
+  // 과정 화면: 이 과정이 든 단계의 필수 과정을 모두 마쳤으면 완료 표시 영역 바로 뒤에 「배지 받으러 가기」(허브 아래에서만)
+  function paintBadgeGo() {
+    const main = document.getElementById('main'), c = cur();
+    if (!main || !CAT || !c.item) return;
+    const it = CAT.items.find(i => i.id === c.item), old = main.querySelector('#hs-badge-note');
+    const L = it && inHub() ? HC.summary(CAT, state(), { guest: guestNow() }).levels.find(l => l.level === it.level && l.items.includes(it.id)) : null;
+    if (!L || !L.complete) { if (old) old.remove(); return; }
+    const html = `<p><b>${esc(LVN(L.level))} 단계의 필수 과정 ${L.total}개를 모두 마쳤습니다.</b> 배지는 서버가 저장된 진도를 다시 확인한 뒤 발급합니다.</p><p><a class="hs-badge-go" href="${badgeHref()}">배지 받으러 가기</a></p>`;
+    if (old) { if (old.dataset.sig !== html) { old.innerHTML = html; old.dataset.sig = html; } return; }
+    const anchorEl = main.querySelector('.done-panel') || main.querySelector('.pager');
+    if (!anchorEl) return;
+    const box = document.createElement('section'); box.id = 'hs-badge-note'; box.className = 'hs-badge-note'; box.setAttribute('aria-label', '배지 안내'); box.innerHTML = html; box.dataset.sig = html;
+    if (anchorEl.classList.contains('pager')) anchorEl.before(box); else anchorEl.after(box);
   }
   // 대시보드(홈): 진도·이어서 학습·구성·수준별·검증 수준·실습 환경·선수/연관 항해도·공식 문서
   function paintDash() {
     const main = document.getElementById('main');
     if (!main || !CAT || !cur().home || main.querySelector('.loading')) return;
     const old = main.querySelector('#hs-dash');
-    const st = state(), all = CAT.items, pub = all.filter(i => i.status !== 'planned'), done = pub.filter(i => doneOf(st, i)).length;
-    const pct = pub.length ? Math.round(done / pub.length * 100) : 0;
+    const st = state(), all = CAT.items, pub = all.filter(i => i.status === 'published'), S = HC.summary(CAT, st, { guest: guestNow() }), done = S.done;
+    const pct = S.total ? Math.round(done / S.total * 100) : 0;
     const last = st.last && st.last.global && all.find(i => i.id === st.last.global);
     const first = pub.find(i => !doneOf(st, i)) || pub[0];
     const cnt = t => pub.filter(i => i.type === t).length;
@@ -417,8 +529,9 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
     ((setup && setup.docs) || []).forEach(d => { if (docs.length < 3 && d && d.url && !docs.some(x => x.url === d.url)) docs.push(d); });
     const row = (k, v) => v ? `<div><dt>${k}</dt><dd>${v}</dd></div>` : '';
     const go = last && last.status !== 'planned' ? `<a class="primary" href="#/item/${esc(last.id)}">이어서 학습: ${esc(last.title)}</a>` : (first ? `<a class="primary" href="#/item/${esc(first.id)}">추천 시작: ${esc(first.title)}</a>` : '');
-    const html = `<h2 id="hs-dash-h">학습 현황</h2><div class="hs-cta">${go}</div>`
-      + `<dl class="facts">${row('진도', `${pct}%<progress max="100" value="${pct}" aria-hidden="true"></progress><span class="hs-m">공개 ${pub.length}개 중 ${done}개 완료</span>`)}`
+    const html = `<h2 id="hs-dash-h">학습 현황</h2><div class="hs-cta">${go}${badgeGo(S)}</div>`
+      + `<dl class="facts">${row('진도', `${pct}%<progress max="100" value="${pct}" aria-hidden="true"></progress><span class="hs-m">완료한 전체 과정 ${done} / ${S.total}</span>`)}`
+      + row('배지 필수 과정', badgeRow(S))
       + row('구성', `${types.join(' · ')}${planned ? ` · 예정 ${planned}` : ''} <span class="hs-m">(예상 ${hm(pub.reduce((a, i) => a + minutes(i), 0))})</span>`)
       + row('수준별', lv ? `<ul class="hs-lv">${lv}</ul>` : '')
       + row('검증 수준', verTxt ? (hasVer ? `<a href="#/verification">${verTxt}</a>` : verTxt) : '')
@@ -470,7 +583,7 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
     else if (focusBack && btn) btn.focus({ preventScroll: true });
   }
   let queued = false;
-  function paintAll() { if (queued) return; queued = true; queueMicrotask(() => { queued = false; paintNav(); paintProg(); paintDash(); paintToc(); }); }
+  function paintAll() { if (queued) return; queued = true; queueMicrotask(() => { queued = false; paintNav(); paintProg(); paintDash(); paintBadgeGo(); paintToc(); }); }
 
   // 망분리 어댑터: 넓은 화면 「목차 접기」, 좁은 화면 서랍(☰ menuBtn)에 aria-expanded·ESC·초점 가두기·바깥 누르면 닫기
   const initAg = () => {
@@ -2163,7 +2276,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- hub-search:end -->
-<!-- progress-sync:start v2.0.0 -->
+<!-- progress-sync:start v2.1.0 -->
 <style>
 /* 계정 메뉴 — 오른쪽 아래 사용자 도구 영역(#hangdo-dock)에 「도움·의견」과 나란히 (CSP: 정적 <style>, 1.4.0) */
 .ps-import{position:relative;z-index:57;margin:8px auto;max-width:min(760px,calc(100vw - 24px));padding:12px 14px;border-radius:12px;border:1px solid var(--chart,#2c6fb3);background:var(--sheet,#fff);color:var(--ink,#142231);font:14px/1.55 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;box-shadow:0 4px 16px rgb(0 0 0 / .12)}
@@ -2194,6 +2307,15 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
    - 열람 기록: 어느 화면(#/...)을 열었는지 남깁니다.  관리 화면: /admin/  · 내 학습(초기화·복습·시험 이력): /me.html */
 (() => {
   if (location.protocol === 'file:') return;
+  // 초기화·되돌리기 알림(내 학습 → 열린 모든 탭, 로컬·클라우드 공통): 그 항해도의 진도 키를 이 탭에서 더 쓰지 않고(앱 메모리의 옛 진도·「이어서 학습」을 되살리지 않게),
+  //   화면이 보일 때 새로고침해 지운(또는 되살린) 상태로 다시 그림. hangdo-progress-reset = {at, keys, why} (내 학습 me.js가 씀)
+  const blocked = new Set();
+  let reloadWanted = false;
+  const reloadWhenVisible = () => { if (reloadWanted) return; reloadWanted = true; const go = () => { if (document.visibilityState === 'visible') location.reload(); }; go(); document.addEventListener('visibilitychange', go); };
+  const onReset = d => { if (!d || !Array.isArray(d.keys)) return; d.keys.forEach(k => { if (typeof k === 'string') blocked.add(k); }); reloadWhenVisible(); };
+  try { const bc = new BroadcastChannel('hangdo-progress'); bc.onmessage = e => onReset(e.data); } catch (e) { /* storage 이벤트로 대신 */ }
+  addEventListener('storage', e => { if (e.key === 'hangdo-progress-reset' && e.newValue) { try { onReset(JSON.parse(e.newValue)); } catch (x) {} } });
+  { const o = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (this === localStorage && blocked.has(String(k))) return; return o.call(this, k, v); }; }
   const seg = location.pathname.split('/')[1] || '';
   const PORTAL = seg === '' || seg === 'index.html';
   const META = 'hangdo-sync:v1';
@@ -2203,11 +2325,14 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   const post = (p, body) => !scopeLive() ? Promise.resolve(null) : api(p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ scope: TAB }, body)) }).catch(() => null);
   const read = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-  // 「진도가 있다」 = 완료·통과 표시가 하나라도 있음 (앱이 처음 열 때 쓰는 빈 기본 상태는 진도가 아님)
+  // 「진도 기록이 있다」 = 수동 완료 또는 통과한 성공 판정(통과 시각 ms 또는 true)이 하나라도 있는 과정 수 — 앱이 처음 열 때 쓰는 빈 기본 상태는 진도가 아님.
+  //   카탈로그 없이 세는 「기록」 수라 완료 개수(공통 완료 규칙)와 다를 수 있음 → 화면에는 「진도 기록 N개」로 표시
+  const passedMark = v => v === true || (typeof v === 'number' && isFinite(v) && v > 0);
   const doneCount = st => { if (!st || typeof st !== 'object') return 0; let n = 0;
-    for (const p of Object.values(st.progress || {})) if (p && (p.manual === true || Object.values(p.checks || {}).some(v => v === true))) n++;
+    for (const p of Object.values(st.progress || {})) if (p && (p.manual === true || Object.values(p.checks || {}).some(passedMark))) n++;
     for (const v of Object.values(st.done || {})) if (v === true) n++;
     return n; };
+  const hasState = st => !!st && typeof st === 'object' && Object.keys(st).length > 0;
   const E = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k === 'text') e.textContent = v; else if (k === 'class') e.className = v; else e.setAttribute(k, v === true ? '' : String(v)); } kids.flat(Infinity).forEach(c => { if (c != null && c !== false) e.append(c instanceof Node ? c : document.createTextNode(String(c))); }); return e; };
   (async () => {
     const me = await api('/api/me').then(r => r.ok ? r.json() : null).catch(() => null);
@@ -2222,9 +2347,17 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     const titleOf = Object.fromEntries(list.map(r => [r.storageKey, r.title]));
     let meta = {}; try { meta = JSON.parse(localStorage.getItem(META) || '{}') || {}; } catch (e) { meta = {}; }
     const saveMeta = () => { try { localStorage.setItem(META, JSON.stringify(meta)); } catch (e) {} };
-    const upload = async (k, state, extra) => {
-      const r = await post('/api/progress', Object.assign({ site: k, state: state || {} }, extra || {}));
+    // 올릴 때 이 캐시가 기준으로 삼은 서버 판(base = updated_at, 없으면 0)을 함께 보냄 — 그 사이 서버가 바뀌었으면(다른 기기 저장·초기화·되돌리기) 서버가 409 stale.
+    //   같은 브라우저의 다른 탭이 방금 올린 판은 저장소의 동기화 상태에서 다시 읽어 씀(탭끼리는 예전처럼 마지막 저장이 이김). 가져오기(import)는 판을 보내지 않음(의도한 덮어쓰기)
+    const baseOf = k => { try { const m = (JSON.parse(localStorage.getItem(META) || '{}') || {})[k]; return m && Number(m.at) > 0 ? Number(m.at) : 0; } catch (e) { return Number(meta[k] && meta[k].at) || 0; } };
+    // 같은 항해도의 올리기는 한 번에 하나씩(앞 응답의 판을 받은 뒤 다음을 보냄) — 응답이 늦어 다음 올리기가 옛 판을 보내는 일이 없게
+    const inflight = {};
+    const upload = (k, state, extra) => (inflight[k] = (inflight[k] || Promise.resolve()).catch(() => null).then(() => upload1(k, state, extra)));
+    const upload1 = async (k, state, extra) => {
+      if (blocked.has(k)) return null;
+      const r = await post('/api/progress', Object.assign({ site: k, state: state || {} }, extra && extra.import ? {} : { base: baseOf(k) }, extra || {}));
       if (r && r.ok) { const d = await r.clone().json().catch(() => ({})); meta[k] = Object.assign({}, meta[k], { at: Number(d.updated_at) || 0, dirty: false }); saveMeta(); }   // at = 서버가 저장한 판(updated_at)
+      else if (r && r.status === 409) { const d = await r.clone().json().catch(() => ({})); if (d.error === 'stale') { frozen.add(k); blocked.add(k); reloadWhenVisible(); } }   // 이 화면의 진도가 옛 판 → 올리지 않고 서버 값으로 다시 열기
       return r;
     };
     const server = sync ? await api('/api/progress').then(r => r.ok ? r.json() : null).catch(() => null) : null;
@@ -2247,10 +2380,12 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
             else if (!(m && m.choice)) { pending.push({ k, kind: 'conflict', local: doneCount(local), server: doneCount(s.state) }); continue; }
           }
           meta[k] = Object.assign({}, meta[k], { at: s.updated_at, dirty: false });
-        } else if (doneCount(local)) {
-          if (m && m.at && !m.dirty) { localStorage.removeItem(k); changed.push(k); meta[k] = Object.assign({}, m, { at: 0 }); }   // 서버에서 초기화됨 → 캐시도 비움
-          else if (m && m.dirty) upload(k, local);
-          else if (!(m && m.choice)) pending.push({ k, kind: 'import', local: doneCount(local) });
+        } else if (hasState(local)) {
+          // 서버에 이 항해도 진도가 없음: 서버 판에서 온 캐시(m.at > 0)였다면 그 사이 서버에서 초기화된 것 → 캐시(완료 표시·이어서 학습 위치)를 비움.
+          //   아직 못 올린 변경(dirty)이 있어도 그 변경은 초기화 전 판을 기준으로 한 것이라 되살리지 않음(초기화가 이김 — 다른 기기의 초기화도 같은 결과)
+          if (m && m.at) { localStorage.removeItem(k); changed.push(k); meta[k] = Object.assign({}, m, { at: 0, dirty: false }); }
+          else if (m && m.dirty) upload(k, local);   // 서버와 맞춘 적 없는 이 브라우저의 새 진도 (base 0)
+          else if (doneCount(local) && !(m && m.choice)) pending.push({ k, kind: 'import', local: doneCount(local) });
         }
       }
       saveMeta();
@@ -2268,7 +2403,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
       const who = me.guest ? '이 게스트 이용권' : '내 계정';
       const box = E('div', { class: 'ps-import', role: 'region', 'aria-label': '진도 가져오기' },
         E('p', {}, E('b', { text: '이 브라우저에만 있는 진도가 있습니다.' }), ` 자동으로 합치지 않습니다. 항해도마다 골라 주세요 — 고른 내용은 ${who}에 저장됩니다.`),
-        E('ul', {}, pending.map(x => E('li', {}, E('b', { text: titleOf[x.k] || x.k }), x.kind === 'import' ? ` — 이 브라우저 완료 ${x.local}개 (${who}에는 없음) ` : ` — 이 브라우저 완료 ${x.local}개 · ${who} 완료 ${x.server}개 `,
+        E('ul', {}, pending.map(x => E('li', {}, E('b', { text: titleOf[x.k] || x.k }), x.kind === 'import' ? ` — 이 브라우저 진도 기록 ${x.local}개 (${who}에는 없음) ` : ` — 이 브라우저 진도 기록 ${x.local}개 · ${who} 진도 기록 ${x.server}개 `,
           E('button', { type: 'button', 'data-k': x.k, 'data-c': 'browser', text: x.kind === 'import' ? '가져오기' : '이 브라우저 진도로 바꾸기' }), ' ',
           E('button', { type: 'button', 'data-k': x.k, 'data-c': 'account', text: x.kind === 'import' ? '가져오지 않기' : `${who} 진도 쓰기` })))),
         E('p', { class: 'ps-note', text: '가져오기로 바꾼 예전 계정 진도는 「내 학습」에서 7일 안에 되돌릴 수 있습니다.' }));
@@ -2289,7 +2424,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     const orig = Storage.prototype.setItem;
     Storage.prototype.setItem = function (k, v) {
       orig.call(this, k, v);
-      if (sync && this === localStorage && keys.includes(k) && !frozen.has(k)) {
+      if (sync && this === localStorage && keys.includes(k) && !frozen.has(k) && !blocked.has(k)) {
         meta[k] = Object.assign({}, meta[k], { dirty: true }); try { orig.call(localStorage, META, JSON.stringify(meta)); } catch (e) {}
         clearTimeout(timers[k]); timers[k] = setTimeout(() => upload(k, read(k) || {}), 2000);
       }
