@@ -289,7 +289,7 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
 /* completion:start 1.0.0 — 공통 완료 규칙 (Hands-On-Roadmap/templates/completion.js에서 관리, 직접 고치지 말 것 · docs/COMPLETION.md)
    쓰는 곳(모두 이 파일 하나): 클라우드 Worker 배지 판정(cloud/src/learning.js가 그대로 import) · 포털 카드·내 학습(/assets/hub/completion.js 복사본) ·
    각 항해도의 공통 화면 틀(templates/app-ui.html 안에 끼워 넣음 — tools/apply_series.py)
-   - 진도 형식 두 가지: progress[id] = {manual, checks{판정 id: 통과 시각(ms) 또는 true}} (21개 앱) · done[id] = true (망분리)
+   - 진도 형식 두 가지: progress[id] = {manual, checks{판정 id: 통과 시각(ms) 또는 true}} (24개 앱) · done[id] = true + verify[판정 id].ok (망분리)
    - 「완료」(완료한 전체 과정): 수동 완료 표시 또는 지금 모드의 성공 판정을 모두 통과 — 각 항해도 앱의 isDone과 같은 뜻
    - 「배지 인정」(배지 필수 과정): 성공 판정이 있으면 지금 모드의 판정을 모두 통과해야 함(수동 완료만으로는 안 됨), 판정이 없으면 수동 완료
    - checkModes: 판정 id → 모드(예: sidecar·ambient). 지금 모드 = state.mode → catalog.meta.defaultMode. 다른 모드 판정은 세지 않음
@@ -313,12 +313,19 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
   // 과정 하나의 상태
   function item(cat, st, it, mode) {
     if (mode === undefined) mode = modeOf(cat, st);
-    if (flat(st)) { const d = st.done[it.id] === true; return { id: it.id, manual: d, need: 0, passed: 0, verified: false, done: d, badge: d, reason: d ? '' : '완료 표시 안 됨' }; }
-    const pr = obj(st) && obj(st.progress) ? st.progress : {};
-    const p = Object.prototype.hasOwnProperty.call(pr, it.id) && obj(pr[it.id]) ? pr[it.id] : null;
-    const need = needOf(it, mode), ch = p && obj(p.checks) ? p.checks : {};
-    const passed = need.filter(c => passedMark(ch[c])).length;
-    const manual = !!(p && p.manual === true);
+    const need = needOf(it, mode);
+    let manual, passed;
+    if (flat(st)) {   // 망분리: 완료 표시 done[id] = true, 성공 판정 결과 verify[판정 id] = {ok: true, …}
+      const v = obj(st.verify) ? st.verify : {};
+      manual = st.done[it.id] === true;
+      passed = need.filter(c => Object.prototype.hasOwnProperty.call(v, c) && obj(v[c]) && v[c].ok === true).length;
+    } else {
+      const pr = obj(st) && obj(st.progress) ? st.progress : {};
+      const p = Object.prototype.hasOwnProperty.call(pr, it.id) && obj(pr[it.id]) ? pr[it.id] : null;
+      const ch = p && obj(p.checks) ? p.checks : {};
+      passed = need.filter(c => Object.prototype.hasOwnProperty.call(ch, c) && passedMark(ch[c])).length;
+      manual = !!(p && p.manual === true);
+    }
     const verified = need.length > 0 && passed === need.length;
     const badge = need.length ? verified : manual;
     const reason = badge ? '' : (need.length ? `성공 판정 ${need.length}개 중 ${need.length - passed}개 미통과` : '완료 표시 안 됨');
@@ -662,6 +669,9 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
     mo.observe(document.documentElement, { childList: true, subtree: true });
     document.addEventListener('DOMContentLoaded', () => { mo.disconnect(); skip(); init(); });
   } else { skip(); init(); }
+  // 허브 아래에서는 앱 바닥글의 「진도 초기화」를 내 학습의 초기화로 보냄 — 서버 진도까지 함께 지우고 7일 되돌리기·다른 탭/기기 정리를 같은 곳에서
+  //   (앱 자체 초기화는 이 브라우저의 상태만 비워 서버에 빈 진도를 올리므로 되돌릴 수 없었음). 단독 실행은 앱 자체 초기화 그대로
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#resetBtn'); if (!b || !inHub()) return; e.preventDefault(); e.stopPropagation(); location.href = `/me.html#reset-${encodeURIComponent(APP.id || '')}`; }, true);
   if (!AG) addEventListener('hashchange', () => setTimeout(paintAll, 0));
   if (!AG) addEventListener('click', () => setTimeout(paintAll, 60), true);
   if (!AG) addEventListener('change', () => setTimeout(paintAll, 60), true);
@@ -2309,10 +2319,23 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   if (location.protocol === 'file:') return;
   // 초기화·되돌리기 알림(내 학습 → 열린 모든 탭, 로컬·클라우드 공통): 그 항해도의 진도 키를 이 탭에서 더 쓰지 않고(앱 메모리의 옛 진도·「이어서 학습」을 되살리지 않게),
   //   화면이 보일 때 새로고침해 지운(또는 되살린) 상태로 다시 그림. hangdo-progress-reset = {at, keys, why} (내 학습 me.js가 씀)
-  const blocked = new Set();
+  //   항해도 화면은 그 항해도 첫 화면(#/)으로 다시 엶 — 보고 있던 과정 화면을 다시 열면 앱이 그 과정을 「마지막으로 연 과정」으로 다시 저장해
+  //   초기화했는데 「이어서 학습」이 남거나, 되돌린 「이어서 학습」 위치를 덮어씀. 다시 연 뒤 한 줄 안내
+  const blocked = new Set(), NOTE = 'hangdo-progress-notice';
+  const app0 = /^\/[a-z0-9-]+\/(index\.html)?$/.test(location.pathname);
   let reloadWanted = false;
-  const reloadWhenVisible = () => { if (reloadWanted) return; reloadWanted = true; const go = () => { if (document.visibilityState === 'visible') location.reload(); }; go(); document.addEventListener('visibilitychange', go); };
-  const onReset = d => { if (!d || !Array.isArray(d.keys)) return; d.keys.forEach(k => { if (typeof k === 'string') blocked.add(k); }); reloadWhenVisible(); };
+  const reloadWhenVisible = why => { if (reloadWanted) return; reloadWanted = true;
+    const go = () => { if (document.visibilityState !== 'visible') return;
+      try { if (why) sessionStorage.setItem(NOTE, why); } catch (e) {}
+      if (app0 && why && location.hash && location.hash !== '#/') history.replaceState(null, '', location.pathname + location.search + '#/');
+      location.reload(); };
+    go(); document.addEventListener('visibilitychange', go); };
+  const onReset = d => { if (!d || !Array.isArray(d.keys)) return; d.keys.forEach(k => { if (typeof k === 'string') blocked.add(k); }); reloadWhenVisible(d.type || d.why || 'reset'); };
+  try { const n = sessionStorage.getItem(NOTE); if (n) { sessionStorage.removeItem(NOTE);
+    const show = () => { const d = document.createElement('div'); d.className = 'ps-import'; d.setAttribute('role', 'status');
+      d.textContent = n === 'restore' ? '다른 탭에서 진도를 되돌려, 되돌린 진도로 이 화면을 다시 열었습니다.' : '다른 탭에서 진도를 초기화해, 이 화면을 처음 상태로 다시 열었습니다.';
+      document.body.prepend(d); setTimeout(() => d.remove(), 8000); };
+    if (document.body) show(); else document.addEventListener('DOMContentLoaded', show); } } catch (e) {}
   try { const bc = new BroadcastChannel('hangdo-progress'); bc.onmessage = e => onReset(e.data); } catch (e) { /* storage 이벤트로 대신 */ }
   addEventListener('storage', e => { if (e.key === 'hangdo-progress-reset' && e.newValue) { try { onReset(JSON.parse(e.newValue)); } catch (x) {} } });
   { const o = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (this === localStorage && blocked.has(String(k))) return; return o.call(this, k, v); }; }
@@ -2357,7 +2380,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
       if (blocked.has(k)) return null;
       const r = await post('/api/progress', Object.assign({ site: k, state: state || {} }, extra && extra.import ? {} : { base: baseOf(k) }, extra || {}));
       if (r && r.ok) { const d = await r.clone().json().catch(() => ({})); meta[k] = Object.assign({}, meta[k], { at: Number(d.updated_at) || 0, dirty: false }); saveMeta(); }   // at = 서버가 저장한 판(updated_at)
-      else if (r && r.status === 409) { const d = await r.clone().json().catch(() => ({})); if (d.error === 'stale') { frozen.add(k); blocked.add(k); reloadWhenVisible(); } }   // 이 화면의 진도가 옛 판 → 올리지 않고 서버 값으로 다시 열기
+      else if (r && r.status === 409) { const d = await r.clone().json().catch(() => ({})); if (d.error === 'stale') { frozen.add(k); blocked.add(k); reloadWhenVisible(''); } }   // 이 화면의 진도가 옛 판 → 올리지 않고 서버 값으로 다시 열기
       return r;
     };
     const server = sync ? await api('/api/progress').then(r => r.ok ? r.json() : null).catch(() => null) : null;
