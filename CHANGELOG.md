@@ -2,6 +2,15 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.9.6 — 2026-11-08
+
+옮겨진 공식 문서 링크를 새 주소로
+
+- 공식 문서가 다른 주소로 옮겨져 넘겨 주던 링크 8곳을 넘겨받는 새 주소로 바꿈(tools/doc_links.py 점검, 2026-11-08) — 대상: content/catalog.json content/glossary.json content/pages/versions.md
+- RFC 링크는 안내 페이지(/info/) 대신 본문(/rfc/rfcNNNN.html)으로, 절(#) 이름은 새 페이지에 그 절이 있는지 확인하고 유지. 링크만 바꿈 — 실습 명령·실행 기록은 그대로
+
+공통 템플릿: deep-drawer v1.5.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.9.5 — 2026-11-07
 
 과정 화면의 「마지막 확인」을 실제 마지막 검증일로

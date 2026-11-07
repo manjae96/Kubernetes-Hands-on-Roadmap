@@ -720,7 +720,7 @@
         },
         {
           "title": "Liveness, Readiness, Startup Probes",
-          "url": "https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/"
+          "url": "https://kubernetes.io/docs/concepts/workloads/pods/probes/"
         },
         {
           "title": "Probe 설정하기 (Task)",

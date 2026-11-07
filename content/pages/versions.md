@@ -129,6 +129,6 @@ kubectl convert -f ./my-deployment.yaml --output-version apps/v1
 - [Releases](https://kubernetes.io/releases/) — 지원 버전, 최신 패치, EOL (확인 2026-10-15)
 - [Version Skew Policy](https://kubernetes.io/releases/version-skew-policy/)
 - [Deprecated API Migration Guide](https://kubernetes.io/docs/reference/using-api/deprecation-guide/)
-- [Kubernetes Deprecation Policy](https://kubernetes.io/docs/reference/using-api/deprecation-policy/)
+- [Kubernetes Deprecation Policy](https://kubernetes.io/docs/reference/deprecation-policy/)
 - [Feature Gates](https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/)
 - [minikube CHANGELOG v1.39.0](https://github.com/kubernetes/minikube/blob/master/CHANGELOG.md)
