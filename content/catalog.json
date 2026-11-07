@@ -266,7 +266,8 @@
       "verification": {
         "status": "runtime",
         "summary": "minikube(containerd) · Kubernetes v1.37.0에서 게시된 명령·성공 판정을 처음부터 실행해 모두 통과했습니다(2026-10-26)."
-      }
+      },
+      "lastChecked": "2026-10-26"
     },
     {
       "id": "prep-yaml",
@@ -326,7 +327,8 @@
       "verification": {
         "status": "runtime",
         "summary": "minikube(containerd) · Kubernetes v1.37.0에서 게시된 명령·성공 판정을 처음부터 실행해 모두 통과했습니다(2026-10-26)."
-      }
+      },
+      "lastChecked": "2026-10-26"
     },
     {
       "id": "b-concepts",
@@ -384,7 +386,8 @@
       "verification": {
         "status": "runtime",
         "summary": "minikube(containerd) · Kubernetes v1.37.0에서 게시된 명령·성공 판정을 처음부터 실행해 모두 통과했습니다(2026-10-26)."
-      }
+      },
+      "lastChecked": "2026-10-26"
     },
     {
       "id": "b-lab01",
@@ -607,7 +610,8 @@
       "verification": {
         "status": "runtime",
         "summary": "minikube(containerd) · Kubernetes v1.37.0에서 게시된 명령·성공 판정을 처음부터 실행해 모두 통과했습니다(2026-10-26)."
-      }
+      },
+      "lastChecked": "2026-10-26"
     },
     {
       "id": "b-cap",
@@ -848,7 +852,8 @@
         "i2-oom",
         "i2-hpa"
       ],
-      "yamlFiles": 7
+      "yamlFiles": 7,
+      "lastChecked": "2026-10-29"
     },
     {
       "id": "i-lab03",
@@ -920,7 +925,8 @@
         "i3-sts-identity",
         "i3-pvc-per-pod"
       ],
-      "yamlFiles": 3
+      "yamlFiles": 3,
+      "lastChecked": "2026-10-24"
     },
     {
       "id": "i-scale-zero",
@@ -985,7 +991,8 @@
       "verification": {
         "status": "runtime",
         "summary": "minikube(Kubernetes v1.37.0, HPAScaleToZero 베타 기본 활성)에서 prometheus-adapter 5.3.0의 External 지표로 0↔N 축소·확대, 수동 0과의 구분까지 실행해 확인했습니다."
-      }
+      },
+      "lastChecked": "2026-10-26"
     },
     {
       "id": "i-vpa",
@@ -1062,7 +1069,8 @@
       "checks": [
         "vpa-recommend"
       ],
-      "yamlFiles": 1
+      "yamlFiles": 1,
+      "lastChecked": "2026-10-30"
     },
     {
       "id": "i-cap",
@@ -1355,7 +1363,8 @@
         "metallb-l2-ip",
         "metallb-l2-traffic"
       ],
-      "yamlFiles": 1
+      "yamlFiles": 1,
+      "lastChecked": "2026-11-02"
     },
     {
       "id": "a-vault",
@@ -1441,7 +1450,8 @@
         "vault-k8s-read",
         "vault-audit-hmac"
       ],
-      "yamlFiles": 2
+      "yamlFiles": 2,
+      "lastChecked": "2026-11-02"
     },
     {
       "id": "a-kubeadm",
@@ -1525,7 +1535,8 @@
         "kubeadm-upgraded",
         "kubeadm-node-schedulable"
       ],
-      "yamlFiles": 0
+      "yamlFiles": 0,
+      "lastChecked": "2026-11-02"
     },
     {
       "id": "a-kubespray",
@@ -1596,7 +1607,8 @@
         "kubespray-syntax",
         "kubespray-inventory"
       ],
-      "yamlFiles": 0
+      "yamlFiles": 0,
+      "lastChecked": "2026-11-02"
     },
     {
       "id": "a-k8gb",
@@ -1683,7 +1695,8 @@
         "k8gb-delegation",
         "k8gb-failover"
       ],
-      "yamlFiles": 2
+      "yamlFiles": 2,
+      "lastChecked": "2026-11-02"
     },
     {
       "id": "a-kubevirt",
@@ -1761,7 +1774,8 @@
         "kubevirt-installed",
         "kubevirt-why"
       ],
-      "yamlFiles": 1
+      "yamlFiles": 1,
+      "lastChecked": "2026-11-02"
     },
     {
       "id": "a-cap",

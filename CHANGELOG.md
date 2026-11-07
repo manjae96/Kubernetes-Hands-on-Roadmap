@@ -2,6 +2,15 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.9.5 — 2026-11-07
+
+과정 화면의 「마지막 확인」을 실제 마지막 검증일로
+
+- 나중에 다시 실행해 확인한 과정 14개에 lastChecked(그 과정 실행 기록의 가장 늦은 날짜) — 과정 화면이 항해도 대표 확인일 대신 실제 날짜를 보여 줌
+- 규칙: 허브 docs/CONTENT-MAP.md 「마지막 확인」 날짜. 콘텐츠·검증 기록·항해도 id·항목 id·저장 키 그대로
+
+공통 템플릿: deep-drawer v1.5.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.9.4 — 2026-11-07
 
 공통 화면 틀 feedback 2.5.0
