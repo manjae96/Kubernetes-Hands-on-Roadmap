@@ -2,6 +2,16 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.9.1 — 2026-11-07
+
+i-lab02 회차별 학습 지도·단계 번호 정정, Vault 설명 정리
+
+- i-lab02: 회차별 학습 지도(성공 판정·HPA 이벤트 1시간 주의), metrics-server는 4단계(5단계 아님), 정리 안내 「세 번째 명령」
+- a-vault: init·unseal 짧은 뜻과 심화 노트 연결, 재시작 봉인·audit HMAC 설명 정리, root 토큰 폐기는 7단계(6단계 아님)
+- 항해도 id·항목 id·저장 키·URL 그대로, 실습 명령·검증 출력은 바꾸지 않음
+
+공통 템플릿: deep-drawer v1.5.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.9.0 — 2026-11-07
 
 응용 과제 힌트·해설 2층, 공통 완료 규칙·화면 틀 갱신

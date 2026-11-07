@@ -13,6 +13,20 @@
 - [ConfigMap·Secret과 Probe](#/item/i-lab01) 실습 수준의 매니페스트 작성
 - CPU 단위: `1` = CPU 코어 1개, `100m` = 0.1코어. 메모리 단위: `Mi` = 1024²바이트, `M` = 1000²바이트
 
+## 회차별 학습 지도
+
+단계가 8개라 세 번에 나눠 해도 됩니다. 과정(진도)은 하나이고 시간은 예상치입니다(전체 약 2시간 25분).
+
+| 회차 | 범위 | 예상 시간 | 끝나면 할 수 있는 것 |
+|---|---|---|---|
+| 1 | 실습 환경 점검 · 1~3단계 | 약 50분 | QoS 클래스, `Pending`(예약 초과)·`OOMKilled`(메모리 상한 초과)·CPU 스로틀링 구별 |
+| 2 | 4~6단계 | 약 55분 | metrics-server 설치, HPA 자동 확장 확인, 레플리카 수 계산 |
+| 3 | 7~8단계 · 성공 판정 · 정리와 재실행 | 약 40분 | 노드 용량 계산, LimitRange·ResourceQuota 확인 |
+
+- 「성공 판정」은 3단계의 `memory-hog` 파드와 5단계의 HPA 기록을 봅니다. 그래서 **회차 사이에 네임스페이스 `lab-i02`를 지우지 않습니다.** 「정리와 재실행」은 3회차 끝에 한 번만 실행합니다.
+- HPA 판정(`i2-hpa`)이 세는 확장 이벤트는 기본 설정에서 약 1시간 뒤 사라집니다(kube-apiserver `--event-ttl` 기본값). 5단계에서 부하를 건 뒤에는 **같은 회차 안에** `i2-hpa`를 확인해 둡니다.
+- 쉬었다가 시작할 때는 먼저 `kubectl get pod -n lab-i02`로 앞 단계의 파드가 남아 있는지 봅니다. 클러스터를 지웠다가 다시 만들었다면 1단계의 `kubectl create namespace lab-i02`부터 하고, 판정에 필요한 3단계(`memory-hog`)·5단계(HPA)를 다시 합니다.
+
 ## 실습 환경 점검
 
 ```bash shell="실습 터미널"
@@ -22,7 +36,7 @@ kubectl get namespace lab-i02
 minikube addons list -p k8s-lab | grep metrics-server
 ```
 
-`k8s-lab`, `Ready`, `NotFound`를 확인합니다. metrics-server는 `disabled`가 정상이며 5단계에서 켭니다.
+`k8s-lab`, `Ready`, `NotFound`를 확인합니다. metrics-server는 `disabled`가 정상이며 4단계에서 켭니다.
 
 ## 개념: 예약은 requests, 상한은 limits
 
@@ -715,7 +729,7 @@ HPA가 쓰는 사용률은 **파드별 사용률의 평균**입니다. 화면의
 
 ## 정리와 재실행
 
-이 실습은 네임스페이스와 **애드온**을 만들었으므로 둘 다 정리합니다. metrics-server를 다른 용도로 계속 쓰려면 두 번째 명령은 생략합니다.
+이 실습은 네임스페이스와 **애드온**을 만들었으므로 둘 다 정리합니다. metrics-server를 다른 용도로 계속 쓰려면 세 번째 명령(`minikube addons disable metrics-server`)은 생략합니다.
 
 ```bash shell="실습 터미널"
 kubectl delete namespace lab-i02

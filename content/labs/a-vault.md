@@ -125,7 +125,7 @@ Storage Type            raft
 
 ## 2단계: init과 unseal, root 토큰은 파일에만
 
-실습이라 키를 1조각·임계값 1로 만듭니다. 운영 기본은 5조각·임계값 3(서로 다른 사람이 나눠 보관)이거나 KMS·HSM 자동 봉인 해제입니다.
+init은 처음 한 번만 하는 초기화로, unseal 키 조각과 root 토큰(모든 권한을 가진 첫 관리 토큰)을 돌려줍니다. unseal(봉인 해제)은 그 키 조각을 정해진 개수(임계값)만큼 넣어, 저장된 데이터를 풀 열쇠를 메모리에 다시 만드는 일입니다(자세한 원리는 [[vault]]). 실습이라 키를 1조각·임계값 1로 만듭니다. 운영 기본은 5조각·임계값 3(서로 다른 사람이 나눠 보관)이거나 KMS·HSM 자동 봉인 해제입니다.
 
 ```bash shell="실습 터미널"
 kubectl -n lab-vault exec vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json > init.json
@@ -153,7 +153,7 @@ HA Enabled              true
 }
 ```
 
-`vault login -`는 표준 입력으로 토큰을 받아 **Vault 컨테이너 안**의 `~/.vault-token`에만 저장합니다. root 토큰은 `ttl 0`(만료 없음) · 모든 권한이므로 설정을 마치면 6단계에서 폐기합니다.
+`vault login -`는 표준 입력으로 토큰을 받아 **Vault 컨테이너 안**의 `~/.vault-token`에만 저장합니다. root 토큰은 `ttl 0`(만료 없음) · 모든 권한이므로 설정을 마치면 7단계에서 폐기합니다.
 
 ## 3단계: audit, 비밀, 최소 권한 policy
 
@@ -362,7 +362,12 @@ Sealed                  false
 app
 ```
 
-`until` 줄은 새 Pod가 Service 뒤에 붙을 때까지 기다립니다. 검증에서 이 줄 없이 바로 로그인하면 엔드포인트가 아직 비어 `connect: connection refused`가 났습니다(503 「봉인됨」과 다른 증상). 데이터는 Raft 볼륨(PVC)에 남아 있어 unseal만 하면 그대로 읽힙니다. 운영에서 사람이 매번 unseal하지 않도록 자동 봉인 해제를 씁니다.
+**결론** — 다시 뜬 Vault는 데이터를 그대로 갖고 있지만, unseal 전까지는 모든 요청을 503 「Vault is sealed」로 거절합니다.
+
+- **본 것**: 새 Pod는 Ready인데 `Sealed true`이고, 앱의 로그인은 `Code: 503 … Vault is sealed`였습니다. unseal 뒤에는 같은 로그인으로 `app`을 읽었습니다.
+- **왜**: 데이터를 풀 열쇠는 메모리에만 있어 프로세스가 끝나면 사라집니다. 데이터는 Raft 저장소(Vault가 자체로 쓰는 저장 방식, 여기서는 PVC)에 암호화된 채 남아 있으므로, unseal로 열쇠를 다시 만들면 그대로 읽힙니다.
+- **확인**: `vault status`의 `Sealed` 줄(종료 코드 2 = 봉인).
+- **주의**: `until` 줄은 새 Pod가 Service 뒤에 붙을 때까지 기다립니다. 검증에서 이 줄 없이 바로 로그인하면 엔드포인트가 아직 비어 `connect: connection refused`가 났습니다(503 「봉인됨」과 다른 증상). 운영에서는 사람이 매번 unseal하지 않도록 자동 봉인 해제(auto-unseal)를 씁니다.
 
 ## 7단계: audit 로그와 root 토큰 폐기
 
@@ -380,7 +385,12 @@ jq -c 'select(.type=="response" and .request.path=="secret/data/app/db" and .req
 {"data":{"password":"hmac-sha256:aeb1e8696e14…","username":"hmac-sha256:6aba7162714f…"},"client_token":"hmac-sha256:6fecaccecaf1…"}
 ```
 
-읽기 응답이 기록돼 있지만 `password`·`username`·`client_token`이 모두 **HMAC 값**입니다. 같은 값은 같은 HMAC이 되므로 「이 토큰이 이 값을 읽었나」는 `vault write sys/audit-hash/file input=…`로 대조할 수 있고, 원래 값은 알 수 없습니다. 줄 수는 실습을 어디까지 했는지에 따라 다릅니다.
+**결론** — audit 로그는 누가 무엇을 읽었는지는 남기지만, 비밀값은 **HMAC 값**으로만 남깁니다. 로그 파일만으로는 비밀값을 알 수 없습니다.
+
+- **본 것**: 실습 비밀번호가 그대로 나온 줄은 0개이고, 읽기 응답의 `password`·`username`·`client_token`은 모두 `hmac-sha256:…`입니다.
+- **왜**: HMAC은 Vault가 가진 열쇠를 넣어 만든 해시입니다. 같은 값이면 같은 HMAC이 나오지만, HMAC에서 원래 값을 되돌릴 수는 없습니다.
+- **확인**: 「이 토큰이 이 값을 읽었나」를 조사할 때는 의심 값을 Vault에 넣어 같은 방식의 HMAC을 받은 뒤 로그와 대조합니다 — `vault write sys/audit-hash/file input=…`.
+- 줄 수는 실습을 어디까지 했는지에 따라 다릅니다.
 
 이제 설정이 끝났으니 root 토큰을 폐기합니다. 다시 관리 권한이 필요하면 unseal 키 보유자들이 `vault operator generate-root`로 새로 만듭니다.
 
