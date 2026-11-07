@@ -2,6 +2,15 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.9.4 — 2026-11-07
+
+공통 화면 틀 feedback 2.5.0
+
+- 도움·의견·dock 템플릿 feedback 2.5.0: 자기 배치 화면의 바닥글 표시(data-hd-foot) 지원 — 이 항해도 화면의 동작은 2.4.0과 같음
+- 항해도 id·항목 id·저장 키·URL·콘텐츠 그대로
+
+공통 템플릿: deep-drawer v1.5.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.9.3 — 2026-11-07
 
 공통 화면 틀 feedback 2.4.0

@@ -2645,7 +2645,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- return-to:end -->
-<!-- feedback:start v2.4.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<!-- feedback:start v2.5.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>·style 속성을 만들지 않음 */
 /* 오른쪽 아래 사용자 도구 영역(dock): 늘 떠 있는 것은 「도움·의견」 하나, 계정 메뉴·통합 검색(머리말 자리가 없는 화면)은 그 옆에 — 서로 겹치지 않음 (2.0.1) */
@@ -2677,6 +2677,9 @@ html.hs.hd-pad .site-foot > div{padding-bottom:max(16px,var(--hd-foot-b,0px));pa
 /* 허브 보조 화면·학습 가이드·심화 노트(2.4.0): 공통 바닥글(templates/hub-foot.html, body 바로 아래 footer.hd-foot)이 있으면 같은 방식 —
    본문 끝 여백(--hd-pad)은 바닥글 위(margin-top), 맨 아래 줄 단추 높이·세로 줄 폭은 바닥글 안쪽. 바닥글이 없는 화면은 예전처럼 body 아래 여백 */
 html.hd-pad body:has(> footer.hd-foot){padding-bottom:0}
+/* 자기 배치 화면(포털 첫 화면·망분리 항해도, 2.5.0): 화면이 자기 바닥글에 data-hd-foot를 붙이면 같은 방식 — body 아래 여백 없음,
+   바닥글의 위 간격·안쪽 여백은 그 화면 CSS가 --hd-pad·--hd-foot-b·--hd-foot-r로 정함(배치가 화면마다 달라서) */
+html.hd-pad body:has([data-hd-foot]){padding-bottom:0}
 html.hd-pad body > footer.hd-foot{margin-top:var(--hd-pad,0px)}
 html.hd-pad body > footer.hd-foot > div{padding-bottom:max(16px,var(--hd-foot-b,0px));padding-right:max(16px,env(safe-area-inset-right,0px),var(--hd-foot-r,0px))}
 @media print{html.hd-pad body{padding-bottom:0}html.hs.hd-pad #shell > main#main{padding-bottom:0}html.hs.hd-pad .site-foot > div{padding-bottom:16px;padding-right:16px}html.hd-pad body > footer.hd-foot{margin-top:0}}
@@ -2911,7 +2914,7 @@ html.hd-pad body > footer.hd-foot > div{padding-bottom:max(16px,var(--hd-foot-b,
 
     // ---- 문서 끝 여백 계산 ----
     // 끝부분 콘텐츠에서 뺄 것: 떠 있는 단추·안내 자신, 고정·붙박이 영역(목차·이 페이지·머리말·서랍)의 안쪽, 닫힌 대화상자
-    const SKIP = ['#hangdo-dock', '.theme-toggle', '#hangdo-return', '#deepPeek', '.deep-drawer', '#hangdo-fb', '.hs-nav', '.hs-toc', 'header', '.topbar', '.layout > nav', '.layout > .toc', '.ps-import', 'dialog:not([open])', 'body > footer.hd-foot', ...(root.classList.contains('hs') ? ['.site-foot'] : [])]
+    const SKIP = ['#hangdo-dock', '.theme-toggle', '#hangdo-return', '#deepPeek', '.deep-drawer', '#hangdo-fb', '.hs-nav', '.hs-toc', 'header', '.topbar', '.layout > nav', '.layout > .toc', '.ps-import', 'dialog:not([open])', 'body > footer.hd-foot', '[data-hd-foot]', ...(root.classList.contains('hs') ? ['.site-foot'] : [])]
       .flatMap(x => [x, x + ' *']).concat(['script', 'style']).join(', ');
     const floaters = withTop => {
       const was = top.classList.contains('is-off');
@@ -2926,8 +2929,8 @@ html.hd-pad body > footer.hd-foot > div{padding-bottom:max(16px,var(--hd-foot-b,
     const ink = e => { if (e.matches('img, svg, video, canvas, input, select, textarea, button, pre, code, table, progress, iframe, hr, summary, a[href], label, .btn')) return true;
       for (const c of e.childNodes) if (c.nodeType === 3 && c.nodeValue.trim()) return true; return false; };
     let last = '', lastFoot = '';
-    // 바닥글: 공통 항해도는 .site-foot, 허브 보조 화면·심화 노트는 공통 바닥글 footer.hd-foot(2.4.0) — 없으면 null(예전처럼 body 아래 여백)
-    const footOf = () => root.classList.contains('hs') ? document.querySelector('.site-foot') : document.querySelector('body > footer.hd-foot');
+    // 바닥글: 공통 항해도는 .site-foot, 허브 보조 화면·심화 노트는 공통 바닥글 footer.hd-foot(2.4.0), 자기 배치 화면은 data-hd-foot(2.5.0) — 없으면 null(예전처럼 body 아래 여백)
+    const footOf = () => root.classList.contains('hs') ? document.querySelector('.site-foot') : (document.querySelector('[data-hd-foot]') || document.querySelector('body > footer.hd-foot'));
     const measure = () => {
       if (!document.body) return;
       const H = window.innerHeight, sy = window.scrollY, foot = footOf();
