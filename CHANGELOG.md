@@ -2,6 +2,15 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.9.3 — 2026-11-07
+
+공통 화면 틀 feedback 2.4.0
+
+- 공통 도움·의견·dock 템플릿 feedback 2.4.0: 항해도 바닥글(.site-foot)과 허브 공통 바닥글(footer.hd-foot)을 같은 방식으로 처리 — 이 항해도 화면의 동작은 2.3.1과 같음(바닥글 아래 빈 공간 0)
+- 항해도 id·항목 id·저장 키·URL·콘텐츠 그대로 (index.html의 공통 템플릿 구간만)
+
+공통 템플릿: deep-drawer v1.5.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.9.2 — 2026-11-07
 
 맨 아래로 내렸을 때 바닥글 아래 빈 공간 제거

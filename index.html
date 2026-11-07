@@ -2645,7 +2645,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- return-to:end -->
-<!-- feedback:start v2.3.1 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
+<!-- feedback:start v2.4.0 — 실습 항해도 공통 「도움·의견」(건의사항·질문·버그 신고) (Hands-On-Roadmap/templates/feedback.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* CSP: 화면 안 <style>은 빌드 때 해시로 허용(style-src) — 자바스크립트로 <style>·style 속성을 만들지 않음 */
 /* 오른쪽 아래 사용자 도구 영역(dock): 늘 떠 있는 것은 「도움·의견」 하나, 계정 메뉴·통합 검색(머리말 자리가 없는 화면)은 그 옆에 — 서로 겹치지 않음 (2.0.1) */
@@ -2666,7 +2666,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 /* 문서 끝의 마지막 줄이 떠 있는 단추(dock·테마)에 가리지 않을 만큼만 아래 여백(2.3.0): 고정 값(PC 136px·모바일 196px) 대신
    실제 단추 위치(안전 영역 포함)와 끝부분 콘텐츠 위치를 재서 --hd-pad로. 「맨 위로」가 나타나도 여백은 바뀌지 않음(아래 스크립트) */
 html.hd-pad body{padding-bottom:var(--hd-pad,0px)}
-/* 공통 항해도(2.3.1): 실제 바닥글이 있으므로 바닥글 뒤에 여백을 두지 않음 — 맨 아래로 내리면 바닥글이 화면 맨 아래에 닿고 빈 화면이 없음.
+/* 공통 항해도(2.3.1~): 실제 바닥글이 있으므로 바닥글 뒤에 여백을 두지 않음 — 맨 아래로 내리면 바닥글이 화면 맨 아래에 닿고 빈 화면이 없음.
    ① 본문 끝 여백(--hd-pad)은 본문과 바닥글 사이에 ② 떠 있는 단추가 놓이는 맨 아래 줄 높이(--hd-foot-b)는 바닥글 「안쪽」 아래 여백으로 —
    단추가 바닥글 배경 위에 놓이고 바닥글 글자는 그 위에 ③ 그 위 세로 줄(맨 위로·허브 홈) 폭(--hd-foot-r)만큼 바닥글 글자를 왼쪽으로.
    ②③은 아래 스크립트가 실제 단추 위치(안전 영역 포함)를 재서 정함 — 고정 값 없음 */
@@ -2674,7 +2674,12 @@ html.hs.hd-pad body{padding-bottom:0}
 html.hs.hd-pad #shell > main#main{padding-bottom:calc(48px + var(--hd-pad,0px))}
 html.hs.hd-pad .site-foot > div{padding-bottom:max(16px,var(--hd-foot-b,0px));padding-right:max(16px,env(safe-area-inset-right,0px),var(--hd-foot-r,0px))}
 @media (max-width:860px){html.hs.hd-pad #shell > main#main{padding-bottom:calc(40px + var(--hd-pad,0px))}}
-@media print{html.hd-pad body{padding-bottom:0}html.hs.hd-pad #shell > main#main{padding-bottom:0}html.hs.hd-pad .site-foot > div{padding-bottom:16px;padding-right:16px}}
+/* 허브 보조 화면·학습 가이드·심화 노트(2.4.0): 공통 바닥글(templates/hub-foot.html, body 바로 아래 footer.hd-foot)이 있으면 같은 방식 —
+   본문 끝 여백(--hd-pad)은 바닥글 위(margin-top), 맨 아래 줄 단추 높이·세로 줄 폭은 바닥글 안쪽. 바닥글이 없는 화면은 예전처럼 body 아래 여백 */
+html.hd-pad body:has(> footer.hd-foot){padding-bottom:0}
+html.hd-pad body > footer.hd-foot{margin-top:var(--hd-pad,0px)}
+html.hd-pad body > footer.hd-foot > div{padding-bottom:max(16px,var(--hd-foot-b,0px));padding-right:max(16px,env(safe-area-inset-right,0px),var(--hd-foot-r,0px))}
+@media print{html.hd-pad body{padding-bottom:0}html.hs.hd-pad #shell > main#main{padding-bottom:0}html.hs.hd-pad .site-foot > div{padding-bottom:16px;padding-right:16px}html.hd-pad body > footer.hd-foot{margin-top:0}}
 #hangdo-fb-open{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px 0 14px;border-radius:999px;border:1px solid var(--chart,var(--accent,#2c6fb3));background:var(--chart,var(--accent,#2c6fb3));color:#fff;font:600 15px/1 system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;cursor:pointer;box-shadow:0 4px 16px rgb(0 0 0 / .18)}
 #hangdo-fb-open svg{width:22px;height:22px;flex:none}
 #hangdo-fb-open[hidden]{display:none}
@@ -2906,7 +2911,7 @@ html.hs.hd-pad .site-foot > div{padding-bottom:max(16px,var(--hd-foot-b,0px));pa
 
     // ---- 문서 끝 여백 계산 ----
     // 끝부분 콘텐츠에서 뺄 것: 떠 있는 단추·안내 자신, 고정·붙박이 영역(목차·이 페이지·머리말·서랍)의 안쪽, 닫힌 대화상자
-    const SKIP = ['#hangdo-dock', '.theme-toggle', '#hangdo-return', '#deepPeek', '.deep-drawer', '#hangdo-fb', '.hs-nav', '.hs-toc', 'header', '.topbar', '.layout > nav', '.layout > .toc', '.ps-import', 'dialog:not([open])', ...(root.classList.contains('hs') ? ['.site-foot'] : [])]
+    const SKIP = ['#hangdo-dock', '.theme-toggle', '#hangdo-return', '#deepPeek', '.deep-drawer', '#hangdo-fb', '.hs-nav', '.hs-toc', 'header', '.topbar', '.layout > nav', '.layout > .toc', '.ps-import', 'dialog:not([open])', 'body > footer.hd-foot', ...(root.classList.contains('hs') ? ['.site-foot'] : [])]
       .flatMap(x => [x, x + ' *']).concat(['script', 'style']).join(', ');
     const floaters = withTop => {
       const was = top.classList.contains('is-off');
@@ -2921,11 +2926,12 @@ html.hs.hd-pad .site-foot > div{padding-bottom:max(16px,var(--hd-foot-b,0px));pa
     const ink = e => { if (e.matches('img, svg, video, canvas, input, select, textarea, button, pre, code, table, progress, iframe, hr, summary, a[href], label, .btn')) return true;
       for (const c of e.childNodes) if (c.nodeType === 3 && c.nodeValue.trim()) return true; return false; };
     let last = '', lastFoot = '';
-    const foot = root.classList.contains('hs') ? document.querySelector('.site-foot') : null;
+    // 바닥글: 공통 항해도는 .site-foot, 허브 보조 화면·심화 노트는 공통 바닥글 footer.hd-foot(2.4.0) — 없으면 null(예전처럼 body 아래 여백)
+    const footOf = () => root.classList.contains('hs') ? document.querySelector('.site-foot') : document.querySelector('body > footer.hd-foot');
     const measure = () => {
       if (!document.body) return;
-      const H = window.innerHeight, sy = window.scrollY;
-      const pad = root.classList.contains('hs') ? (parseFloat(root.style.getPropertyValue('--hd-pad')) || 0) : (parseFloat(getComputedStyle(document.body).paddingBottom) || 0);
+      const H = window.innerHeight, sy = window.scrollY, foot = footOf();
+      const pad = foot ? (parseFloat(root.style.getPropertyValue('--hd-pad')) || 0) : (parseFloat(getComputedStyle(document.body).paddingBottom) || 0);
       const end = document.documentElement.scrollHeight - pad;              // 여백을 뺀 문서 끝(문서 좌표)
       const need = rs => { let n = 0;
         if (!rs.length) return 0;
@@ -2939,7 +2945,7 @@ html.hs.hd-pad .site-foot > div{padding-bottom:max(16px,var(--hd-foot-b,0px));pa
         }
         return Math.max(0, Math.ceil(n));
       };
-      // 공통 항해도의 바닥글: 맨 아래 줄 단추 높이는 바닥글 안쪽 아래 여백, 그 위 세로 줄 폭은 바닥글 오른쪽 여백(본문 계산보다 먼저 — 바닥글 높이가 본문 끝 위치를 바꿈)
+      // 바닥글(공통 항해도·허브 공통 바닥글): 맨 아래 줄 단추 높이는 바닥글 안쪽 아래 여백, 그 위 세로 줄 폭은 바닥글 오른쪽 여백(본문 계산보다 먼저 — 바닥글 높이가 본문 끝 위치를 바꿈)
       if (foot) {
         const rs = floaters(true);
         let fb = 0, fr = 0;
