@@ -2978,3 +2978,109 @@ html.hd-pad body > footer.hd-foot > div{padding-bottom:max(16px,var(--hd-foot-b,
 })();
 </script>
 <!-- feedback:end -->
+<!-- env-start:start v1.0.0 — 실습 항해도 공통 「시작 전 확인」 (Hands-On-Roadmap/templates/env-start.html에서 관리, 직접 고치지 말 것) -->
+<style>
+.hangdo-envstart > dd > * + *, .hangdo-envstart > div:last-child > * + * { margin-top: 6px; }
+.hangdo-envstart .hes-pick { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.hangdo-envstart .hes-pick button { font: inherit; font-size: 13px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line, #c9d3dd); background: transparent; color: inherit; cursor: pointer; min-height: 28px; }
+.hangdo-envstart .hes-pick button[aria-pressed="true"] { border-color: var(--primary, var(--chart, #2c6fb3)); color: var(--primary, var(--chart, #2c6fb3)); font-weight: 700; }
+.hangdo-envstart .hes-term { margin: 0; }
+.hangdo-envstart .hes-term li { margin: 2px 0; }
+.hangdo-envstart .hes-cmd { display: flex; gap: 6px; align-items: flex-start; }
+.hangdo-envstart .hes-cmd code { flex: 1 1 auto; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; padding: 4px 8px; border-radius: 6px; background: var(--surface-2, rgba(127,127,127,.12)); }
+.hangdo-envstart .hes-cmd button { flex: none; font: inherit; font-size: 12.5px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line, #c9d3dd); background: transparent; color: inherit; cursor: pointer; min-height: 28px; }
+.hangdo-envstart .hes-sub { color: var(--muted, #566778); font-size: 13px; }
+.hangdo-envstart .hes-need { display: inline-block; margin: 0 4px 2px 0; padding: 0 8px; border-radius: 999px; font-size: 12.5px; border: 1px solid var(--warn, #b7791f); color: var(--warn, #b7791f); }
+</style>
+<script>
+/* 시작 전 확인: 과정 화면의 「실습 환경」 줄 바로 아래에 한 줄을 더합니다(이 과정의 명령을 어디에서 실행하는지 · 확인 명령 · 자세한 준비 링크).
+   - 실습 터미널: 각 항해도 content/catalog.json의 meta.terminal(macos·wsl·ubuntu·check·expect) — 저장소 단독 실행에서도 동작
+   - 내 PC 선택: localStorage 'hangdo-env:v1' = { v: 1, profile } — 허브 「실습 환경 안내」(environment.html)와 같은 키·형식, 서버로 보내지 않음, 자동 감지 없음
+   - 이 과정에 더 필요한 것: 허브의 /environment.json(tools/environment.py)이 있을 때만 — 단독 실행에서는 그 줄과 허브 링크를 숨김
+   - 읽기 과정(loc=read · 실습 환경 「해당 없음」·「읽기」)에는 붙이지 않음. 화면 글은 textContent·DOM으로만. 진도·주소·방문 기록은 건드리지 않음 */
+(() => {
+  if (location.protocol === 'file:') return;
+  const KEY = 'hangdo-env:v1', PROFILES = { macos: 'macOS', wsl: 'Windows WSL 2', ubuntu: 'Ubuntu' };
+  const READ_ENV = /^(?:해당 없음|읽기|브라우저|없음)/;
+  const seg = (location.pathname.split('/')[1] || '').replace(/\.html$/, '');
+  let TERM = null, ITEMS = {}, ENV = null, profile = '';
+  try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v && v.v === 1 && Object.prototype.hasOwnProperty.call(PROFILES, v.profile)) profile = v.profile; } catch (e) {}
+  const el = (tag, attrs, ...kids) => {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k === 'text') e.textContent = v; else if (k === 'class') e.className = v; else e.setAttribute(k, String(v)); }
+    for (const c of kids.flat()) if (c != null && c !== false) e.append(c instanceof Node ? c : document.createTextNode(String(c)));
+    return e;
+  };
+  const withCode = s => String(s || '').split('`').map((p, i) => i % 2 ? el('code', { text: p }) : p);   // 「`명령`」 부분만 code로
+  const itemId = () => { const m = /^#\/item\/([A-Za-z0-9_.-]{1,80})/.exec(location.hash || ''); return m ? m[1] : null; };
+
+  fetch('content/catalog.json', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(c => {
+    if (!c || !c.meta || !c.meta.terminal || !Array.isArray(c.items)) return;
+    TERM = c.meta.terminal; ITEMS = Object.fromEntries(c.items.map(i => [i.id, i]));
+    schedule();
+  }).catch(() => {});
+  if (seg && seg !== 'index') fetch('/environment.json', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).then(d => {
+    const r = d && Array.isArray(d.roadmaps) ? d.roadmaps.find(x => x.id === seg) : null;
+    if (r) { ENV = { loc: Object.fromEntries((r.items || []).map(i => [i.id, i.loc])), checks: Object.fromEntries((r.checks || []).map(x => [x.id, x])) }; schedule(); }
+  }).catch(() => {});
+
+  function slot() {      // 「실습 환경」 줄: 공통 화면 dl.facts(dt) · 폐쇄망 화면 .labinfo(.row 첫 칸 「환경」)
+    const main = document.getElementById('main') || document;
+    for (const dt of main.querySelectorAll('dl.facts > div > dt')) if (dt.textContent.trim() === '실습 환경') return { row: dt.parentElement, kind: 'dl' };
+    for (const row of main.querySelectorAll('.labinfo > .row')) if (row.firstElementChild && row.firstElementChild.textContent.trim() === '환경') return { row, kind: 'row' };
+    return null;
+  }
+  function body(id) {
+    const dd = el('dd');
+    const pick = el('div', { class: 'hes-pick', role: 'group', 'aria-label': '내 PC 고르기' }, el('span', { class: 'hes-sub', text: '내 PC:' }));
+    for (const [k, label] of Object.entries(PROFILES)) {
+      const b = el('button', { type: 'button', 'aria-pressed': profile === k ? 'true' : 'false', text: label });
+      b.addEventListener('click', () => {
+        profile = k;
+        try { localStorage.setItem(KEY, JSON.stringify({ v: 1, profile })); } catch (e) {}
+        const old = document.getElementById('hangdo-envstart'); if (old) old.remove(); render();
+      });
+      pick.append(b);
+    }
+    dd.append(pick);
+    const term = profile
+      ? el('p', { class: 'hes-term' }, el('b', { text: '실습 터미널: ' }), withCode(TERM[profile]))
+      : el('ul', { class: 'hes-term' }, Object.entries(PROFILES).map(([k, label]) => el('li', {}, el('b', { text: label + ': ' }), withCode(TERM[k]))));
+    dd.append(term);
+    if (TERM.check) {
+      const code = el('code', { text: TERM.check });
+      const copy = el('button', { type: 'button', text: '복사', 'aria-label': '확인 명령 복사' });
+      copy.addEventListener('click', () => {
+        const done = ok => { copy.textContent = ok ? '복사함' : '직접 선택'; setTimeout(() => { copy.textContent = '복사'; }, 1600); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(TERM.check).then(() => done(true), () => done(false));
+        else { const r = document.createRange(); r.selectNodeContents(code); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done(false); }
+      });
+      dd.append(el('div', { class: 'hes-cmd' }, code, copy), el('div', { class: 'hes-sub' }, withCode(TERM.expect)));
+    }
+    const chk = ENV && ENV.checks[id];
+    if (chk && Array.isArray(chk.needs) && chk.needs.length) dd.append(el('div', {}, el('span', { class: 'hes-sub', text: '이 과정에 더 필요한 것: ' }), chk.needs.map(n => el('span', { class: 'hes-need', text: n }))));
+    const links = [];
+    if (id !== 'setup' && ITEMS.setup) links.push(el('a', { href: '#/item/setup', text: '자세한 설치: ' + (ITEMS.setup.title || '환경 준비') }));
+    if (ENV) links.push(el('a', { href: '/environment.html', text: '내 PC별 실습 환경 안내' }));
+    if (links.length) dd.append(el('div', { class: 'hes-sub' }, links.flatMap((a, i) => i ? [' · ', a] : [a])));
+    return dd;
+  }
+  function render() {
+    const id = itemId();
+    if (!TERM || !id || !ITEMS[id] || document.getElementById('hangdo-envstart')) return;
+    const loc = ENV && ENV.loc[id];
+    if (loc === 'read' || (!loc && READ_ENV.test(String(ITEMS[id].env || '해당 없음').trim()))) return;
+    const s = slot(); if (!s) return;
+    const dd = body(id);
+    let row;
+    if (s.kind === 'dl') row = el('div', { id: 'hangdo-envstart', class: 'hangdo-envstart' }, el('dt', { text: '시작 전 확인' }), dd);
+    else { const dv = el('div'); dv.append(...dd.childNodes); row = el('div', { id: 'hangdo-envstart', class: 'row hangdo-envstart' }, el('div', { text: '시작 전 확인' }), dv); }
+    s.row.after(row);
+  }
+  let queued = false;
+  function schedule() { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; render(); }); }
+  new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true });
+  addEventListener('hashchange', schedule);
+})();
+</script>
+<!-- env-start:end -->

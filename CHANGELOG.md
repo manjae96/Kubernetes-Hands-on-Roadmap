@@ -2,6 +2,15 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.9.7 — 2026-11-08
+
+실습 환경 안내 정비 — 내 PC별 실습 터미널·시작 전 확인
+
+- 과정 화면 「시작 전 확인」(env-start 1.0.0) · catalog meta.terminal(내 PC별 실습 터미널·확인 명령)
+- 환경 준비: Docker 설치를 도커 「환경 준비」로 연결
+
+공통 템플릿: deep-drawer v1.5.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.9.6 — 2026-11-08
 
 옮겨진 공식 문서 링크를 새 주소로

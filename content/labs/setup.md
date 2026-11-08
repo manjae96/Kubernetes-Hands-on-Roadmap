@@ -35,6 +35,8 @@
 | Kubernetes (클러스터) | v1.37.0 / v1.36.4 / v1.35.8 | minikube v1.39.0이 지원하는 각 마이너의 최신 패치 |
 | Docker | Docker Engine 또는 Docker Desktop 최신 안정판 | minikube 드라이버 |
 
+Docker가 아직 없다면 [도커 실습 항해도의 「환경 준비」](/docker/#/item/setup)에서 내 PC에 맞는 경로(macOS · Windows WSL 2 · Ubuntu)를 골라 설치하고, `docker version`에 Client와 Server가 모두 나오는지 확인한 뒤 돌아옵니다.
+
 ### Windows: WSL2
 
 Windows에서는 **WSL2 안의 Ubuntu**에서 모든 실습을 진행합니다. Windows용 minikube·kubectl을 따로 설치하지 않습니다.

@@ -2,7 +2,16 @@
   "meta": {
     "lastChecked": "2026-10-15",
     "defaultVersion": "1.37",
-    "minikube": "v1.39.0"
+    "minikube": "v1.39.0",
+    "terminal": {
+      "about": "코드 블록 위 「실습 터미널」을 여는 곳 (OS별)",
+      "kind": "host",
+      "macos": "macOS 터미널(zsh) — Docker 엔진(OrbStack·Docker Desktop·Colima 중 하나)을 먼저 켜 둡니다",
+      "wsl": "WSL 2의 Ubuntu 터미널 — Windows PowerShell·명령 프롬프트가 아닙니다",
+      "ubuntu": "Ubuntu(리눅스) 터미널",
+      "check": "docker context show && docker version --format 'client={{.Client.Version}} server={{.Server.Version}} {{.Server.Os}}/{{.Server.Arch}}'",
+      "expect": "server= 뒤에 버전이 나오면 데몬에 연결된 것입니다. 비어 있거나 오류면 도커 항해도 「환경 준비」로"
+    }
   },
   "versions": [
     {
