@@ -4,7 +4,7 @@
 <title>쿠버네티스 실습 항해도</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Kubernetes 공식 문서를 근거로 기본·중급·고급 과정을 minikube 실습으로 익히는 한국어 학습 사이트">
-<!-- app-ui:start v2.2.0 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<!-- app-ui:start v2.3.0 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
 <link rel="stylesheet" href="/assets/fonts/pretendard-1.3.9/pretendard.css">
 <script type="application/json" id="hangdo-app">{"id":"k8s","key":"k8s-hangdo-v1","title":"쿠버네티스","prereq":[{"id":"docker","title":"도커"}],"related":[{"id":"pv","title":"PV·PVC"},{"id":"cni","title":"CNI"},{"id":"ingress","title":"Ingress"},{"id":"helm","title":"헬름"}]}</script>
 <style>
@@ -306,7 +306,7 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
 @media print { .hangdo-nav-toggle, html.hs .hs-nav, html.hs .hs-toc, html.hs .hs-prog { display: none !important; } html.hs #shell { display: block; } }
 </style>
 <script>
-/* completion:start 1.0.0 — 공통 완료 규칙 (Hands-On-Roadmap/templates/completion.js에서 관리, 직접 고치지 말 것 · docs/COMPLETION.md)
+/* completion:start 2.0.0 — 공통 완료 규칙 (Hands-On-Roadmap/templates/completion.js에서 관리, 직접 고치지 말 것 · docs/COMPLETION.md)
    쓰는 곳(모두 이 파일 하나): 클라우드 Worker 배지 판정(cloud/src/learning.js가 그대로 import) · 포털 카드·내 학습(/assets/hub/completion.js 복사본) ·
    각 항해도의 공통 화면 틀(templates/app-ui.html 안에 끼워 넣음 — tools/apply_series.py)
    - 진도 형식 두 가지: progress[id] = {manual, checks{판정 id: 통과 시각(ms) 또는 true}} (24개 앱) · done[id] = true + verify[판정 id].ok (망분리)
@@ -314,13 +314,18 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
    - 「배지 인정」(배지 필수 과정): 성공 판정이 있으면 지금 모드의 판정을 모두 통과해야 함(수동 완료만으로는 안 됨), 판정이 없으면 수동 완료
    - checkModes: 판정 id → 모드(예: sidecar·ambient). 지금 모드 = state.mode → catalog.meta.defaultMode. 다른 모드 판정은 세지 않음
    - 공개(status published) 과정만, 게스트는 잠긴 단계(중급·고급)를 빼고 셈. 진도에 남은 모르는 id·미공개 과정은 세지 않음
-   - 배지 단계: 단계(level)가 있는 공개·필수(required ≠ false) 과정. 선택 과정은 배지를 막지 않음. 단계 없는 과정(망분리 강의·평가)은 배지와 무관
+   - 최종 배지(2.0.0): 항해도 하나에 1개. 대상 = 공개·필수(required ≠ false) 과정 중 단계가 FINAL_LEVELS(기본·중급·고급, 망분리는 기초·중급)인 것
+     환경 준비·준비 단계(prep)·선택 과정·단계 없는 과정(망분리 강의·평가)·미공개 과정·진도에만 있는 모르는 id는 제외. 게스트에게 잠긴 필수 과정이 하나라도 있으면 발급 불가(locked)
+   - 단계별(levels)은 예전 단계 배지 기록을 보여 주고 남은 과정을 안내하는 데만 씀 — 새 배지는 final만 발급
    DOM·네트워크·저장소를 쓰지 않는 순수 함수만 — 서버와 브라우저가 같은 코드로 계산 */
 (function (G) {
   'use strict';
   if (G.HangdoCompletion) return;
-  const VERSION = '1.0.0';
+  const VERSION = '2.0.0';
   const GUEST_LOCKED = ['intermediate', 'advanced', '중급', '고급'];   // cloud/src/worker.js GUEST_LEVELS_LOCKED · tools/build_static.py guest_deny와 같은 기준
+  const PREP_LEVELS = ['prep', '준비'];                                  // 최종 배지에서 빼는 단계(환경 준비·준비 과정)
+  const FINAL_LEVELS = ['basic', 'intermediate', 'advanced', '기초', '중급', '고급'];   // 최종 배지에 넣는 단계 — 이 밖의 단계 이름은 시험(tools/tests/completion.mjs)이 막음
+  const FINAL = 'final';                                                 // badges.level·review_runs.level에 쓰는 값
   const obj = v => !!v && typeof v === 'object' && !Array.isArray(v);
   // 성공 판정 기록: 앱은 통과한 시각(ms, Date.now())을 저장 — 예전 기록·시험 데이터의 true도 통과로 인정. false·0·문자열은 미통과
   const passedMark = v => v === true || (typeof v === 'number' && isFinite(v) && v > 0);
@@ -373,9 +378,16 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
       return { level, total: req.length, done, complete: !locked && done === req.length, locked, missing, items: req.map(r => r.id), all: lv };
     }).filter(Boolean);
     const optional = vis.filter(r => !r.required);
+    // 최종 배지: FINAL_LEVELS 단계의 공개·필수 과정 전부 (잠긴 과정은 「남은 과정」에 이유와 함께 남김 — 완료로 세지 않음)
+    const freq = rows.filter(r => r.required && FINAL_LEVELS.includes(r.it.level));
+    const fmiss = freq.filter(r => r.locked || !r.badge).map(r => ({ id: r.id, title: String(r.it.title || r.id), level: r.it.level, locked: r.locked,
+      reason: r.locked ? '게스트 이용 범위 밖(회원 전용 단계)' : r.reason, need: r.need, passed: r.passed, manual: r.manual }));
+    const flocked = fmiss.filter(m => m.locked).length;
+    const final = { level: FINAL, levels: FINAL_LEVELS.filter(l => freq.some(r => r.it.level === l)), total: freq.length, done: freq.length - fmiss.length,
+      locked: flocked > 0, lockedCount: flocked, complete: freq.length > 0 && fmiss.length === 0, missing: fmiss, items: freq.map(r => r.id) };
     return { version: VERSION, mode, guest, total: vis.length, done: vis.filter(r => r.done).length, doneIds: vis.filter(r => r.done).map(r => r.id),
-      required: cnt(vis.filter(r => r.required)), optional: cnt(optional), badgeRequired: { total: levels.filter(l => !l.locked).reduce((a, l) => a + l.total, 0), done: levels.filter(l => !l.locked).reduce((a, l) => a + l.done, 0) },
-      levels, rows, lockedCount: rows.length - vis.length };
+      required: cnt(vis.filter(r => r.required)), optional: cnt(optional), badgeRequired: { total: final.total - flocked, done: final.done },
+      final, levels, rows, lockedCount: rows.length - vis.length };
   }
   // 왜 「완료」 개수와 「배지 필수」 개수가 다른지 한 줄로 (화면 설명용)
   function differences(s) {
@@ -386,9 +398,11 @@ html.hs-ag .hangdo-nav-toggle { height: 36px; min-height: 36px; background: var(
     if (s.lockedCount) out.push(`게스트에게 잠긴 중급·고급 과정 ${s.lockedCount}개는 세지 않습니다`);
     const noLevel = s.rows.filter(r => !r.locked && !r.it.level).length;
     if (noLevel) out.push(`단계가 없는 과정 ${noLevel}개(강의·평가)는 완료 개수에만 들어갑니다`);
+    const prep = s.rows.filter(r => !r.locked && r.required && r.done && PREP_LEVELS.includes(r.it.level)).length;
+    if (prep) out.push(`환경 준비·준비 과정 ${prep}개는 완료 개수에만 들어가고 최종 배지에는 필요 없습니다`);
     return out;
   }
-  G.HangdoCompletion = Object.freeze({ VERSION, GUEST_LOCKED, passedMark, modeOf, needOf, item, summary, differences });
+  G.HangdoCompletion = Object.freeze({ VERSION, GUEST_LOCKED, PREP_LEVELS, FINAL_LEVELS, FINAL, passedMark, modeOf, needOf, item, summary, differences });
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 /* completion:end */
 </script>
@@ -545,29 +559,30 @@ window.hangdoAids = window.hangdoAids || (() => {
     prog.querySelector('.pct').textContent = pct + '%'; prog.querySelector('progress').value = pct;
     prog.title = `완료한 전체 과정 ${s.done} / ${s.total}`;
   }
-  // 배지(클라우드 허브만 — /me.html이 서버 판정 후 발급): 단계별 「배지 필수 과정 N / M」과 남은 과정, 마친 단계가 있으면 「배지 받으러 가기」
-  const LVN = id => { const L = levels().find(x => x.id === id); return L ? L.title.replace(/ 과정$/, '') : id; };
+  // 최종 배지(클라우드 허브만 — /me.html이 서버 판정 후 발급, 항해도 하나에 1개): 「최종 배지 필수 과정 N / M」과 남은 과정, 모두 마치면 「최종 배지 받으러 가기」
   const badgeHref = () => `/me.html#badge-${encodeURIComponent(APP.id || '')}`;
-  const badgeGo = S => inHub() && S.levels.some(l => l.complete) ? `<a href="${badgeHref()}" class="hs-badge-go">배지 받으러 가기</a>` : '';
+  const badgeGo = S => inHub() && S.final.complete ? `<a href="${badgeHref()}" class="hs-badge-go">최종 배지 받으러 가기</a>` : '';
   function badgeRow(S) {
-    const lv = S.levels.filter(l => !l.locked);
-    if (!lv.length) return '';
-    const items = lv.map(l => `<li class="t">${esc(LVN(l.level))}</li><li class="m">${l.done} / ${l.total}${l.complete ? ' · 마침' : (l.missing.length ? ` · 남음: ${l.missing.slice(0, 3).map(x => `<a href="#/item/${esc(x.id)}">${esc(x.id)}</a> — ${esc(x.reason)}`).join(', ')}${l.missing.length > 3 ? ` 외 ${l.missing.length - 3}개` : ''}` : '')}</li>`).join('');
+    const F = S.final;
+    if (!F.total) return '';
+    const open = F.missing.filter(x => !x.locked);
+    const left = open.length ? ` · 남음 ${open.length}개: ${open.slice(0, 3).map(x => `<a href="#/item/${esc(x.id)}">${esc(x.title)}</a> — ${esc(x.reason)}`).join(', ')}${open.length > 3 ? ` 외 ${open.length - 3}개` : ''}` : '';
+    const lock = F.lockedCount ? `<p class="hs-m hs-why">게스트에게 잠긴 회원 전용 필수 과정 ${F.lockedCount}개가 있어 이 이용권으로는 최종 배지를 받을 수 없습니다(회원은 받을 수 있음).</p>` : '';
     const notes = HC.differences(S);
-    return `<ul class="hs-lv">${items}</ul>${notes.length ? `<p class="hs-m hs-why">완료 개수와 다른 이유: ${notes.map(esc).join(' · ')}</p>` : ''}`;
+    return `<span>${F.done} / ${F.total}${F.complete ? ' · 모두 마침' : left}</span>${lock}${notes.length ? `<p class="hs-m hs-why">완료 개수와 다른 이유: ${notes.map(esc).join(' · ')}</p>` : ''}`;
   }
-  // 과정 화면: 이 과정이 든 단계의 필수 과정을 모두 마쳤으면 완료 표시 영역 바로 뒤에 「배지 받으러 가기」(허브 아래에서만)
+  // 과정 화면: 최종 배지 대상 과정이고 항해도의 필수 과정을 모두 마쳤으면(= 마지막 필수 과정을 방금 마친 경우 포함) 완료 표시 영역 바로 뒤에 「최종 배지 받으러 가기」(허브 아래에서만)
   function paintBadgeGo() {
     const main = document.getElementById('main'), c = cur();
     if (!main || !CAT || !c.item) return;
     const it = CAT.items.find(i => i.id === c.item), old = main.querySelector('#hs-badge-note');
-    const L = it && inHub() ? HC.summary(CAT, state(), { guest: guestNow() }).levels.find(l => l.level === it.level && l.items.includes(it.id)) : null;
-    if (!L || !L.complete) { if (old) old.remove(); return; }
-    const html = `<p><b>${esc(LVN(L.level))} 단계의 필수 과정 ${L.total}개를 모두 마쳤습니다.</b> 배지는 서버가 저장된 진도를 다시 확인한 뒤 발급합니다.</p><p><a class="hs-badge-go" href="${badgeHref()}">배지 받으러 가기</a></p>`;
+    const F = it && inHub() ? HC.summary(CAT, state(), { guest: guestNow() }).final : null;
+    if (!F || !F.complete || !F.items.includes(it.id)) { if (old) old.remove(); return; }
+    const html = `<p><b>이 항해도의 필수 과정 ${F.total}개를 모두 마쳤습니다.</b> 최종 배지는 서버가 저장된 진도를 다시 확인한 뒤 발급합니다.</p><p><a class="hs-badge-go" href="${badgeHref()}">최종 배지 받으러 가기</a></p>`;
     if (old) { if (old.dataset.sig !== html) { old.innerHTML = html; old.dataset.sig = html; } return; }
     const anchorEl = main.querySelector('.done-panel') || main.querySelector('.pager');
     if (!anchorEl) return;
-    const box = document.createElement('section'); box.id = 'hs-badge-note'; box.className = 'hs-badge-note'; box.setAttribute('aria-label', '배지 안내'); box.innerHTML = html; box.dataset.sig = html;
+    const box = document.createElement('section'); box.id = 'hs-badge-note'; box.className = 'hs-badge-note'; box.setAttribute('aria-label', '최종 배지 안내'); box.innerHTML = html; box.dataset.sig = html;
     if (anchorEl.classList.contains('pager')) anchorEl.before(box); else anchorEl.after(box);
   }
   // 대시보드(홈): 진도·이어서 학습·구성·수준별·검증 수준·실습 환경·선수/연관 항해도·공식 문서
@@ -596,7 +611,7 @@ window.hangdoAids = window.hangdoAids || (() => {
     const go = last && last.status !== 'planned' ? `<a class="primary" href="#/item/${esc(last.id)}">이어서 학습: ${esc(last.title)}</a>` : (first ? `<a class="primary" href="#/item/${esc(first.id)}">추천 시작: ${esc(first.title)}</a>` : '');
     const html = `<h2 id="hs-dash-h">학습 현황</h2><div class="hs-cta">${go}${badgeGo(S)}</div>`
       + `<dl class="facts">${row('진도', `${pct}%<progress max="100" value="${pct}" aria-hidden="true"></progress><span class="hs-m">완료한 전체 과정 ${done} / ${S.total}</span>`)}`
-      + row('배지 필수 과정', badgeRow(S))
+      + row('최종 배지 필수 과정', badgeRow(S))
       + row('구성', `${types.join(' · ')}${planned ? ` · 예정 ${planned}` : ''} <span class="hs-m">(예상 ${hm(pub.reduce((a, i) => a + minutes(i), 0))})</span>`)
       + row('수준별', lv ? `<ul class="hs-lv">${lv}</ul>` : '')
       + row('검증 수준', verTxt ? (hasVer ? `<a href="#/verification">${verTxt}</a>` : verTxt) : '')
