@@ -2,6 +2,14 @@
 
 형식: [SemVer](https://semver.org/lang/ko/) · 릴리스는 허브의 `tools/release.py`로 만듭니다.
 
+## v1.9.10 — 2026-11-11
+
+글 가독성 개선
+
+- 단계 앞 안내 문장·예상 결과·문단 나눔·흔한 오류 표·약어 풀이 등(명령·출력·판정은 그대로)
+
+공통 템플릿: deep-drawer v1.5.0 · hub-search v1.3.2 · theme-toggle v1.0.0 · deploy v1.1.0
+
 ## v1.9.9 — 2026-11-09
 
 README 자매 사이트·포트 안내에 실무 SQL·Python 추가

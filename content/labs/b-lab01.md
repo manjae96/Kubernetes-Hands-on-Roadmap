@@ -222,10 +222,12 @@ kubectl exec client -n lab-b01 -- wget -qO- -T 5 http://web
 nginx 기본 페이지의 HTML(`<title>Welcome to nginx!</title>` 포함)이 출력되면 성공입니다. `http://web`이 동작하는 이유는 [[cluster-dns]]가 같은 네임스페이스의 Service 이름을 IP로 바꿔 주기 때문입니다. 다른 네임스페이스에서는 `http://web.lab-b01.svc.cluster.local`처럼 전체 이름을 씁니다.
 
 :::note 내 PC 브라우저로 보고 싶다면
-`kubectl port-forward -n lab-b01 svc/web 8080:80`을 실행해 두고 브라우저에서 `http://localhost:8080`을 엽니다. 이 명령은 실행 중인 동안만 연결을 유지하므로 확인 후 `Ctrl+C`로 끕니다. WSL2에서도 localhost로 접속됩니다.
+`kubectl port-forward -n lab-b01 svc/web 8080:80`을 실행해 두고 브라우저에서 `http://localhost:8080`을 엽니다. 이 명령은 실행 중인 동안만 연결을 유지하므로 확인 후 `Ctrl+C`로 끕니다. WSL2(Windows에서 리눅스를 실행하는 기능)에서도 localhost로 접속됩니다.
 :::
 
 ## 5단계: 확장과 자가 치유
+
+파드 수를 4개로 늘린 뒤 파드 하나를 일부러 지워 봅니다. 쿠버네티스가 정해 둔 수를 다시 채우는지 확인하는 단계입니다.
 
 ```bash shell="실습 터미널"
 kubectl scale deployment web -n lab-b01 --replicas=4

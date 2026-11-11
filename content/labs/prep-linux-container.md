@@ -1,6 +1,6 @@
 ## 학습 목표
 
-- 프로세스·PID 1·SIGTERM이 Pod 종료(`terminationGracePeriodSeconds`)와 어떻게 연결되는지 설명할 수 있습니다.
+- 프로세스·PID(프로세스 번호) 1·SIGTERM이 Pod 종료(`terminationGracePeriodSeconds`)와 어떻게 연결되는지 설명할 수 있습니다.
 - 앱이 `0.0.0.0`에서 들어야 Service로 접속된다는 것을 압니다.
 - 환경 변수·설정 파일이 ConfigMap·Secret으로 이어진다는 것을 압니다.
 - 이미지·태그·다이제스트·레지스트리를 읽고, `docker run` 옵션을 Pod 필드로 옮겨 쓸 수 있습니다.
@@ -104,7 +104,7 @@ kubectl run prep-demo --image=nginx:1.30.6-alpine --env=GREETING=hello --restart
 ## 확인 질문
 
 :::answer 1. Pod가 Terminating에서 정확히 30초 머문다. 왜?
-PID 1이 SIGTERM을 처리하지 않아 `terminationGracePeriodSeconds`(기본 30초) 뒤 SIGKILL로 끝났습니다.
+PID 1이 SIGTERM을 처리하지 않아 `terminationGracePeriodSeconds`(기본 30초) 뒤 SIGKILL(프로세스를 즉시 강제로 끝내는 신호)로 끝났습니다.
 :::
 
 :::answer 2. containerPort를 지웠는데도 Service로 접속이 된다. 이상한가?

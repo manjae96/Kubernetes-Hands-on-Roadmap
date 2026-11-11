@@ -59,6 +59,8 @@ ClusterIP     ─ 클러스터 안의 가상 IP:포트 ──┘  (NodePort는 C
 
 ## 1단계: NodePort
 
+Service를 NodePort 유형으로 만들어, 노드의 포트로 클러스터 밖에서 접속할 길을 엽니다.
+
 ```bash shell="실습 터미널"
 kubectl expose deployment web -n lab-svc --name web-np --type=NodePort --port=80 >/dev/null
 kubectl get svc web-np -n lab-svc -o custom-columns='TYPE:.spec.type,CLUSTER-IP:.spec.clusterIP,PORT:.spec.ports[0].port,NODEPORT:.spec.ports[0].nodePort' | sed -E 's/10\.[0-9.]+/<ClusterIP>/; s/3[0-9]{4}/<30000~32767 중 하나>/'
@@ -89,6 +91,8 @@ NodePort로 접속: 200
 
 ## 2단계: LoadBalancer와 `<pending>`
 
+Service를 LoadBalancer 유형으로 만들어 봅니다. 외부 IP가 채워지는지, 채워지지 않는다면 왜 그런지 확인합니다.
+
 ```bash shell="실습 터미널"
 kubectl expose deployment web -n lab-svc --name web-lb --type=LoadBalancer --port=80 >/dev/null
 sleep 3
@@ -115,6 +119,8 @@ kubectl get svc web-lb -n lab-svc   # EXTERNAL-IP에 127.0.0.1 등이 채워짐 
 
 ## 3단계: ExternalName
 
+IP 없이 외부 주소의 별칭만 만드는 ExternalName Service를 만들고, 클러스터 안에서 이름이 어떻게 풀리는지 봅니다.
+
 ```bash shell="실습 터미널"
 kubectl create service externalname docs -n lab-svc --external-name kubernetes.io >/dev/null
 kubectl run dns-test -n lab-svc --rm -i --restart=Never --image=busybox:1.37.0 -- nslookup docs.lab-svc.svc.cluster.local 2>/dev/null | grep -m1 'canonical name' | sed 's/\t/ /g'
@@ -124,7 +130,7 @@ kubectl run dns-test -n lab-svc --rm -i --restart=Never --image=busybox:1.37.0 -
 docs.lab-svc.svc.cluster.local canonical name = kubernetes.io
 ```
 
-ExternalName은 IP도 포트도 없이 **DNS 별칭(CNAME)** 만 만듭니다. 나중에 외부 DB를 클러스터 안으로 옮겨도, 앱은 같은 이름(`docs`)을 계속 쓰고 Service만 바꾸면 됩니다.
+ExternalName은 IP도 포트도 없이 **DNS 별칭(CNAME)** 만 만듭니다. 나중에 외부 DB(데이터베이스)를 클러스터 안으로 옮겨도, 앱은 같은 이름(`docs`)을 계속 쓰고 Service만 바꾸면 됩니다.
 
 ## 참고: externalIPs 폐기와 Gateway API
 

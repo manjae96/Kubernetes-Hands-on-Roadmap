@@ -157,6 +157,8 @@ frontend-79f7755d8b-n4jcc   1/1     Running   0          1s    app.kubernetes.io
 
 ## 2단계: 셀렉터로 골라 보기
 
+라벨 셀렉터로 원하는 파드만 골라 봅니다. 파드 이름은 바뀌지만 라벨은 그대로라, 운영에서는 라벨로 대상을 고릅니다.
+
 ```bash shell="실습 터미널"
 # 같음 조건
 kubectl get pods -n lab-b02 -l app.kubernetes.io/component=frontend
@@ -257,6 +259,8 @@ Events:
 
 ## 5단계: 롤백
 
+앞 단계에서 바꾼 버전을 이전 버전으로 되돌립니다. 배포한 새 버전에 문제가 있을 때 가장 먼저 쓰는 조치입니다.
+
 ```bash shell="실습 터미널"
 kubectl rollout undo deployment/frontend -n lab-b02
 kubectl rollout status deployment/frontend -n lab-b02
@@ -281,6 +285,8 @@ kubectl은 「apply로 관리하던 객체를 undo로 바꿨으니, 다음 apply
 :::
 
 ## 6단계: 로그와 이벤트 읽기
+
+파드의 로그를 읽고, 시작하자마자 죽는 파드를 일부러 만들어 그 원인을 로그에서 찾아봅니다. 장애를 조사할 때 가장 먼저 보는 곳이 로그입니다.
 
 ```bash shell="실습 터미널"
 # Deployment의 파드 하나를 골라 마지막 3줄

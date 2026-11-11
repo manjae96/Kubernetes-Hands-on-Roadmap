@@ -52,6 +52,8 @@ kubectl create namespace lab-a01
 kubectl run demo -n lab-a01 --image=busybox:1.37.0 -- sh -c 'while true; do echo "주문 처리 $(date +%T)"; sleep 5; done'
 ```
 
+`namespace/lab-a01 created`와 `pod/demo created`가 나오면 됩니다.
+
 ## 2단계: ServiceAccount, Role, RoleBinding 만들기
 
 `rbac.yaml`로 저장합니다.
