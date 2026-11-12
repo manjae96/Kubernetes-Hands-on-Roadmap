@@ -166,7 +166,7 @@ Kustomize Version: v5.8.1
 
 ## 실습 클러스터 만들기
 
-여기서부터는 운영체제와 관계없이 같습니다. Windows 사용자는 WSL2 Ubuntu 셸에서 실행합니다.
+여기서부터의 명령은 세 운영체제에서 같습니다. Windows 사용자는 WSL2 Ubuntu 셸에서 실행합니다(검증 기록은 Linux 환경 기준이며, WSL2·macOS에서는 직접 실행하지 않았습니다).
 
 ```bash shell="실습 터미널 (WSL2 Ubuntu 셸 · macOS 터미널 · Linux 터미널)"
 minikube start -p k8s-lab --driver=docker --container-runtime=containerd --kubernetes-version=v1.37.0 --cpus=2 --memory=4096
