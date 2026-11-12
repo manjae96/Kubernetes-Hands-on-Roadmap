@@ -29,13 +29,41 @@ kubectl get namespace lab-i01
 Secret 값은 base64로 **인코딩**되어 저장될 뿐입니다. 누구나 디코딩할 수 있습니다. 실제 운영에서는 Secret 읽기 권한을 RBAC로 제한하고, etcd 저장 시 암호화(encryption at rest)를 설정하고, Secret을 매니페스트 저장소에 평문으로 커밋하지 않아야 합니다.
 :::
 
-**프로브는 어떻게 동작하나.** [[kubelet]]이 정해진 주기로 컨테이너를 검사합니다([[probe]]).
+**프로브는 무엇을 묻나.** [[kubelet]]이 정해진 주기(기본 10초)로 컨테이너에 세 가지를 묻습니다([[probe]]). 결과부터 보면 이렇습니다.
+
+- **startupProbe: 시작할 시간을 주는 검사.** 앱이 다 뜰 때까지 기다려 줍니다. 성공하기 전에는 아래 두 프로브를 하지 않고, 정한 횟수 안에 끝내 성공하지 못하면 kubelet이 컨테이너를 끝내고, 재시작 정책에 따라 다시 시작합니다(Deployment의 파드는 항상 다시 시작).
+- **readinessProbe: 요청을 받을 준비가 됐는지.** 실패해도 컨테이너는 그대로 둡니다. 파드의 Ready가 false가 되어 Service의 요청 대상에서 빠지고, 다시 성공하면 돌아옵니다.
+- **livenessProbe: 멈춰서 재시작이 필요한지.** 정한 횟수(기본 3번)만큼 잇달아 실패하면 kubelet이 컨테이너를 재시작합니다.
 
 | 프로브 | 실패하면 | 언제 쓰나 |
 |---|---|---|
 | startupProbe | 성공 전까지 다른 프로브를 멈춤. 끝내 실패하면 재시작 | 기동이 오래 걸리는 앱 |
-| readinessProbe | **Service 엔드포인트에서 제외**. 재시작하지 않음 | 일시적으로 요청을 받으면 안 될 때 (기동 중, 의존 서비스 장애) |
+| readinessProbe | **Service 요청 대상에서 제외**(EndpointSlice에 준비 안 됨으로 표시). 재시작하지 않음 | 일시적으로 요청을 받으면 안 될 때 (기동 중, 의존 서비스 장애) |
 | livenessProbe | **컨테이너 재시작** | 교착 상태처럼 스스로 회복 못 하는 고장 |
+
+**작은 사례: 트래픽 제외와 재시작의 차이.** 파드 두 개가 Service 뒤에 있고, 1번 파드가 데이터베이스 연결을 잠시 잃었다고 합시다.
+
+- **readiness가 실패하면** 1번 파드는 계속 실행됩니다(RESTARTS 그대로). READY가 `0/1`이 되고, Service는 그동안 2번 파드로만 요청을 보냅니다. 연결이 돌아와 readiness가 다시 성공하면 1번도 요청을 받습니다.
+- **liveness가 실패하면** kubelet이 1번의 컨테이너를 재시작하고 RESTARTS가 1 늘어납니다. 그런데 원인이 데이터베이스라면 재시작해도 낫지 않아 재시작만 되풀이될 수 있습니다. 그래서 잠깐 요청을 피하면 되는 문제는 readiness로, 프로세스가 멈춰 재시작해야만 풀리는 문제는 liveness로 검사합니다. 잘못 잡은 liveness는 재시작이 연달아 일어나는 장애로 번질 수 있습니다([공식 문서: Liveness, Readiness, Startup Probes](https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/)).
+
+<figure class="diagram">
+<svg viewBox="0 0 760 250" role="img" aria-label="readiness 실패 때는 파드가 계속 실행되며 Service 요청 대상에서만 빠지고, liveness 실패 때는 kubelet이 컨테이너를 재시작하는 비교 그림">
+<defs><marker id="i1p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrowhead"/></marker></defs>
+<rect class="zone" x="10" y="10" width="360" height="230" rx="8"/><text x="22" y="32">readiness 실패: 요청 대상에서 빠짐</text>
+<rect class="box accent" x="110" y="48" width="160" height="44" rx="6"/><text x="122" y="75">Service web</text>
+<rect class="box warn" x="25" y="150" width="160" height="74" rx="6"/><text x="37" y="172">pod 1</text><text class="small" x="37" y="192">READY 0/1</text><text class="small" x="37" y="210">계속 실행 · 재시작 없음</text>
+<rect class="box" x="200" y="150" width="160" height="74" rx="6"/><text x="212" y="172">pod 2</text><text class="small" x="212" y="192">READY 1/1</text><text class="small" x="212" y="210">요청을 받음</text>
+<path class="line" d="M220 92V120H280V148" marker-end="url(#i1p)"/>
+<path class="line dim" d="M160 92V120H105V148"/>
+<text class="small" x="30" y="128">요청 안 보냄</text>
+<rect class="zone" x="390" y="10" width="360" height="230" rx="8"/><text x="402" y="32">liveness 실패: 컨테이너 재시작</text>
+<rect class="box dim" x="410" y="48" width="160" height="44" rx="6"/><text x="422" y="75">kubelet</text>
+<rect class="box warn" x="410" y="150" width="320" height="74" rx="6"/><text x="422" y="172">pod 1 · 컨테이너 app</text><text class="small" x="422" y="192">잇달아 3번 실패 → 컨테이너를 끝내고 다시 시작</text><text class="small" x="422" y="210">RESTARTS 0 → 1</text>
+<path class="line bad" d="M490 92V148" marker-end="url(#i1p)"/>
+<text class="small" x="500" y="125">재시작</text>
+</svg>
+<figcaption>readiness 실패는 요청만 피하게 하고(파드는 계속 실행), liveness 실패는 컨테이너를 재시작합니다.</figcaption>
+</figure>
 
 <figure class="diagram">
 <svg viewBox="0 0 760 250" role="img" aria-label="ConfigMap과 Secret이 파드에 파일과 환경 변수로 주입되고, kubelet이 프로브 결과로 엔드포인트와 재시작을 결정하는 구성도">

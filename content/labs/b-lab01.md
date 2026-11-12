@@ -24,7 +24,7 @@ kubectl get nodes
 
 **왜 필요한가.** 파드는 노드 장애, 재배포, 자원 부족으로 언제든 사라지고 IP도 바뀝니다. 그래서 두 가지가 필요합니다. 개수를 지켜 주는 장치(Deployment·ReplicaSet), 그리고 바뀌는 파드들 앞에 고정된 주소를 붙여 주는 장치([[service]])입니다.
 
-**어떻게 동작하나.** `kubectl apply`는 매니페스트를 [[kube-apiserver]]로 보내고, API 서버는 이를 [[etcd]]에 저장합니다. [[controller-manager]] 안의 Deployment 컨트롤러가 ReplicaSet을, ReplicaSet 컨트롤러가 파드를 만듭니다. [[scheduler]]가 파드를 노드에 배정하면 그 노드의 [[kubelet]]이 [[container-runtime]]으로 컨테이너를 실행합니다. Service는 [[selector]]에 맞는 [[label]]을 가진 파드를 찾아 [[endpointslice]]에 기록하고, 각 노드의 [[kube-proxy]]가 Service IP로 온 요청을 그 파드들에 나눠 보냅니다.
+**어떻게 동작하나.** `kubectl apply`는 매니페스트를 [[kube-apiserver]]에 보내고, API 서버는 요청을 검사한 뒤 원하는 상태를 [[etcd]]에 저장합니다. 이 흐름에서 구성 요소들은 서로 직접 지시하지 않습니다. 각자 API 서버를 지켜보다가(watch) 자기 할 일이 생기면 처리하고, 결과를 다시 API 서버에 기록합니다. [[controller-manager]] 안의 Deployment 컨트롤러는 ReplicaSet 객체를, ReplicaSet 컨트롤러는 파드 객체를 만들고, [[scheduler]]는 파드를 둘 노드를 정해 기록합니다. 그 노드의 [[kubelet]]은 자기 노드에 배정된 파드를 보고 [[container-runtime]]에 컨테이너 실행을 맡깁니다. Service의 [[selector]]에 맞는 [[label]]을 가진 파드는 [[endpointslice]]에 적히고, 그중 준비(Ready)된 파드만 요청을 받습니다. 각 노드의 [[kube-proxy]]는 이를 보고 Service IP로 온 요청이 그 파드들로 가도록 노드의 네트워크 규칙을 맞춥니다.
 
 <figure class="diagram">
 <svg viewBox="0 0 760 300" role="img" aria-label="Deployment가 ReplicaSet을, ReplicaSet이 파드를 관리하고 Service가 라벨로 파드를 고르는 구성도">
@@ -50,6 +50,62 @@ kubectl get nodes
 </svg>
 <figcaption>Deployment → ReplicaSet → Pod는 소유 관계, Service → Pod는 라벨 셀렉터로 고르는 관계입니다.</figcaption>
 </figure>
+
+### 단계별로 따라가기: 명령 한 줄이 파드와 Service가 되기까지
+
+아래 그림은 `kubectl apply` 한 번이 실행 중인 파드와 Service 연결로 이어지는 과정을 여덟 단계로 나눈 것입니다. 「다음」을 누르면 그 단계에서 일하는 구성 요소와 통신 경로만 진하게 보입니다. 이 흐름의 화살표는 모두 API 서버를 거칩니다(로그 보기·<code>exec</code>처럼 API 서버가 kubelet에 직접 연결하는 기능은 이 그림에 넣지 않았습니다). 단계마다 직접 확인할 수 있는 `kubectl` 명령을 붙였습니다. 명령은 아래 실습의 2단계(네임스페이스)·3단계(Deployment)·4단계(Service)를 마친 뒤에 실행하면 같은 결과를 볼 수 있습니다.
+
+<figure class="diagram steps">
+<svg viewBox="0 0 760 470" role="img" aria-label="kubectl, API 서버, etcd, 컨트롤러 매니저, 스케줄러, 노드의 kubelet·컨테이너 런타임·kube-proxy, 파드, Service가 모두 API 서버를 통해 일하는 구성도">
+<defs><marker id="dsA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrowhead"/></marker></defs>
+<rect class="zone" x="190" y="10" width="560" height="232" rx="8"/>
+<text class="small" x="200" y="28">컨트롤 플레인</text>
+<rect class="zone" x="190" y="258" width="560" height="202" rx="8"/>
+<text class="small" x="200" y="452">노드 (minikube는 노드 1개)</text>
+<g data-step="1"><rect class="box" x="10" y="30" width="150" height="56" rx="6"/><text x="22" y="54">kubectl</text><text class="small" x="22" y="74">apply -f web-deploy.yaml</text></g>
+<g data-step="1 2 3 4 5 6 7 8"><rect class="box accent" x="345" y="30" width="180" height="56" rx="6"/><text x="357" y="54">API 서버</text><text class="small" x="357" y="74">kube-apiserver</text></g>
+<g data-step="2"><rect class="box" x="210" y="150" width="130" height="56" rx="6"/><text x="222" y="174">etcd</text><text class="small" x="222" y="194">원하는 상태 저장</text></g>
+<g data-step="3 4 7"><rect class="box" x="555" y="30" width="190" height="72" rx="6"/><text x="567" y="54">컨트롤러 매니저</text><text class="small" x="567" y="73">Deployment·ReplicaSet·</text><text class="small" x="567" y="90">EndpointSlice 컨트롤러</text></g>
+<g data-step="5"><rect class="box" x="555" y="150" width="190" height="56" rx="6"/><text x="567" y="174">스케줄러</text><text class="small" x="567" y="194">kube-scheduler</text></g>
+<g data-step="6"><rect class="box" x="210" y="290" width="150" height="50" rx="6"/><text x="222" y="312">kubelet</text><text class="small" x="222" y="330">노드의 관리자</text></g>
+<g data-step="6"><rect class="box" x="210" y="385" width="150" height="50" rx="6"/><text x="222" y="407">컨테이너 런타임</text><text class="small" x="222" y="425">containerd (CRI)</text></g>
+<g data-step="4 5 6 7 8"><rect class="box" x="400" y="285" width="150" height="40" rx="6"/><text class="mono" x="410" y="310">pod web-…-1</text><rect class="box" x="400" y="335" width="150" height="40" rx="6"/><text class="mono" x="410" y="360">pod web-…-2</text></g>
+<g data-step="8"><rect class="box dim" x="400" y="395" width="150" height="40" rx="6"/><text x="410" y="420">client 파드</text></g>
+<g data-step="8"><rect class="box" x="590" y="285" width="150" height="50" rx="6"/><text x="602" y="307">kube-proxy</text><text class="small" x="602" y="325">노드 네트워크 규칙</text></g>
+<g data-step="7 8"><rect class="box accent" x="590" y="375" width="150" height="50" rx="6"/><text x="602" y="397">Service web</text><text class="small" x="602" y="415">ClusterIP · 80</text></g>
+<path data-step="1" class="line" d="M160 58H343" marker-end="url(#dsA)"/>
+<text data-step="1" class="small" x="200" y="50">요청</text>
+<path data-step="2" class="line" d="M400 86V118H275V148" marker-start="url(#dsA)" marker-end="url(#dsA)"/>
+<path data-step="3 4 7" class="line" d="M527 58H553" marker-start="url(#dsA)" marker-end="url(#dsA)"/>
+<path data-step="5" class="line" d="M527 76H540V178H553" marker-start="url(#dsA)" marker-end="url(#dsA)"/>
+<path data-step="6" class="line" d="M380 88V250H285V288" marker-start="url(#dsA)" marker-end="url(#dsA)"/>
+<text data-step="6" class="small" x="290" y="244">watch·상태 보고</text>
+<path data-step="8" class="line" d="M500 88V240H665V283" marker-start="url(#dsA)" marker-end="url(#dsA)"/>
+<text data-step="8" class="small" x="560" y="234">watch</text>
+<path data-step="6" class="line" d="M285 340V383" marker-end="url(#dsA)"/>
+<path data-step="6" class="line" d="M360 410H380V305H398M380 355H398" marker-end="url(#dsA)"/>
+<path data-step="7 8" class="line dim" d="M588 400H570V305H552M570 355H552" marker-end="url(#dsA)"/>
+<path data-step="8" class="line" d="M550 415H588" marker-end="url(#dsA)"/>
+<path data-step="8" class="line" d="M665 335V373" marker-end="url(#dsA)"/>
+</svg>
+<figcaption>이 흐름에서 구성 요소는 서로 직접 지시하지 않고 API 서버를 지켜보며(watch) 일합니다. 「다음」을 눌러 한 단계씩 보세요.</figcaption>
+</figure>
+<details class="visual-text steps-text">
+<summary>모든 단계를 글로 보기</summary>
+<ol>
+<li data-title="kubectl이 API 서버에 요청을 보냅니다"><p><code>kubectl apply</code>는 매니페스트를 API 서버로 보냅니다. API 서버는 누가 보냈는지(인증), 그 일을 해도 되는지(인가), 정책에 맞는지(승인 제어), 객체 형식이 올바른지(유효성 검사)를 차례로 확인합니다. 하나라도 통과하지 못하면 여기서 오류로 끝납니다.</p><pre><code>kubectl apply -f web-deploy.yaml
+kubectl get deployment web -n lab-b01</code></pre></li>
+<li data-title="API 서버가 원하는 상태를 etcd에 저장합니다"><p>검사를 통과한 Deployment는 etcd에 저장됩니다. 다른 구성 요소와 kubectl은 etcd가 아니라 API 서버를 통해 이 상태를 봅니다. 아직 파드는 하나도 없습니다. 저장된 것은 「파드 2개를 유지하라」는 원하는 상태입니다.</p><pre><code>kubectl get deployment web -n lab-b01 -o jsonpath='{.spec.replicas}'</code></pre></li>
+<li data-title="Deployment 컨트롤러가 ReplicaSet을 만듭니다"><p>컨트롤러 매니저 안의 Deployment 컨트롤러는 API 서버를 지켜보다가 새 Deployment를 발견하고, 그 템플릿으로 ReplicaSet 객체를 만들어 API 서버에 기록합니다. Deployment의 Events에 이 기록이 남습니다.</p><pre><code>kubectl get replicaset -n lab-b01
+kubectl describe deployment web -n lab-b01</code></pre></li>
+<li data-title="ReplicaSet 컨트롤러가 파드 객체를 만듭니다"><p>ReplicaSet 컨트롤러는 원하는 개수(2)와 실제 개수(0)의 차이를 보고 파드 객체 2개를 API 서버에 만듭니다. 이 순간의 파드는 「이런 파드가 필요하다」는 기록일 뿐이고, 어느 노드에서 실행할지 정해지지 않아 <code>Pending</code>입니다.</p><pre><code>kubectl get pods -n lab-b01 -l app.kubernetes.io/name=web</code></pre></li>
+<li data-title="스케줄러가 파드를 둘 노드를 정합니다"><p>스케줄러는 노드가 정해지지 않은 파드를 지켜보다가, 자원과 조건에 맞는 노드를 골라 그 결과(바인딩)를 API 서버에 기록합니다. 스케줄러가 컨테이너를 실행하지는 않습니다. <code>-o wide</code>의 NODE 열과 <code>Scheduled</code> 이벤트로 확인합니다.</p><pre><code>kubectl get pods -n lab-b01 -o wide
+kubectl get events -n lab-b01 --field-selector reason=Scheduled</code></pre></li>
+<li data-title="kubelet이 컨테이너 런타임으로 컨테이너를 실행합니다"><p>그 노드의 kubelet은 API 서버에서 자기 노드에 배정된 파드를 보고, 컨테이너 런타임(CRI)에 이미지 받기와 컨테이너 실행을 요청합니다. 진행 상황은 kubelet이 다시 API 서버에 보고합니다. 이미지를 받는 동안에도 파드는 <code>Pending</code>입니다. 컨테이너가 모두 만들어지고 하나 이상이 실행(또는 시작) 중이면 <code>Running</code>이 됩니다.</p><pre><code>kubectl describe pod &lt;파드 이름&gt; -n lab-b01</code></pre><p>Events에 <code>Pulling</code> → <code>Pulled</code> → <code>Created</code> → <code>Started</code> 순서가 보입니다(이미지가 이미 있으면 Pulling이 없을 수 있습니다).</p></li>
+<li data-title="준비된 파드가 Service의 EndpointSlice에 들어갑니다"><p>실습 4단계에서 만드는 Service는 라벨 셀렉터로 파드를 고릅니다. 컨트롤러 매니저 안의 EndpointSlice 컨트롤러가 셀렉터에 맞는 파드의 IP를 EndpointSlice에 적습니다. 준비(Ready)되지 않은 파드는 <code>ready</code> 조건이 false로 표시되어 요청을 받을 대상에서 빠집니다. 「실행 중」과 「요청을 받을 준비가 됨」은 다른 상태입니다.</p><pre><code>kubectl get endpointslices -n lab-b01 -l kubernetes.io/service-name=web</code></pre></li>
+<li data-title="kube-proxy가 맞춘 규칙으로 요청이 파드에 도착합니다"><p>각 노드의 kube-proxy는 Service와 EndpointSlice를 지켜보다가, Service IP로 온 요청을 준비된 파드 중 하나로 보내는 노드 네트워크 규칙을 맞춥니다. 요청은 kube-proxy 프로세스를 거쳐 가는 것이 아니라 그 규칙에 따라 리눅스 커널이 전달합니다(Kubernetes 1.37의 기본 iptables 모드 기준). client 파드에서 Service 이름으로 요청해 확인합니다.</p><pre><code>kubectl exec client -n lab-b01 -- wget -qO- -T 5 http://web</code></pre></li>
+</ol>
+</details>
 
 ## 1단계: 클러스터 둘러보기
 
@@ -104,7 +160,31 @@ kubectl create namespace lab-b01
 kubectl get namespaces
 ```
 
-이후 모든 명령에는 `-n lab-b01`을 붙입니다. 기본 네임스페이스를 바꾸는 방법도 있지만, 명령마다 대상을 드러내 두는 편이 실수를 줄입니다.
+이후 모든 명령에는 `-n lab-b01`을 붙입니다. 명령마다 대상 네임스페이스가 눈에 보이면, 엉뚱한 곳에 만들거나 지우는 실수를 줄일 수 있습니다. 이 교재의 명령도 계속 `-n`을 적습니다.
+
+**선택: 기본 네임스페이스 바꾸기.** 매번 `-n`을 쓰기 번거롭다면, 지금 쓰는 컨텍스트([[kubeconfig]]에 저장된 「클러스터·사용자·네임스페이스」 묶음)의 기본 네임스페이스를 바꿀 수 있습니다([공식 문서: Setting the namespace preference](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/#setting-the-namespace-preference)). 바꾸지 않아도 실습에는 지장이 없습니다. 바꾸기 전에 어느 클러스터를 가리키는지 먼저 확인합니다.
+
+```bash shell="실습 터미널" run=skip
+kubectl config current-context
+kubectl config view --minify | grep namespace:
+kubectl config set-context --current --namespace=lab-b01
+kubectl config view --minify | grep namespace:
+```
+
+첫 줄은 지금 컨텍스트 이름(minikube라면 `k8s-lab`)입니다. 바꾸기 전 `grep`은 보통 아무것도 출력하지 않고(기본 네임스페이스 `default`를 씀), 바꾼 뒤에는 `namespace: lab-b01`이 보입니다. 이제 `-n`을 빼면 `lab-b01`이 대상입니다.
+
+원래대로 되돌리려면 아래 둘 중 하나를 실행합니다. 첫째는 `default`를 다시 지정하고, 둘째는 컨텍스트에서 네임스페이스 설정을 지웁니다(`k8s-lab` 자리에는 위 첫 줄에 나온 이름).
+
+```bash shell="실습 터미널" run=skip
+kubectl config set-context --current --namespace=default
+kubectl config unset contexts.k8s-lab.namespace
+```
+
+:::warning 기본 네임스페이스를 바꿀 때 조심할 점
+- 이 설정은 터미널 하나가 아니라 kubeconfig 파일(보통 `~/.kube/config`)의 그 컨텍스트에 저장됩니다. 같은 파일과 같은 컨텍스트를 쓰는 다른 터미널에도 적용됩니다.
+- 다른 클러스터(컨텍스트)로 바꾸면 그 컨텍스트에 저장된 네임스페이스가 쓰입니다. `-n` 없이 `kubectl delete`를 하기 전에는 `kubectl config current-context`와 위 `grep` 결과를 꼭 확인합니다.
+- 실습 끝에 `lab-b01`을 지우면 기본 네임스페이스가 없는 곳을 가리키게 됩니다. 정리할 때 위 방법으로 되돌립니다.
+:::
 
 ## 3단계: Deployment 배포
 
@@ -136,13 +216,17 @@ spec:
               containerPort: 80
 ```
 
+**라벨과 셀렉터 먼저 쉽게.** [[label]]은 파드에 붙이는 **이름표**이고(여기서는 `app.kubernetes.io/name: web`), [[selector]]는 「이 이름표를 단 파드를 찾아라」라는 **찾는 조건**입니다. Deployment는 셀렉터(`spec.selector`)로 자기 파드를 찾고, 파드를 새로 만들 때는 템플릿의 라벨(`spec.template.metadata.labels`)을 붙입니다. 그래서 템플릿으로 만든 파드가 셀렉터 조건에 맞아야 합니다. 맞지 않으면 Deployment가 자기가 만든 파드를 찾을 수 없으므로 API 서버가 처음부터 거부합니다.
+
+정확히는 셀렉터에 적은 라벨이 템플릿 라벨에 **모두 같은 값으로** 들어 있으면 됩니다. 템플릿에 라벨이 더 있어도 괜찮습니다. 반대로 다른 Deployment와 같은 셀렉터를 쓰면 두 Deployment가 서로의 파드를 자기 것으로 여겨 충돌하므로, 셀렉터가 겹치지 않게 합니다([공식 문서: Deployment의 Selector](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#selector)).
+
 | 필드 | 의미 |
 |---|---|
 | `apiVersion: apps/v1`, `kind: Deployment` | 어떤 API 그룹·버전의 어떤 종류 객체인지. Deployment는 1.16부터 `apps/v1`만 제공됩니다. |
 | `metadata.namespace` | 만들 네임스페이스. 파일에 적어 두면 `-n`을 빠뜨려도 엉뚱한 곳에 만들어지지 않습니다. |
 | `spec.replicas` | 유지할 파드 수(원하는 상태). |
-| `spec.selector.matchLabels` | 이 Deployment가 자기 파드로 인식할 라벨 조건. 만든 뒤에는 바꿀 수 없습니다. |
-| `spec.template.metadata.labels` | 새로 만들 파드에 붙일 라벨. **셀렉터와 반드시 일치**해야 하며, 다르면 API 서버가 거부합니다. |
+| `spec.selector.matchLabels` | 찾는 조건: 이 Deployment가 자기 파드로 인식할 라벨. `apps/v1`에서는 만든 뒤 바꿀 수 없습니다. |
+| `spec.template.metadata.labels` | 이름표: 새로 만들 파드에 붙일 라벨. 셀렉터의 라벨이 **모두 같은 값으로** 들어 있어야 하고(더 있어도 됨), 아니면 API 서버가 거부합니다. |
 | `containers[].image` | 실행할 이미지와 태그. `latest` 대신 구체적인 태그를 쓰면 언제 어디서나 같은 결과를 얻습니다. |
 | `ports[].name: http` | 포트에 이름을 붙여 두면 Service에서 숫자 대신 이름으로 가리킬 수 있습니다. |
 
@@ -319,7 +403,7 @@ Deployment가 롤백용으로 보관할 이전 ReplicaSet 수이며 기본값은
 
 ## 정리와 재실행
 
-이 실습에서 만든 자원은 모두 `lab-b01` 네임스페이스 안에 있으므로 네임스페이스만 지우면 됩니다. 다음 실습은 새 네임스페이스를 쓰므로 정리해도 괜찮습니다.
+이 실습에서 만든 자원은 모두 `lab-b01` 네임스페이스 안에 있으므로 네임스페이스만 지우면 됩니다. 2단계에서 기본 네임스페이스를 `lab-b01`로 바꿨다면 먼저 `kubectl config set-context --current --namespace=default`로 되돌립니다. 다음 실습은 새 네임스페이스를 쓰므로 정리해도 괜찮습니다.
 
 ```bash shell="실습 터미널"
 kubectl delete namespace lab-b01
