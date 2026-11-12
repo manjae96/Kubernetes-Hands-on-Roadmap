@@ -784,7 +784,7 @@ window.hangdoAids = window.hangdoAids || (() => {
 })();
 </script>
 <!-- app-ui:end -->
-<!-- site-head:start v1.2.0 — 실습 항해도 공통 머리 정보 (Hands-On-Roadmap/templates/site-head.html에서 관리, 직접 고치지 말 것) -->
+<!-- site-head:start v1.3.0 — 실습 항해도 공통 머리 정보 (Hands-On-Roadmap/templates/site-head.html에서 관리, 직접 고치지 말 것) -->
 <!-- favicon: 원본은 허브 portal/assets/favicon.svg. 클라우드 허브(Worker)·로컬 게이트웨이·단독 실행(deploy nginx) 모두 사이트 루트에서 로그인 없이 내줌 -->
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -793,15 +793,24 @@ window.hangdoAids = window.hangdoAids || (() => {
 document.addEventListener('submit', e => { if (e.target instanceof HTMLFormElement && e.target.hasAttribute('data-hangdo-nosubmit')) e.preventDefault(); }, true);
 </script>
 <style>
-/* 교보재 그림(SVG, tools/visuals.py가 만듦): 본문 폭에 맞추고, 좁은 화면에서는 읽을 수 있는 크기로 가로 스크롤 */
+/* 교보재 그림은 본문 안에 전부 보인다. 좁은 화면은 생성기의 세로 관계도로 바꾼다. */
 figure.visual { margin: 16px 0 6px; }
-figure.visual .visual-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-figure.visual img { display: block; max-width: 100%; height: auto; border: 1px solid rgba(127, 127, 127, .35); border-radius: 10px; background: #f8fafc; }
+figure.visual .visual-scroll { max-width: 100%; overflow: hidden; }
+figure.visual img { display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid rgba(127, 127, 127, .35); border-radius: 10px; background: #f8fafc; }
 figure.visual figcaption { font-size: .86rem; margin-top: 6px; overflow-wrap: anywhere; }
 figure.visual .visual-links { white-space: nowrap; }
+.visual-flow { display: none; list-style: none; margin: 0; padding: 0; }
+.visual-flow li { margin: 0 0 10px; padding: 10px 12px; border: 1px solid #94a3b8; border-radius: 10px; background: #f8fafc; color: #0f172a; }
+.visual-flow .vf-number { display: inline-block; margin-right: 6px; font-weight: 700; color: #1d4ed8; }
+.visual-flow .vf-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; }
+.visual-flow .vf-node { min-width: 0; overflow-wrap: anywhere; font-weight: 700; color: #0f172a !important; }
+.visual-flow .vf-node small { display: block; margin-top: 3px; font-weight: 400; color: #334155 !important; }
+.visual-flow .vf-arrow { font-weight: 700; color: #1d4ed8; }
+.visual-flow .vf-label { display: block; margin-top: 5px; font-size: .9em; color: #334155 !important; }
+.visual-flow .vf-note { border-style: dashed; background: #fff4e5; }
 details.visual-text { margin: 0 0 16px; }
 details.visual-text > summary { cursor: pointer; font-size: .85rem; }
-@media (max-width: 640px) { figure.visual img { max-width: none; width: max(100%, 560px); } }
+@media (max-width: 640px) { figure.visual:has(.visual-flow li) .visual-scroll { display: none; } figure.visual .visual-flow { display: block; } }
 </style>
 <!-- site-head:end -->
 <!-- progress-scope:start v1.3.0 — 실습 항해도 공통 「진도 영역」 (Hands-On-Roadmap/templates/progress-scope.html에서 관리, 직접 고치지 말 것) -->
@@ -3281,7 +3290,7 @@ html.hd-pad body > footer.hd-foot > div{padding-bottom:max(16px,var(--hd-foot-b,
 })();
 </script>
 <!-- reading-pos:end -->
-<!-- diagram-steps:start v1.0.0 — 실습 항해도 공통 「단계별 그림·그림 크게 보기」 (Hands-On-Roadmap/templates/diagram-steps.html에서 관리, 직접 고치지 말 것) -->
+<!-- diagram-steps:start v1.2.0 — 실습 항해도 공통 「단계별 그림·그림 크게 보기」 (Hands-On-Roadmap/templates/diagram-steps.html에서 관리, 직접 고치지 말 것) -->
 <style>
 /* 단계별 그림: 본문 마크다운의 <figure class="diagram steps"> + 바로 뒤 <details class="visual-text steps-text"><ol><li data-title="…">…</li></ol></details>
    그림 안에서 data-step="1 3"처럼 단계 번호를 단 요소만 그 단계에 강조되고, 나머지 단계 요소는 흐려집니다(번호 없는 요소는 그대로). */
@@ -3305,8 +3314,16 @@ html.hd-pad body > footer.hd-foot > div{padding-bottom:max(16px,var(--hd-foot-b,
 .steps-now pre, .steps-text pre { margin: 0.5em 0 0; max-width: 100%; overflow-x: auto; }   /* 긴 명령은 상자 안에서 가로 스크롤(페이지는 넘치지 않음) */
 .steps-now, .steps-text li { min-width: 0; }
 .steps-text li[aria-current="step"] { outline: 2px solid var(--chart); outline-offset: 4px; border-radius: 2px; }
-@media (max-width: 700px) { .diagram { overflow-x: auto; max-width: 100%; } .diagram svg { min-width: 640px; } .diagram.steps svg { min-width: 600px; } }   /* 좁은 화면: 그림을 덜 줄이고(글자 약 0.85배) 그림 상자 안에서 가로로 스크롤(앱마다 .diagram에 overflow가 없을 수 있어 여기서 보장 — Airgap) */
-.diagram figcaption { position: sticky; left: 0; max-width: calc(100vw - 64px); }
+.diagram { max-width: 100%; overflow: hidden; }
+.diagram > svg { display: block; width: 100%; max-width: 100%; min-width: 0; height: auto; }
+.diagram figcaption { max-width: 100%; }
+/* 파드 생성 흐름은 화살표가 교차하는 좌표 그림 대신 순서가 고정된 세로 경로로 표시한다. */
+.diagram.steps > svg { display: none; }
+.flow-timeline { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 16px; }
+.flow-timeline li { position: relative; padding: 11px 14px; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); color: var(--ink); }
+.flow-timeline li:not(:last-child)::after { content: '↓'; position: absolute; left: 50%; bottom: -19px; color: var(--chart); font-weight: 700; }
+.flow-timeline li.on { border: 2px solid var(--chart); background: var(--paper); }
+.flow-timeline .flow-n { display: inline-block; min-width: 2em; font-weight: 700; color: var(--chart); }
 .dg-zoom-btn { display: inline-flex; align-items: center; min-height: 32px; margin-top: 6px; padding: 0 10px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); color: var(--ink); font: inherit; font-size: 0.85rem; cursor: pointer; position: sticky; left: 0; }
 .dg-zoom-btn:hover { border-color: var(--chart); }
 dialog.dg-zoom { width: min(96vw, 1400px); max-height: 92vh; padding: 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet); color: var(--ink); }
@@ -3333,6 +3350,14 @@ dialog.dg-zoom .dg-body svg { display: block; width: max(100%, 1000px); height: 
     if (!items.length) return;
     const N = items.length, parts = [...fig.querySelectorAll('[data-step]')];
     const name = (fig.querySelector('figcaption') || {}).textContent || '단계별 그림';
+    const timeline = document.createElement('ol'); timeline.className = 'flow-timeline'; timeline.setAttribute('aria-label', '파드 배포 과정 순서');
+    items.forEach((item, j) => {
+      const li = document.createElement('li');
+      const n = document.createElement('span'); n.className = 'flow-n'; n.textContent = (j + 1) + '.';
+      li.append(n, document.createTextNode(item.getAttribute('data-title') || '단계 ' + (j + 1)));
+      timeline.append(li);
+    });
+    fig.querySelector(':scope > svg').after(timeline);
     const ctl = document.createElement('div'); ctl.className = 'steps-ctl'; ctl.setAttribute('role', 'group'); ctl.setAttribute('aria-label', name.trim().slice(0, 60) + ' 단계 이동');
     const mk = (t) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; return b; };
     const prev = mk('◀ 이전'), next = mk('다음 ▶'), pos = document.createElement('span'); pos.className = 'steps-pos'; pos.setAttribute('aria-hidden', 'true');
@@ -3348,6 +3373,7 @@ dialog.dg-zoom .dg-body svg { display: block; width: max(100%, 1000px); height: 
       i = Math.max(0, Math.min(N - 1, k));
       const s = String(i + 1);
       parts.forEach(p => p.classList.toggle('on', p.getAttribute('data-step').split(/\s+/).includes(s)));
+      [...timeline.children].forEach((li, j) => li.classList.toggle('on', j === i));
       items.forEach((li, j) => { if (j === i) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current'); });
       const title = items[i].getAttribute('data-title') || ('단계 ' + s);
       pos.textContent = s + ' / ' + N;
@@ -3358,12 +3384,6 @@ dialog.dg-zoom .dg-body svg { display: block; width: max(100%, 1000px); height: 
       wrap.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
       now.replaceChildren(h, wrap);
       if (announce) live.textContent = N + '단계 중 ' + s + '단계: ' + title;
-      // 좁은 화면에서 그림이 가로로 넘치면, 그림 상자 안에서만(페이지는 그대로) 지금 단계 요소가 보이게 가로 위치를 맞춤
-      if (fig.scrollWidth > fig.clientWidth + 1) {
-        const rs = parts.filter(p => p.classList.contains('on') && p.getAttribute('data-step').split(/\s+/).length < N).map(p => p.getBoundingClientRect()).filter(r => r.width);
-        if (rs.length) { const fr = fig.getBoundingClientRect(), l = Math.min(...rs.map(r => r.left)), r = Math.max(...rs.map(r => r.right));
-          fig.scrollLeft = Math.max(0, fig.scrollLeft + (l + r) / 2 - (fr.left + fr.width / 2)); }
-      }
     }
     prev.addEventListener('click', () => { if (i > 0) show(i - 1, true); });
     next.addEventListener('click', () => { if (i < N - 1) show(i + 1, true); });
@@ -3397,7 +3417,7 @@ dialog.dg-zoom .dg-body svg { display: block; width: max(100%, 1000px); height: 
     });
     (fig.querySelector('figcaption') || svg).after(btn);
   }
-  const scan = () => { document.querySelectorAll('#main figure.diagram.steps').forEach(wire); document.querySelectorAll('#main figure.diagram').forEach(zoom); };
+  const scan = () => { document.querySelectorAll('#main figure.diagram.steps').forEach(wire); document.querySelectorAll('#main figure.diagram:not(.steps)').forEach(zoom); };
   const start = () => { scan(); const m = document.getElementById('main'); if (m) new MutationObserver(scan).observe(m, { childList: true, subtree: true }); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
