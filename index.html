@@ -4,7 +4,7 @@
 <title>쿠버네티스 실습 항해도</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Kubernetes 공식 문서를 근거로 기본·중급·고급 과정을 minikube 실습으로 익히는 한국어 학습 사이트">
-<!-- app-ui:start v2.3.0 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
+<!-- app-ui:start v2.3.1 — 실습 항해도 공통 화면 틀(상단 바·전체 과정 목차·이 페이지 목차·대시보드·공통 토큰) (Hands-On-Roadmap/templates/app-ui.html에서 관리, 직접 고치지 말 것) -->
 <link rel="stylesheet" href="/assets/fonts/pretendard-1.3.9/pretendard.css">
 <script type="application/json" id="hangdo-app">{"id":"k8s","key":"k8s-hangdo-v1","title":"쿠버네티스","prereq":[{"id":"docker","title":"도커"}],"related":[{"id":"pv","title":"PV·PVC"},{"id":"cni","title":"CNI"},{"id":"ingress","title":"Ingress"},{"id":"helm","title":"헬름"}]}</script>
 <style>
@@ -48,13 +48,15 @@ html.hs[data-theme="dark"] {
   --lv-prep: #22a3c0; --lv-basic: #6b9cf5; --lv-intermediate: #e0a84a; --lv-advanced: #a98cf5; --shadow: 0 8px 30px rgba(0, 0, 0, .5);
   color-scheme: dark;
 }
-html.hs { scroll-padding-top: calc(var(--header-h) + 16px); }   /* 제목으로 이동할 때 고정 머리말 아래로 */
+html.hs { scroll-padding-top: 0; }   /* 각 앱 CSS의 html { scroll-padding-top } 무효화 — 아래 줄 설명 */
+html.hs #main, html.hs #main * { scroll-margin-top: calc(var(--header-h) + 16px); }   /* 제목으로 이동·본문 초점 이동 때 고정 머리말 아래로. 문서 전체 scroll-padding은 머리말 안 선택 상자에 초점만 줘도 화면을 끌어올려서 쓰지 않음 */
 html.hs body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.7 var(--font); word-break: keep-all; overflow-wrap: anywhere; }
 html.hs :is(code, pre, kbd, samp) { font-family: var(--mono); }
 html.hs :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 html.hs a { color: var(--primary); text-underline-offset: 2px; }
 :is(html.hs, html.hs-ag) .hs-skip { position: fixed; left: 12px; top: -60px; z-index: 100; padding: 8px 14px; border-radius: var(--radius); background: var(--primary); color: var(--on-primary); font-weight: 700; text-decoration: none; }
 :is(html.hs, html.hs-ag) .hs-skip:focus { top: calc(8px + env(safe-area-inset-top, 0px)); }
+html.hs .hs-nt { margin-left: 2px; font-size: .85em; text-decoration: none; display: inline-block; }   /* 새 탭 링크 표시 ↗ (2.3.1) */
 html.hs .hs-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 html.hs .hs-m { color: var(--muted); font-size: 13.5px; }
 
@@ -212,8 +214,8 @@ html.hs .hs-toc a[aria-current] { color: var(--ink); border-left-color: var(--pr
 /* ---------- 본문 구성 요소 (망분리 항해도와 같은 모양) */
 html.hs #main :is(h1, h2, h3, h4) { font-family: var(--font); color: var(--ink); }
 html.hs #main h1 { font-size: 30px; line-height: 1.3; letter-spacing: -0.02em; font-weight: 700; margin: 6px 0 14px; }
-html.hs #main h2 { font-size: 22px; line-height: 1.4; letter-spacing: -0.01em; font-weight: 700; scroll-margin-top: 0; }
-html.hs #main h3 { font-size: 18px; line-height: 1.45; font-weight: 700; scroll-margin-top: 0; }
+html.hs #main h2 { font-size: 22px; line-height: 1.4; letter-spacing: -0.01em; font-weight: 700; }
+html.hs #main h3 { font-size: 18px; line-height: 1.45; font-weight: 700; }
 html.hs #main .prose h2 { margin: 44px 0 12px; padding-top: 8px; border-top: 0; }
 html.hs #main .prose h2:first-child { margin-top: 0; }
 html.hs #main .prose h3 { margin: 30px 0 8px; }
@@ -765,6 +767,20 @@ window.hangdoAids = window.hangdoAids || (() => {
     else if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
     else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
   });
+  // 새 탭 링크(target=_blank, 앱·템플릿·본문 마크다운 어디서 만들었든): rel에 noopener·noreferrer를 보장하고 새 탭에서 열린다는 것을 알림
+  // (눈에 보이는 ↗ + 화면 읽기 도구용 「새 탭에서 열림」). 링크 글이나 aria-label에 이미 「새 탭」이 있으면 안내는 덧붙이지 않음 (2.3.1)
+  const newTab = a => {
+    if (a.dataset.nt) return; a.dataset.nt = '1';
+    const rel = new Set((a.getAttribute('rel') || '').split(/\s+/).filter(Boolean)); rel.add('noopener'); rel.add('noreferrer'); a.setAttribute('rel', [...rel].join(' '));
+    const al = a.getAttribute('aria-label');
+    if (/새 탭/.test(al || a.textContent)) return;
+    if (al) a.setAttribute('aria-label', al + ' (새 탭에서 열림)');
+    else { const t = document.createElement('span'); t.className = 'hs-sr'; t.textContent = ' (새 탭에서 열림)'; a.appendChild(t); }
+    if (!/↗/.test(a.textContent)) { const i = document.createElement('span'); i.className = 'hs-nt'; i.setAttribute('aria-hidden', 'true'); i.textContent = '↗'; a.appendChild(i); }
+  };
+  const scanNewTab = r => { if (r.matches && r.matches('a[target="_blank"]')) newTab(r); if (r.querySelectorAll) r.querySelectorAll('a[target="_blank"]').forEach(newTab); };
+  const watchNewTab = () => { scanNewTab(document.body); new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => n.nodeType === 1 && scanNewTab(n)))).observe(document.body, { childList: true, subtree: true }); };
+  if (document.body) watchNewTab(); else document.addEventListener('DOMContentLoaded', watchNewTab);
 })();
 </script>
 <!-- app-ui:end -->
@@ -2165,7 +2181,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 })();
 </script>
 <!-- deep-drawer:end -->
-<!-- hub-search:start v1.3.2 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
+<!-- hub-search:start v1.4.0 — 실습 항해도 공통 「통합 검색 ⌘K」 (Hands-On-Roadmap/templates/hub-search.html에서 관리, 직접 고치지 말 것) -->
 <style>
 .hs-open { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule, #d3dce4); background: var(--paper, #f2f5f7); color: var(--muted, #566778);
   border-radius: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: .85rem; cursor: pointer; white-space: nowrap; }
@@ -2179,8 +2195,13 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 .hs-input { border: 0; border-bottom: 1px solid var(--rule, #d3dce4); padding: 16px 18px; font: inherit; font-size: 1.05rem; background: transparent; color: inherit; outline: none; }
 .hs-status { padding: 6px 18px; font-size: .78rem; color: var(--muted, #566778); border-bottom: 1px solid var(--rule, #d3dce4); }
 .hs-list { list-style: none; margin: 0; padding: 6px; overflow: auto; }
-.hs-item a { display: block; padding: 9px 12px; border-radius: 6px; text-decoration: none; color: inherit; }
-.hs-item[aria-selected="true"] a, .hs-item a:hover { background: var(--chart-soft, #e3ecf8); }
+.hs-item { display: flex; align-items: stretch; gap: 4px; }
+.hs-item a { text-decoration: none; color: inherit; border-radius: 6px; }
+.hs-item a.hs-main { display: block; flex: 1; min-width: 0; padding: 9px 12px; }
+.hs-item a.hs-new { flex-shrink: 0; display: inline-flex; align-items: center; padding: 0 10px; font-size: .78rem; color: var(--muted, #566778); border: 1px solid transparent; white-space: nowrap; }
+.hs-item.cur a.hs-main, .hs-item a:hover, .hs-item a:focus-visible { background: var(--chart-soft, #e3ecf8); }
+.hs-item a:focus-visible { outline: 2px solid var(--chart, #1d5bb8); outline-offset: -2px; }
+.hs-item a.hs-new:hover, .hs-item a.hs-new:focus-visible { color: var(--ink, #142231); border-color: var(--rule, #d3dce4); }
 .hs-row { display: flex; align-items: center; gap: 8px; }
 .hs-kind { font-size: .7rem; padding: 1px 7px; border-radius: 999px; white-space: nowrap; background: var(--paper, #f2f5f7); border: 1px solid var(--rule, #d3dce4); }
 .hs-kind.deep { background: var(--ok-soft, #e4f2e7); border-color: transparent; }
@@ -2195,9 +2216,9 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 <div class="hs-backdrop" id="hsBackdrop" hidden>
   <div class="hs-panel" role="dialog" aria-modal="true" aria-label="실습 항해도 통합 검색">
     <input class="hs-input" id="hsInput" type="search" placeholder="항해도 · 과정 · 용어 · 심화 노트 검색" autocomplete="off" aria-controls="hsList">
-    <div class="hs-status" id="hsStatus"></div>
-    <ul class="hs-list" id="hsList" role="listbox"></ul>
-    <div class="hs-foot">↑↓ 이동 · Enter 열기 · Esc 닫기</div>
+    <div class="hs-status" id="hsStatus" role="status" aria-live="polite"></div>
+    <ul class="hs-list" id="hsList" aria-label="검색 결과"></ul>
+    <div class="hs-foot" id="hsFoot">↑↓ 결과 이동 · Enter 지금 탭에서 열기 · → 「새 탭」 · <span id="hsNewKey">Ctrl+Enter</span> 새 탭에서 열기 · Esc 닫기</div>
   </div>
 </div>
 <script>
@@ -2208,6 +2229,7 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const getJSON = u => fetch(u, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
   const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  if (isMac) { const k = document.getElementById('hsNewKey'); if (k) k.textContent = '⌘+Enter'; }
   const EXAMPLES = ['etcd', '롤백', 'PromQL', '프로브', 'StorageClass', '사이드카', '부하'];
   let REG = null, DOCS = null, building = null, down = [], sel = 0, results = [], lastFocus = null;
 
@@ -2326,19 +2348,25 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
     }
     results = DOCS ? search(q) : [];
     sel = 0;
-    list.innerHTML = results.length ? results.map((d, i) => `<li class="hs-item" role="option" id="hs-${i}" aria-selected="${i === 0}">
-        <a href="${esc(d.href)}"><div class="hs-row"><span class="hs-kind ${d.kind === '심화 노트' ? 'deep' : ''}">${esc(d.kind)}</span>
+    if (DOCS) status.textContent = `결과 ${results.length}개` + (results.length === 40 ? '(상위 40개만 표시)' : '') + ' · ' + status.textContent;
+    // 결과마다 실제 링크 두 개: 지금 탭(기존 동작, 검색창을 닫고 이동)과 새 탭(target=_blank — 원래 탭의 과정·스크롤은 그대로, 검색창도 열린 채)
+    list.innerHTML = results.length ? results.map((d, i) => `<li class="hs-item${i === 0 ? ' cur' : ''}" id="hs-${i}">
+        <a class="hs-main" href="${esc(d.href)}"><div class="hs-row"><span class="hs-kind ${d.kind === '심화 노트' ? 'deep' : ''}">${esc(d.kind)}</span>
         <span class="hs-title">${mark(d.title, toks)}</span><span class="hs-where">${esc(d.where)}</span></div>
-        ${d.text ? `<div class="hs-snip">${mark(snippet(d.text, toks), toks)}</div>` : ''}</a></li>`).join('')
+        ${d.text ? `<div class="hs-snip">${mark(snippet(d.text, toks), toks)}</div>` : ''}</a>
+        <a class="hs-new" href="${esc(d.href)}" target="_blank" rel="noopener noreferrer" aria-label="새 탭에서 열기: ${esc(d.title)} (${esc(d.where)})">새 탭 ↗</a></li>`).join('')
       : `<li class="hs-empty">「${esc(q)}」에 맞는 결과가 없어요.</li>`;
   }
-  function move(n) {
+  // 키보드: 검색창에서 ↓ → 첫 결과 링크로 실제 초점 이동. 결과에서 ↑↓ 다음·이전 결과, → 그 결과의 「새 탭」, ← 다시 본문 링크, 첫 결과에서 ↑ → 검색창
+  function focusRow(i, which = 'hs-main') {
     if (!results.length) return;
-    list.querySelector(`#hs-${sel}`)?.setAttribute('aria-selected', 'false');
-    sel = (sel + n + results.length) % results.length;
-    const li = list.querySelector(`#hs-${sel}`); li.setAttribute('aria-selected', 'true'); li.scrollIntoView({ block: 'nearest' });
-    input.setAttribute('aria-activedescendant', `hs-${sel}`);
+    if (i < 0) { input.focus(); return; }
+    sel = Math.min(i, results.length - 1);
+    list.querySelectorAll('.hs-item.cur').forEach(li => li.classList.remove('cur'));
+    const li = list.querySelector(`#hs-${sel}`); li.classList.add('cur');
+    const a = li.querySelector('a.' + which); a.focus(); li.scrollIntoView({ block: 'nearest' });
   }
+  const newTab = i => list.querySelector(`#hs-${i} a.hs-new`)?.click();   // 실제 target=_blank 링크를 누름(사용자 동작 안에서)
   function go(href) { close(); if (href) location.href = href; }
 
   async function open() {
@@ -2349,13 +2377,25 @@ a.term.has-deep::after { content: "🔎"; font-size: .7em; margin-left: 2px; ver
 
   input.addEventListener('input', render);
   input.addEventListener('keydown', e => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
-    else if (e.key === 'Enter' && results[sel]) { e.preventDefault(); go(results[sel].href); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); focusRow(0); }
+    else if (e.key === 'Enter' && results[0] && (e.ctrlKey || e.metaKey)) { e.preventDefault(); newTab(0); }
+    else if (e.key === 'Enter' && results[0]) { e.preventDefault(); go(results[0].href); }
+  });
+  list.addEventListener('keydown', e => {
+    const a = e.target.closest('.hs-item a'); if (!a) return;
+    const i = Number(a.closest('.hs-item').id.slice(3));
+    if (e.key === 'ArrowDown') { e.preventDefault(); focusRow(i + 1 < results.length ? i + 1 : i); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); focusRow(i - 1); }
+    else if (e.key === 'ArrowRight' && a.classList.contains('hs-main')) { e.preventDefault(); focusRow(i, 'hs-new'); }
+    else if (e.key === 'ArrowLeft' && a.classList.contains('hs-new')) { e.preventDefault(); focusRow(i); }
+    else if (e.key === 'Enter' && a.classList.contains('hs-main') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); newTab(i); }
+    else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) input.focus();   // 결과에서 글자를 치면 검색창으로
   });
   list.addEventListener('click', e => {
     const b = e.target.closest('button[data-q]'); if (b) { input.value = b.dataset.q; input.focus(); render(); return; }
-    const a = e.target.closest('a'); if (a) { e.preventDefault(); go(a.getAttribute('href')); }
+    const a = e.target.closest('a'); if (!a || a.classList.contains('hs-new')) return;   // 「새 탭」은 브라우저 기본 동작(target=_blank)
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;              // ⌘·Ctrl·Shift+클릭도 브라우저 기본(새 탭·새 창)
+    e.preventDefault(); go(a.getAttribute('href'));
   });
   backdrop.addEventListener('mousedown', e => { if (e.target === backdrop) close(); });
 
@@ -3099,3 +3139,267 @@ html.hd-pad body > footer.hd-foot > div{padding-bottom:max(16px,var(--hd-foot-b,
 })();
 </script>
 <!-- env-start:end -->
+<!-- reading-pos:start v1.0.0 — 실습 항해도 공통 「읽던 위치 유지」 (Hands-On-Roadmap/templates/reading-pos.html에서 관리, 직접 고치지 말 것) -->
+<script>
+/* 읽던 위치 유지: 앱은 화면을 다시 그릴 때마다 맨 위로 올리고(focusMain·setPage의 scrollTo(0, 0)) 초점을 본문으로 옮깁니다.
+   그래서 같은 화면의 설정(버전 등)을 바꾸거나, 다른 화면에 갔다가 뒤로 가기로 돌아오면 읽던 곳을 잃었습니다. 앱 코드는 그대로 두고 여기서 되돌립니다.
+   - 상단 설정(본문 밖 <select>)을 바꿨는데 같은 화면을 다시 그리면: 읽던 문단(가까운 제목 + 그 뒤 몇 번째 문단, 화면 위에서의 거리)으로 되돌리고 초점은 그 선택 상자에 둡니다.
+     내용이 바뀌어 그 문단이 없으면 같은 제목, 그것도 없으면 문서 안 비율로 되돌립니다.
+   - 학습 수준·트랙을 바꾸면 앱이 그 수준의 과정 안내로 화면을 바꿉니다. 이때도 맨 위로 올리지 않고 화면 위치(scrollY, 새 문서 길이 안으로)와 선택 상자 초점을 그대로 둡니다.
+     일부러 새 과정을 연 것(링크·목차·검색)과 다르게, 설정을 바꾼 것이라 읽던 자리에서 새 내용이 보이게 합니다. 무엇이 바뀌었는지는 화면 읽기 도구에 알립니다.
+   - 방문 기록(뒤로·앞으로, 다른 페이지에서 돌아와 다시 열림): 그 기록 항목에서 마지막으로 읽던 곳으로 되돌립니다.
+     새로고침은 되돌리지 않고 맨 위(v1.38.0과 같음): 문서를 처음부터 다시 그리는 동안 따라 맞추면 보이는 글이 계속 밀려 화면 이동(CLS)이 커짐.
+     링크·목차·검색으로 새 화면을 열면(새 기록 항목) 지금처럼 맨 위에서 시작합니다.
+   - 기억하는 곳: sessionStorage(hangdo-pos:v1) — 이 탭에서만, 최근 60개 화면. 문단 글 자체는 저장하지 않고 짧은 해시만 둡니다.
+   - 되돌린 뒤 그림·글꼴이 늦게 들어와 밀리면 2.5초 동안 따라 맞춥니다. 그 사이 사용자가 스크롤·키·클릭을 하면 바로 멈춥니다. */
+(() => {
+  const KEY = 'hangdo-pos:v1', MAX = 60, SETTLE = 2500, BLOCKS = 'h1,h2,h3,h4,p,li,pre,table,blockquote,figure,details,dl,.callout,.banner';
+  const main = () => document.getElementById('main');
+  const route = () => location.pathname + location.hash;
+  const read = () => { try { return JSON.parse(sessionStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
+  const write = o => { try { const ks = Object.keys(o); ks.slice(0, Math.max(0, ks.length - MAX)).forEach(k => delete o[k]); sessionStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} };
+  const hash = s => { let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+  const sig = el => hash(el.tagName + (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 80));
+  const blocks = () => { const m = main(); return m ? [...m.querySelectorAll(BLOCKS)].filter(e => e.getClientRects().length && !e.closest('[hidden],#hangdo-lab')) : []; };
+  const isHead = e => /^H[1-4]$/.test(e.tagName);
+  try { history.scrollRestoration = 'manual'; } catch (e) {}
+
+  // 지금 읽는 곳: 화면 맨 위 근처에 걸친 첫 블록 + 그 앞 가장 가까운 제목
+  function capture() {
+    const y = window.scrollY, max = document.documentElement.scrollHeight - innerHeight;
+    if (y < 4) return { top: 1, r: route() };
+    const list = blocks(), edge = Math.min(120, innerHeight * 0.15); let i = list.findIndex(e => e.getBoundingClientRect().bottom > edge);   // 거의 다 지나간 블록 말고 실제로 보이는 첫 블록
+    if (i < 0) return { ratio: max > 0 ? y / max : 0, r: route() };
+    let h = -1; for (let j = i; j >= 0; j--) if (isHead(list[j])) { h = j; break; }
+    const el = list[i], head = h >= 0 ? list[h] : null;
+    return { r: route(), ratio: max > 0 ? y / max : 0, off: Math.round(el.getBoundingClientRect().top), sig: sig(el), n: i - (h >= 0 ? h : -1),
+      hid: head ? head.id || '' : '', hsig: head ? sig(head) : '', hoff: head ? Math.round(head.getBoundingClientRect().top) : 0 };
+  }
+  // 저장한 곳의 문서 y 좌표(못 찾으면 null)
+  function target(a) {
+    if (!a) return null;
+    if (a.top) return 0;
+    const list = blocks(), max = document.documentElement.scrollHeight - innerHeight;
+    let h = -1;
+    if (a.hid || a.hsig) h = list.findIndex(e => isHead(e) && ((a.hid && e.id === a.hid) || sig(e) === a.hsig));
+    const from = h >= 0 ? h : (a.hid || a.hsig ? -2 : -1);
+    if (from > -2) {
+      let next = list.length; for (let j = from + 1; j < list.length; j++) if (isHead(list[j])) { next = j; break; }
+      const exact = list[from + a.n];
+      const el = exact && sig(exact) === a.sig ? exact : list.slice(from + 1, next).find(e => sig(e) === a.sig);
+      if (el) return el.getBoundingClientRect().top + window.scrollY - a.off;
+      if (h >= 0) return list[h].getBoundingClientRect().top + window.scrollY - a.hoff;
+    }
+    return a.ratio != null && max > 0 ? Math.round(a.ratio * max) : null;
+  }
+
+  // 되돌리기: 본문이 다시 그려지기 시작하면 SETTLE 동안 매 프레임 위치를 맞춤(공통 틀이 class·속성만 바꿔 높이가 달라지는 경우까지).
+  // 사용자가 스크롤·키·클릭·터치를 하면 바로 멈춤
+  let job = null;
+  const INPUTS = ['wheel', 'touchstart', 'keydown', 'mousedown'];
+  const stop = () => { if (!job) return; const done = job; job.mo.disconnect(); clearTimeout(job.t); cancelAnimationFrame(job.raf); INPUTS.forEach(t => removeEventListener(t, stop, true)); job = null;
+    if ((done.to || done.r) === route()) saveNow(); };   // 맞추는 동안은 저장하지 않으므로, 끝난 자리를 이 기록 항목의 읽던 곳으로 남김(앞으로·뒤로 가기에 씀)
+  function restore(anchor, focusEl, sameRoute, keepY) {
+    stop();
+    const m = main(); if (!m) return;
+    const j = job = { mo: new MutationObserver(() => begin()), t: 0, raf: 0, until: 0, r: keepY != null ? null : route(), to: null };
+    function apply() {
+      if (job !== j) return;
+      let y = null;
+      if (keepY != null) {   // 수준·트랙이 연 화면(첫 화면 전환)에만 적용 — 그 뒤 다른 화면으로 가면(뒤로 등) 멈춤
+        if (j.to == null && route() !== sameRoute) j.to = route();   // 그 화면의 기록 항목에 끝난 자리를 저장
+        if (j.to != null && route() !== j.to) { stop(); return; }
+      }
+      if (keepY != null) y = Math.min(keepY, Math.max(0, document.documentElement.scrollHeight - innerHeight));   // 수준·트랙: 같은 높이에 머묾
+      else if (sameRoute != null && route() !== sameRoute) anchor = null;   // 다른 설정이 다른 화면으로 보냈으면 위치는 새 화면 그대로
+      else if (anchor && anchor.r === route()) y = target(anchor);
+      if (y != null && Math.abs(window.scrollY - y) > 2) window.scrollTo({ top: Math.max(0, y), behavior: 'instant' });
+      if (focusEl && focusEl.isConnected && !focusEl.disabled && document.activeElement !== focusEl && (document.activeElement === m || document.activeElement === document.body)) focusEl.focus({ preventScroll: true });
+      if (performance.now() < j.until) j.raf = requestAnimationFrame(apply); else stop();
+    }
+    function begin() {
+      if (job !== j || j.until) return;
+      j.until = performance.now() + SETTLE; INPUTS.forEach(t => addEventListener(t, stop, true));
+      j.raf = requestAnimationFrame(apply);
+    }
+    j.mo.observe(m, { childList: true, subtree: true });
+    j.t = setTimeout(stop, SETTLE * 2);   // 다시 그리지 않으면 그냥 끝
+  }
+
+  // 방문 기록 항목마다 열쇠를 붙여 둠(새 항목 = 열쇠 없음)
+  const stamp = () => { const k = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); try { history.replaceState(Object.assign({}, history.state, { hdPos: k }), ''); } catch (e) {} return k; };
+  let cur = (history.state && history.state.hdPos) || null;
+  const nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0] || {}).type;
+  if (cur && nav === 'back_forward') { const a = read()[cur]; if (a && a.r === route()) restore(a, null, null); }
+  if (!cur) cur = stamp();
+
+  // 스크롤할 때마다(최대 0.1초에 한 번 + 멈춘 뒤 한 번) 이 항목의 읽던 곳을 저장
+  let last = 0, trail = 0;
+  const save = (k, r) => { if (k !== cur || r !== route() || job) return; const o = read(); delete o[k]; o[k] = capture(); write(o); };
+  function saveNow() { if (cur) save(cur, route()); }
+  addEventListener('scroll', () => {
+    const k = cur, r = route(), now = Date.now();
+    if (now - last > 100) { last = now; save(k, r); }
+    clearTimeout(trail); trail = setTimeout(() => save(k, r), 150);
+  }, { passive: true });
+
+  addEventListener('hashchange', () => {
+    clearTimeout(trail);
+    const k = history.state && history.state.hdPos;
+    if (k) { cur = k; const a = read()[k]; if (a && a.r === route()) restore(a, null, null); }   // 뒤로·앞으로
+    else cur = stamp();                                                                        // 새 화면
+  });
+  addEventListener('pageshow', e => { if (e.persisted) cur = (history.state && history.state.hdPos) || stamp(); });
+
+  // 상단 설정 바꾸기: 바꾸기 직전 읽던 곳을 잡아 두고, 다시 그린 뒤 되돌림
+  document.addEventListener('change', e => {
+    const s = e.target;
+    if (!(s instanceof HTMLSelectElement) || !main() || main().contains(s) || s.closest('dialog,[role="dialog"]')) return;
+    const keep = s.id === 'levelSel' || s.id === 'trackSel';
+    restore(keep ? null : capture(), s, route(), keep ? window.scrollY : null);
+    if (keep) { const from = route(), opt = s.options[s.selectedIndex], t = opt ? opt.textContent.trim() : '';
+      setTimeout(() => { if (route() !== from) say((s.id === 'levelSel' ? '학습 수준 ' : '트랙 ') + t + '의 과정 안내를 지금 위치에서 보여 줍니다.'); }, 400); }
+  }, true);
+  // 화면 읽기 도구 알림(보이지 않는 role=status 하나)
+  let live = null;
+  const say = t => { if (!live) { live = document.createElement('p'); live.setAttribute('role', 'status'); live.className = 'sr-only';
+      Object.assign(live.style, { position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' }); document.body.appendChild(live); }
+    live.textContent = ''; setTimeout(() => { live.textContent = t; }, 50); };
+
+  // 선택 상자에 미리 알리기(바꾸면 무엇이 일어나는지)
+  const describe = (id, text) => {
+    const s = document.getElementById(id); if (!s || s.getAttribute('aria-describedby')) return;
+    const d = document.createElement('span'); d.id = id + '-hint'; d.hidden = true; d.textContent = text;
+    s.after(d); s.setAttribute('aria-describedby', d.id);
+  };
+  const hints = () => {
+    describe('levelSel', '바꾸면 그 수준의 과정 안내를 보여 줍니다. 화면 위치와 초점은 그대로이고, 뒤로 가기로 이전 화면에 돌아옵니다.');
+    describe('trackSel', '바꾸면 그 트랙의 과정 안내를 보여 줍니다. 화면 위치와 초점은 그대로이고, 뒤로 가기로 이전 화면에 돌아옵니다.');
+    describe('verSel', '바꾸면 지금 화면을 그 버전 기준으로 다시 보여 주고, 읽던 위치는 그대로 둡니다.');
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hints); else hints();
+})();
+</script>
+<!-- reading-pos:end -->
+<!-- diagram-steps:start v1.0.0 — 실습 항해도 공통 「단계별 그림·그림 크게 보기」 (Hands-On-Roadmap/templates/diagram-steps.html에서 관리, 직접 고치지 말 것) -->
+<style>
+/* 단계별 그림: 본문 마크다운의 <figure class="diagram steps"> + 바로 뒤 <details class="visual-text steps-text"><ol><li data-title="…">…</li></ol></details>
+   그림 안에서 data-step="1 3"처럼 단계 번호를 단 요소만 그 단계에 강조되고, 나머지 단계 요소는 흐려집니다(번호 없는 요소는 그대로). */
+.diagram.steps text { font-size: 14px; }
+.diagram.steps text.small { font-size: 12.5px; }
+.diagram.steps text.mono { font-size: 12.5px; }
+.diagram.steps.stepping [data-step] { transition: opacity .15s; }
+.diagram.steps.stepping [data-step]:not(.on) { opacity: .22; }
+.diagram.steps.stepping .on .box, .diagram.steps.stepping .box.on { stroke: var(--chart); stroke-width: 3; }
+.diagram.steps.stepping .on .line, .diagram.steps.stepping .line.on { stroke-width: 3; }
+.diagram.steps .num { fill: var(--chart); }
+.diagram.steps .num-t { fill: var(--sheet); font-size: 12px; font-weight: 700; }
+.steps-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -0.4em 0 0.6em; }
+.steps-ctl button { min-height: 40px; min-width: 64px; padding: 0 14px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet); color: var(--ink); font: inherit; cursor: pointer; }
+.steps-ctl button:hover { border-color: var(--chart); }
+.steps-ctl button[aria-disabled="true"] { opacity: .45; cursor: default; }
+.steps-ctl .steps-pos { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.9rem; }
+.steps-now { margin: 0 0 1.2em; padding: 12px 14px; border: 1px solid var(--rule); border-left: 4px solid var(--chart); border-radius: var(--radius); background: var(--sheet); }
+.steps-now h4 { margin: 0 0 6px; font-size: 1rem; }
+.steps-now p { margin: 0.4em 0; }
+.steps-now pre, .steps-text pre { margin: 0.5em 0 0; max-width: 100%; overflow-x: auto; }   /* 긴 명령은 상자 안에서 가로 스크롤(페이지는 넘치지 않음) */
+.steps-now, .steps-text li { min-width: 0; }
+.steps-text li[aria-current="step"] { outline: 2px solid var(--chart); outline-offset: 4px; border-radius: 2px; }
+@media (max-width: 700px) { .diagram { overflow-x: auto; max-width: 100%; } .diagram svg { min-width: 640px; } .diagram.steps svg { min-width: 600px; } }   /* 좁은 화면: 그림을 덜 줄이고(글자 약 0.85배) 그림 상자 안에서 가로로 스크롤(앱마다 .diagram에 overflow가 없을 수 있어 여기서 보장 — Airgap) */
+.diagram figcaption { position: sticky; left: 0; max-width: calc(100vw - 64px); }
+.dg-zoom-btn { display: inline-flex; align-items: center; min-height: 32px; margin-top: 6px; padding: 0 10px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); color: var(--ink); font: inherit; font-size: 0.85rem; cursor: pointer; position: sticky; left: 0; }
+.dg-zoom-btn:hover { border-color: var(--chart); }
+dialog.dg-zoom { width: min(96vw, 1400px); max-height: 92vh; padding: 0; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sheet); color: var(--ink); }
+dialog.dg-zoom::backdrop { background: rgba(0,0,0,.55); }
+dialog.dg-zoom .dg-head { display: flex; align-items: center; gap: 12px; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--sheet); }
+dialog.dg-zoom .dg-head h2 { margin: 0; font-size: 1rem; }
+dialog.dg-zoom .dg-head button { flex-shrink: 0; white-space: nowrap; min-height: 40px; padding: 0 14px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); color: var(--ink); font: inherit; cursor: pointer; }
+dialog.dg-zoom .dg-body { overflow: auto; max-height: calc(92vh - 64px); padding: 12px; }
+dialog.dg-zoom .dg-body svg { display: block; width: max(100%, 1000px); height: auto; }
+
+@media (prefers-reduced-motion: reduce) { .diagram.steps.stepping [data-step] { transition: none; } }
+</style>
+<script>
+/* 단계별 그림 조작: 「이전」「다음」 단추(자동 재생 없음). 현재 단계는 그림 강조 + 그림 아래 「지금 단계」 상자(설명·명령) + 화면 읽기 도구 안내(role=status).
+   - 키보드: 단추는 Tab·Enter·Space, 단추에 초점이 있을 때 ←·→도 이전·다음. 처음·마지막에서는 단추를 끄지 않고 aria-disabled로 알려 초점을 잃지 않게 함.
+   - 글 목록(details 안 ol)은 그대로 두어 그림 없이도 모든 단계를 읽을 수 있음. 지금 단계 항목에 aria-current="step".
+   - 본문이 다시 그려질 때마다(과정 이동) 새로 붙음. 화면 글은 textContent·DOM 복제로만 넣음(innerHTML 없음). */
+(() => {
+  const ready = new WeakSet();
+  function wire(fig) {
+    if (ready.has(fig)) return; ready.add(fig);
+    const box = fig.nextElementSibling && fig.nextElementSibling.matches('details.steps-text') ? fig.nextElementSibling : null;
+    const items = box ? [...box.querySelectorAll('ol > li')] : [];
+    if (!items.length) return;
+    const N = items.length, parts = [...fig.querySelectorAll('[data-step]')];
+    const name = (fig.querySelector('figcaption') || {}).textContent || '단계별 그림';
+    const ctl = document.createElement('div'); ctl.className = 'steps-ctl'; ctl.setAttribute('role', 'group'); ctl.setAttribute('aria-label', name.trim().slice(0, 60) + ' 단계 이동');
+    const mk = (t) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; return b; };
+    const prev = mk('◀ 이전'), next = mk('다음 ▶'), pos = document.createElement('span'); pos.className = 'steps-pos'; pos.setAttribute('aria-hidden', 'true');
+    prev.setAttribute('aria-label', '이전 단계'); next.setAttribute('aria-label', '다음 단계');
+    ctl.append(prev, pos, next);
+    const now = document.createElement('section'); now.className = 'steps-now'; now.setAttribute('aria-label', '지금 단계 설명');
+    const live = document.createElement('p'); live.className = 'sr-only'; live.setAttribute('role', 'status');
+    live.hidden = false; Object.assign(live.style, { position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' });
+    fig.after(ctl); ctl.after(now); now.after(live);
+    fig.classList.add('stepping');
+    let i = 0;
+    function show(k, announce) {
+      i = Math.max(0, Math.min(N - 1, k));
+      const s = String(i + 1);
+      parts.forEach(p => p.classList.toggle('on', p.getAttribute('data-step').split(/\s+/).includes(s)));
+      items.forEach((li, j) => { if (j === i) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current'); });
+      const title = items[i].getAttribute('data-title') || ('단계 ' + s);
+      pos.textContent = s + ' / ' + N;
+      prev.setAttribute('aria-disabled', String(i === 0)); next.setAttribute('aria-disabled', String(i === N - 1));
+      const h = document.createElement('h4'); h.textContent = s + '단계. ' + title;
+      const body = items[i].cloneNode(true); body.removeAttribute('data-title'); body.removeAttribute('aria-current');
+      const wrap = document.createElement('div'); while (body.firstChild) wrap.appendChild(body.firstChild);
+      wrap.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+      now.replaceChildren(h, wrap);
+      if (announce) live.textContent = N + '단계 중 ' + s + '단계: ' + title;
+      // 좁은 화면에서 그림이 가로로 넘치면, 그림 상자 안에서만(페이지는 그대로) 지금 단계 요소가 보이게 가로 위치를 맞춤
+      if (fig.scrollWidth > fig.clientWidth + 1) {
+        const rs = parts.filter(p => p.classList.contains('on') && p.getAttribute('data-step').split(/\s+/).length < N).map(p => p.getBoundingClientRect()).filter(r => r.width);
+        if (rs.length) { const fr = fig.getBoundingClientRect(), l = Math.min(...rs.map(r => r.left)), r = Math.max(...rs.map(r => r.right));
+          fig.scrollLeft = Math.max(0, fig.scrollLeft + (l + r) / 2 - (fr.left + fr.width / 2)); }
+      }
+    }
+    prev.addEventListener('click', () => { if (i > 0) show(i - 1, true); });
+    next.addEventListener('click', () => { if (i < N - 1) show(i + 1, true); });
+    ctl.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); show(i - 1, true); }
+      if (e.key === 'ArrowRight' && i < N - 1) { e.preventDefault(); show(i + 1, true); }
+    });
+    show(0, false);
+  }
+  // 본문 안 인라인 그림(figure.diagram > svg)마다 「크게 보기」: 같은 그림을 대화 상자에 넓게(최소 1000px) 복제해 보여 줌. Esc·「닫기」로 닫고 초점은 단추로 돌아감
+  const zoomed = new WeakSet();
+  function zoom(fig) {
+    if (zoomed.has(fig)) return; zoomed.add(fig);
+    const svg = fig.querySelector(':scope > svg'); if (!svg) return;
+    const label = ((fig.querySelector('figcaption') || {}).textContent || svg.getAttribute('aria-label') || '그림').trim();
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'dg-zoom-btn'; btn.textContent = '그림 크게 보기';
+    btn.setAttribute('aria-haspopup', 'dialog'); btn.setAttribute('aria-label', '그림 크게 보기: ' + label.slice(0, 80));
+    btn.addEventListener('click', () => {
+      const d = document.createElement('dialog'); d.className = 'dg-zoom'; d.setAttribute('aria-label', label.slice(0, 120));
+      const head = document.createElement('div'); head.className = 'dg-head';
+      const h = document.createElement('h2'); h.textContent = label.slice(0, 120);
+      const x = document.createElement('button'); x.type = 'button'; x.textContent = '닫기';
+      const body = document.createElement('div'); body.className = 'dg-body';
+      const c = svg.cloneNode(true); c.querySelectorAll('[id]').forEach(e => { if (e.tagName.toLowerCase() !== 'marker') e.removeAttribute('id'); });
+      [...fig.classList].forEach(k => k !== 'diagram' && k !== 'stepping' && body.classList.add(k)); body.classList.add('diagram');
+      body.appendChild(c); head.append(h, x); d.append(head, body); document.body.appendChild(d);
+      x.addEventListener('click', () => d.close());
+      d.addEventListener('close', () => { d.remove(); btn.focus({ preventScroll: true }); });
+      d.addEventListener('click', e => { if (e.target === d) d.close(); });
+      d.showModal(); x.focus();
+    });
+    (fig.querySelector('figcaption') || svg).after(btn);
+  }
+  const scan = () => { document.querySelectorAll('#main figure.diagram.steps').forEach(wire); document.querySelectorAll('#main figure.diagram').forEach(zoom); };
+  const start = () => { scan(); const m = document.getElementById('main'); if (m) new MutationObserver(scan).observe(m, { childList: true, subtree: true }); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>
+<!-- diagram-steps:end -->
