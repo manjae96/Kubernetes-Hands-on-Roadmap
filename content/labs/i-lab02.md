@@ -10,7 +10,7 @@
 
 ## 선수 지식
 
-- [ConfigMap·Secret과 Probe](#/item/i-lab01) 실습 수준의 매니페스트 작성
+- [ConfigMap·Secret과 Probe](#/item/i-lab01) 실습 수준의 매니페스트를 쓸 수 있어야 합니다.
 - CPU 단위: `1` = CPU 코어 1개, `100m` = 0.1코어. 메모리 단위: `Mi` = 1024²바이트, `M` = 1000²바이트
 
 ## 회차별 학습 지도
@@ -28,6 +28,8 @@
 - 쉬었다가 시작할 때는 먼저 `kubectl get pod -n lab-i02`로 앞 단계의 파드가 남아 있는지 봅니다. 클러스터를 지웠다가 다시 만들었다면 1단계의 `kubectl create namespace lab-i02`부터 하고, 판정에 필요한 3단계(`memory-hog`)·5단계(HPA)를 다시 합니다.
 
 ## 실습 환경 점검
+
+실습 클러스터와 노드 상태, 이번 네임스페이스가 아직 없는지를 확인합니다. 마지막 줄은 metrics-server(자원 사용량을 모으는 애드온)가 켜져 있는지 봅니다.
 
 ```bash shell="실습 터미널"
 kubectl config current-context
@@ -73,6 +75,8 @@ QoS 클래스는 모든 컨테이너의 설정으로 자동 결정됩니다. 모
 </figure>
 
 ## 1단계: QoS 클래스 확인
+
+이번 실습의 파드를 모아 둘 네임스페이스를 먼저 만듭니다.
 
 ```bash shell="실습 터미널"
 kubectl create namespace lab-i02
@@ -128,7 +132,7 @@ spec:
           memory: 64Mi
 ```
 
-**결과를 예상한 뒤** 실행합니다.
+**예상해 보세요.** 세 파드는 각각 어떤 QoS 클래스가 될까요? 위 개념의 규칙(requests와 limits가 같은지, 하나라도 있는지)으로 먼저 맞혀 본 뒤 실행합니다.
 
 ```bash shell="실습 터미널"
 kubectl apply -f qos-pods.yaml
@@ -153,6 +157,8 @@ Allocated resources:
 
 ## 2단계: 요청량이 너무 커서 Pending
 
+이번에는 CPU를 16코어나 예약하는 파드를 만듭니다. 실제로는 `sleep`만 하므로 CPU를 거의 쓰지 않습니다. 실습 노드는 CPU가 2개뿐이므로 예약을 받아 줄 노드가 없습니다.
+
 ```yaml file=too-big.yaml
 apiVersion: v1
 kind: Pod
@@ -169,6 +175,8 @@ spec:
           cpu: "16"
           memory: 64Mi
 ```
+
+파드를 만들고 상태와 이벤트를 봅니다. 이벤트에 거절 이유가 적혀 있습니다.
 
 ```bash shell="실습 터미널"
 kubectl apply -f too-big.yaml
@@ -399,6 +407,8 @@ spec:
 | `averageUtilization: 50` | 파드 평균 CPU 사용량이 **requests의 50%**(여기서는 100m)가 되도록 맞춥니다. |
 | `behavior.scaleDown.stabilizationWindowSeconds` | 줄이기 전에 지켜볼 시간. 기본 300초인데 실습 시간을 줄이려고 60초로 낮췄습니다. |
 
+앱을 배포하고 준비될 때까지 기다린 뒤, HPA를 만들고 현재 상태를 봅니다. TARGETS 열에 「현재 사용률/목표 사용률」이 나옵니다.
+
 ```bash shell="실습 터미널"
 kubectl apply -f php-apache.yaml
 kubectl rollout status deployment/php-apache -n lab-i02
@@ -500,6 +510,8 @@ requests 값 자체를 사용량 기록으로 추천받는 방법은 선택 심�
 Allocatable = Capacity − kube-reserved − system-reserved − 축출(eviction) 임계값
 ```
 
+이제 실습 노드의 Capacity와 Allocatable, 그리고 이미 예약된 requests 합계를 확인합니다.
+
 ```bash shell="실습 터미널"
 kubectl get nodes -o custom-columns='NODE:.metadata.name,CPU:.status.capacity.cpu,ALLOC_CPU:.status.allocatable.cpu,MEMORY:.status.capacity.memory,ALLOC_MEMORY:.status.allocatable.memory'
 kubectl describe nodes | sed -n '/Allocated resources:/,/Events:/p' | grep -E '^\s+(Resource|cpu|memory) '
@@ -594,6 +606,10 @@ spec:
     limits.memory: 1Gi
     pods: "10"
 ```
+
+LimitRange는 `resources`를 쓰지 않은 컨테이너에 기본값을 넣고, ResourceQuota는 네임스페이스 전체의 requests 합계를 CPU 300m로 묶습니다. 이 상태에서 `resources` 없이 파드 4개짜리 Deployment를 만들고, 몇 개가 뜨는지 봅니다.
+
+**예상해 보세요.** 파드마다 기본 requests 100m가 들어간다면, 4개 중 몇 개가 만들어질까요?
 
 ```bash shell="실습 터미널"
 kubectl apply -f quota.yaml

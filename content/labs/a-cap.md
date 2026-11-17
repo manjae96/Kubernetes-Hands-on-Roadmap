@@ -23,6 +23,8 @@ kubectl get namespace team-blue
 
 ## 요구 사항
 
+표의 낯선 용어를 먼저 풀어 둡니다. Pod Security Standards([[pss]])는 파드 보안 설정의 기준 등급이고, Pod Security Admission([[psa]])은 네임스페이스 라벨에 적힌 등급으로 파드 생성을 검사하는 기능입니다. seccomp는 컨테이너가 부를 수 있는 시스템 콜을 거르는 리눅스 기능이고, capability는 루트 권한을 잘게 나눈 단위입니다.
+
 | 영역 | 요구 |
 |---|---|
 | 네임스페이스 | `team-blue`. [[psa]] 라벨로 `restricted`를 **enforce**하고, 같은 기준으로 **warn**도 켭니다. 버전은 클러스터 버전을 따르도록 `latest`. |
@@ -364,6 +366,8 @@ pod/intruder condition met
 :::
 
 ## 정리와 재실행
+
+지우기 전에 지금 컨텍스트부터 확인하고, 과제 네임스페이스 하나만 지웁니다.
 
 ```bash shell="실습 터미널"
 kubectl config current-context

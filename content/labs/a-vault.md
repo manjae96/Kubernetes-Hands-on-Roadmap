@@ -8,7 +8,7 @@
 ## 선수 지식
 
 - 개념은 심화 노트 [[vault]]에 있습니다(봉인·auth method·role·policy·TTL·audit, 운영 구성). 여기서는 반복하지 않고 실습만 합니다.
-- Secret·RBAC·ServiceAccount — [RBAC와 ServiceAccount로 최소 권한 부여](#/item/a-lab01), Secret이 base64일 뿐인 이유는 [[encryption]]
+- Secret·RBAC·ServiceAccount를 알아야 합니다. [RBAC와 ServiceAccount로 최소 권한 부여](#/item/a-lab01)에서 다뤘고, Secret이 base64일 뿐인 이유는 [[encryption]]에 있습니다.
 - 이 과정은 **선택 심화**입니다. 필수 과정·캡스톤 진행에 필요하지 않습니다.
 
 :::note 검증 범위
@@ -23,6 +23,8 @@
 
 ## 실습 환경 점검
 
+실습 클러스터와 기본 StorageClass, 필요한 도구(`jq`·`openssl`)를 확인합니다. 마지막 줄은 작업 폴더를 만들고, 앞으로 만드는 파일을 나만 읽을 수 있게(`umask 077`) 설정합니다.
+
 ```bash shell="실습 터미널"
 kubectl config current-context        # k8s-lab 이어야 함
 kubectl get storageclass              # 기본(default) StorageClass가 있어야 Raft 볼륨이 생김
@@ -33,6 +35,8 @@ mkdir -p ~/vault-lab && cd ~/vault-lab && umask 077
 Vault 서버 이미지(약 190MB)를 받습니다. 메모리는 200MB 안팎이면 충분합니다.
 
 ## 1단계: Vault 서버 (Raft, dev 모드 아님)
+
+[[vault|Vault]]는 비밀번호·토큰 같은 비밀을 한곳에 모아 두고, 정책(policy)에 맞는 요청에만 수명이 짧은 토큰으로 내주는 비밀 관리 서버입니다. Vault에는 바로 쓸 수 있는 dev 모드가 있지만, 메모리에만 저장하고 봉인을 자동으로 풀어 주는 연습용입니다. 여기서는 운영과 같은 절차(init·unseal)를 밟도록 Raft 저장소(Vault가 자체로 쓰는 저장 방식) 구성으로 띄웁니다.
 
 ```yaml file=vault.yaml
 apiVersion: v1
@@ -106,6 +110,10 @@ spec:
 
 `args`에 `-config=/vault/config/vault.hcl`을 또 적으면 같은 설정을 두 번 읽어 `listen tcp4 0.0.0.0:8200: bind: address already in use`로 재시작을 반복합니다(검증 중 실제로 겪음). readiness는 봉인·미초기화 상태도 준비로 봅니다(`sealedcode=204`) — 그래야 Service로 init·unseal 상태를 볼 수 있습니다.
 
+Vault를 배포하고 준비될 때까지 기다린 뒤, 버전·저장소 종류·초기화 여부·봉인 여부를 봅니다.
+
+**예상해 보세요.** 방금 뜬 Vault는 초기화(Initialized)와 봉인(Sealed)이 각각 어떤 상태일까요?
+
 ```bash shell="실습 터미널"
 kubectl apply -f vault.yaml
 kubectl -n lab-vault rollout status sts/vault --timeout=180s
@@ -157,12 +165,16 @@ HA Enabled              true
 
 ## 3단계: audit, 비밀, 최소 권한 policy
 
+policy는 「어느 경로에 무엇을 해도 되는지」 적은 허용 목록입니다. 적지 않은 것은 모두 거부됩니다. 아래 파일은 비밀 하나(`secret/data/app/db`)의 읽기만 허락합니다. `app-read.hcl`로 저장합니다.
+
 ```text file=app-read.hcl
 # 이 경로의 읽기만 허락 (나머지는 기본 거부)
 path "secret/data/app/db" {
   capabilities = ["read"]
 }
 ```
+
+이어서 다섯 가지를 차례로 합니다. 요청 기록(audit 로그)을 켜고, 비밀 저장소(kv v2)를 켜고, 무작위 비밀값을 만들어 저장하고, 위 policy를 등록합니다. 비밀값은 화면에 출력하지 않고 파일과 표준 입력으로만 넘깁니다.
 
 ```bash shell="실습 터미널"
 kubectl -n lab-vault exec vault-0 -- vault audit enable file file_path=/vault/data/audit.log
@@ -182,6 +194,8 @@ Success! Uploaded policy: app-read
 kv **v2**는 API 경로에 `data/`가 붙습니다. CLI의 `-mount=secret app/db`는 `secret/data/app/db`로 바뀌므로 policy도 그 경로로 씁니다(`secret/app/db`로 쓰면 읽기가 403).
 
 ## 4단계: Kubernetes 인증과 role
+
+Pod에 Vault 비밀번호를 따로 나눠 주면, 그 비밀번호를 또 어딘가에 숨겨야 합니다. Kubernetes 인증은 Pod가 이미 가진 ServiceAccount 토큰을 신분증으로 씁니다. Vault는 그 토큰이 진짜인지 Kubernetes API에 물어(TokenReview) 확인합니다. 아래 명령은 이 인증 방식을 켜고, 「`lab-app` 네임스페이스의 ServiceAccount `app`이 audience `vault` 토큰을 내밀면 policy `app-read`를 붙인 60초짜리 토큰을 준다」는 role `app`을 만듭니다.
 
 ```bash shell="실습 터미널"
 kubectl -n lab-vault exec vault-0 -- vault auth enable kubernetes
@@ -253,6 +267,8 @@ spec:
       - serviceAccountToken: { path: token, audience: vault, expirationSeconds: 600 }
 ```
 
+Pod 두 개를 띄우고, `app` Pod 안에서 Vault에 로그인해 받은 토큰의 정보와 비밀을 읽습니다.
+
 ```bash shell="실습 터미널"
 kubectl apply -f app.yaml
 kubectl -n lab-app wait --for=condition=Ready pod/app pod/other --timeout=120s
@@ -281,7 +297,9 @@ app
 
 비밀번호는 화면에 내지 않고 길이(24자)만 봅니다. 토큰은 Pod 안의 `/tmp/t`에만 있고 Pod가 지워지면 함께 없어집니다.
 
-**policy 밖은 모두 거부** — 같은 토큰으로 쓰기와 다른 경로 읽기:
+**policy 밖은 모두 거부** — 같은 토큰으로 쓰기와 다른 경로 읽기를 시도합니다.
+
+**예상해 보세요.** 읽기 권한만 받은 토큰으로 같은 비밀에 쓰기를 하면, 그리고 다른 경로(`app/other`)를 읽으면 각각 어떻게 될까요?
 
 ```bash shell="실습 터미널"
 kubectl -n lab-app exec app -- sh -c 'export VAULT_TOKEN=$(cat /tmp/t)
@@ -371,6 +389,8 @@ app
 
 ## 7단계: audit 로그와 root 토큰 폐기
 
+audit 로그를 내 PC로 복사한 뒤, 줄 수와 진짜 비밀값이 나온 횟수를 셉니다. 마지막 명령은 비밀을 읽은 응답 한 줄을 골라, 그 안의 값이 어떤 모양으로 남았는지 앞부분만 보여 줍니다.
+
 ```bash shell="실습 터미널"
 kubectl -n lab-vault exec vault-0 -- cat /vault/data/audit.log > audit.log
 wc -l < audit.log
@@ -441,6 +461,8 @@ criteria: 「67 0」처럼 앞은 1 이상, 뒤는 0
 ```
 
 ## 정리
+
+두 네임스페이스와 클러스터 범위의 ClusterRoleBinding을 지우고, unseal 키·root 토큰이 든 작업 폴더도 지웁니다.
 
 ```bash shell="실습 터미널" run=skip
 kubectl delete namespace lab-app lab-vault          # PVC(Raft 데이터)도 함께 지워짐

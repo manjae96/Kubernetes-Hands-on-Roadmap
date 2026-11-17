@@ -10,6 +10,8 @@
 
 ## 실습 환경 점검
 
+실습 클러스터를 가리키는지, 그리고 이번 실습의 네임스페이스가 아직 없는지 확인합니다.
+
 ```bash shell="실습 터미널"
 kubectl config current-context
 kubectl get nodes
@@ -137,6 +139,8 @@ spec:
 | `strategy.rollingUpdate.maxSurge: 1` | 업데이트 중 원하는 수(3)보다 최대 1개 더 만들 수 있습니다. |
 | `strategy.rollingUpdate.maxUnavailable: 0` | 준비된 파드 수가 3 아래로 내려가지 않게 합니다. 새 파드가 준비되지 않으면 업데이트가 멈춥니다. |
 | 두 라벨을 쓴 `selector` | `name=shop`이면서 `component=frontend`인 파드만 고릅니다. api 파드는 Service 대상이 아닙니다. |
+
+네임스페이스를 만들고 파일을 적용한 뒤, 파드마다 붙은 라벨을 함께 봅니다(`--show-labels`). frontend와 api 파드의 라벨이 어떻게 다른지 비교해 보세요.
 
 ```bash shell="실습 터미널"
 kubectl create namespace lab-b02
@@ -392,6 +396,8 @@ criteria: 출력에 「DB_HOST」가 포함됨
 :::
 
 ## 정리와 재실행
+
+이 실습의 자원은 모두 `lab-b02` 안에 있으므로 네임스페이스 하나만 지웁니다.
 
 ```bash shell="실습 터미널"
 kubectl delete namespace lab-b02

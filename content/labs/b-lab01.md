@@ -7,9 +7,11 @@
 ## 선수 지식
 
 - [환경 준비](#/item/setup)를 마쳐 `k8s-lab` 클러스터가 `Ready`여야 합니다.
-- 컨테이너 이미지와 포트 개념. YAML이 처음이면 들여쓰기만 정확히 따라 쓰면 됩니다.
+- 컨테이너 이미지와 포트가 무엇인지 알면 좋습니다. YAML이 처음이면 들여쓰기만 정확히 따라 쓰면 됩니다.
 
 ## 실습 환경 점검
+
+시작하기 전에 kubectl이 실습 클러스터를 가리키는지, 노드가 살아 있는지 확인합니다.
 
 ```bash shell="실습 터미널"
 kubectl config current-context
@@ -230,6 +232,8 @@ spec:
 | `containers[].image` | 실행할 이미지와 태그. `latest` 대신 구체적인 태그를 쓰면 언제 어디서나 같은 결과를 얻습니다. |
 | `ports[].name: http` | 포트에 이름을 붙여 두면 Service에서 숫자 대신 이름으로 가리킬 수 있습니다. |
 
+파일을 클러스터에 보내고(`apply`), 파드가 모두 뜰 때까지 기다린 뒤(`rollout status`), 만들어진 객체 세 종류를 한 번에 봅니다.
+
 ```bash shell="실습 터미널"
 kubectl apply -f web-deploy.yaml
 kubectl rollout status deployment/web -n lab-b01
@@ -255,7 +259,7 @@ pod/web-6fb5555c85-pnsmn   1/1     Running   0          0s
 
 ## 4단계: Service로 묶고 접속하기
 
-`web-svc.yaml`로 저장합니다.
+파드는 지워지고 다시 만들어질 때마다 IP가 바뀝니다. 그래서 바뀌지 않는 주소 하나를 파드 앞에 두는 [[service]]를 만듭니다. 아래 내용을 `web-svc.yaml`로 저장합니다.
 
 ```yaml file=web-svc.yaml
 apiVersion: v1
@@ -279,6 +283,8 @@ spec:
 | `selector` | 이 라벨을 가진 **모든** 파드로 트래픽을 보냅니다. Deployment와 무관하게 라벨만 봅니다. |
 | `port: 80` | Service가 받는 포트. |
 | `targetPort: http` | 파드 쪽 포트. 컨테이너 포트 이름 `http`(80)를 가리킵니다. |
+
+Service를 만들고, Service가 받은 가상 IP와 Service가 찾은 파드 목록(EndpointSlice)을 확인합니다.
 
 ```bash shell="실습 터미널"
 kubectl apply -f web-svc.yaml

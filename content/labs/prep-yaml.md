@@ -11,6 +11,8 @@
 
 ## 1. YAML의 세 가지 모양
 
+YAML은 「키: 값」을 들여쓰기로 묶어 사람이 읽기 쉽게 만든 설정 파일 형식입니다. Kubernetes에 「무엇을 원하는지」 적어 보내는 파일이 대부분 YAML이라, 먼저 모양 세 가지를 익힙니다. 하나의 값(스칼라), 순서 있는 목록, 이름 붙은 묶음(맵)입니다. 아래 예에서 각 줄 오른쪽 주석으로 어느 모양인지 확인해 보세요.
+
 ```yaml
 name: web                 # 스칼라: 키: 값
 replicas: 3               # 숫자
@@ -38,6 +40,8 @@ containers:               # 맵의 목록 (가장 흔한 모양)
 
 ## 2. 매니페스트의 공통 구조
 
+[[manifest|매니페스트]]는 Kubernetes 객체를 YAML로 적은 파일입니다. 종류가 달라도 맨 위의 네 칸(`apiVersion`·`kind`·`metadata`·`spec`)은 같습니다. 이 네 칸만 알면 처음 보는 매니페스트도 「무엇을, 어떤 이름으로, 어떻게」 만드는지 읽을 수 있습니다.
+
 ```yaml
 apiVersion: apps/v1       # API 그룹/버전 — 어느 API로 처리할지
 kind: Deployment          # 객체 종류
@@ -54,6 +58,8 @@ status:                   # 현재 상태 (쿠버네티스가 씀 — 직접 쓰
 
 ## 3. 들여쓰기 오류 찾기
 
+YAML 오류의 대부분은 들여쓰기 한 칸 차이에서 나옵니다. 아래 파일에는 일부러 틀린 줄이 하나 있습니다. 먼저 눈으로 찾아보세요.
+
 ```yaml file=prep-yaml/broken.yaml
 apiVersion: v1
 kind: Pod
@@ -67,6 +73,10 @@ spec:
     - containerPort: 80
 ```
 
+`--dry-run=client`는 클러스터에 보내지 않고 내 PC에서 파일만 검사하는 옵션입니다. 그래서 클러스터를 바꾸지 않고 오류 메시지만 볼 수 있습니다.
+
+**예상해 보세요.** 오류 메시지는 몇 번째 줄을 가리킬까요?
+
 ```bash shell="실습 터미널"
 cd ~/k8s-lab/prep-yaml 2>/dev/null || { mkdir -p ~/k8s-lab/prep-yaml && cd ~/k8s-lab/prep-yaml; }
 kubectl apply --dry-run=client -f broken.yaml 2>&1 | sed 's#^.*broken.yaml#broken.yaml#' | head -2
@@ -79,6 +89,8 @@ broken.yaml: error converting YAML to JSON: yaml: line 9: mapping values are not
 오류가 가리킨 **9번째 줄(`ports:`) 바로 앞**을 봅니다. `ports:`가 `image:`보다 한 칸 더 들여써져 `image` 값의 일부처럼 읽혔습니다. `ports:`를 `image:`와 같은 칸으로 맞추면 됩니다.
 
 ## 4. kubectl explain으로 필드 찾기
+
+매니페스트를 쓰다 보면 「이 필드 이름이 맞나, 값은 숫자인가 문자열인가」가 자주 궁금합니다. `kubectl explain`은 클러스터가 알고 있는 필드 설명서를 바로 보여 줍니다. 아래에서 `replicas`의 타입과 `imagePullPolicy`의 설명을 찾아봅니다.
 
 ```bash shell="실습 터미널"
 kubectl explain deployment.spec.replicas | sed -n '1,8p'
@@ -134,6 +146,8 @@ KYAML도 YAML이므로 그대로 `kubectl apply`에 쓸 수 있습니다. 이 �
 :::
 
 ## 정리
+
+이 실습에서 만든 작업 디렉터리를 지웁니다. 클러스터에는 만든 것이 없으므로 이것으로 끝입니다.
 
 ```bash shell="실습 터미널"
 rm -rf ~/k8s-lab/prep-yaml && echo "정리 완료"

@@ -6,6 +6,8 @@
 
 ## 실습 환경 점검
 
+실습 클러스터를 가리키는지, 과제용 네임스페이스가 아직 없는지 확인합니다.
+
 ```bash shell="실습 터미널"
 kubectl config current-context
 kubectl get namespace cap-basic
@@ -174,6 +176,8 @@ kubectl rollout status deployment/guestbook-front -n cap-basic
 :::
 
 ## 정리와 재실행
+
+과제에서 만든 자원은 모두 `cap-basic` 안에 있으므로 네임스페이스만 지웁니다.
 
 ```bash shell="실습 터미널"
 kubectl delete namespace cap-basic

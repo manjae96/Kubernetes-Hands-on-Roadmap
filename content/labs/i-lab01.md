@@ -6,10 +6,12 @@
 
 ## 선수 지식
 
-- [롤링 업데이트·로그·이벤트](#/item/b-lab02)까지의 기본 과정 내용
+- [롤링 업데이트·로그·이벤트](#/item/b-lab02)까지 기본 과정을 마쳤어야 합니다.
 - nginx 설정 파일을 몰라도 됩니다. 필요한 부분은 표로 설명합니다.
 
 ## 실습 환경 점검
+
+실습 클러스터를 가리키는지, 노드가 준비됐는지, 이번 실습의 네임스페이스가 아직 없는지 확인합니다.
 
 ```bash shell="실습 터미널"
 kubectl config current-context
@@ -171,6 +173,8 @@ data:
 | `location = /healthz` | 항상 200을 돌려주는 생존 확인 경로. liveness·startup 프로브가 씁니다. |
 | `location = /ready` + `try_files /ready =503` | `/usr/share/nginx/state/ready` 파일이 있으면 200, 없으면 503. 준비 상태를 파일 하나로 바꿀 수 있게 만든 실습용 장치입니다. |
 
+ConfigMap 세 개를 클러스터에 만들고 목록으로 확인합니다.
+
 ```bash shell="실습 터미널"
 kubectl apply -f web-config.yaml
 kubectl get configmaps -n lab-i01
@@ -178,7 +182,7 @@ kubectl get configmaps -n lab-i01
 
 ## 3단계: 설정을 주입한 Deployment 배포
 
-`web.yaml`로 저장합니다.
+이제 앞에서 만든 Secret과 ConfigMap을 실제로 쓰는 Deployment를 만듭니다. 설정은 환경 변수와 파일 두 가지 방식으로 넣고, 프로브 세 개도 함께 붙입니다. 아래 내용을 `web.yaml`로 저장합니다.
 
 ```yaml file=web.yaml
 apiVersion: apps/v1
@@ -288,6 +292,8 @@ spec:
 | `readinessProbe` (`failureThreshold: 1`) | 한 번만 실패해도 엔드포인트에서 뺍니다. 실습에서 변화를 빨리 보려고 낮게 잡았습니다. |
 | `livenessProbe` (10초 × 3회) | 30초 동안 연속 실패하면 재시작합니다. readiness보다 느슨하게 잡는 것이 원칙입니다. |
 | `port: http` | 컨테이너 포트 이름으로 지정하면 포트 번호가 바뀌어도 프로브를 고칠 필요가 없습니다. |
+
+Deployment를 배포하고 확인용 `client` 파드를 띄운 뒤, 두 가지를 봅니다. 하나는 웹 페이지(파일로 주입한 설정)이고, 다른 하나는 환경 변수 `APP_MODE`·`DB_USER`(ConfigMap·Secret에서 주입한 값)입니다.
 
 ```bash shell="실습 터미널"
 kubectl apply -f web.yaml
@@ -509,6 +515,8 @@ readiness 프로브가 없으면 컨테이너가 실행 중인 한 항상 준비
 :::
 
 ## 정리와 재실행
+
+이 실습의 자원은 모두 `lab-i01` 안에 있으므로 네임스페이스만 지웁니다.
 
 ```bash shell="실습 터미널"
 kubectl delete namespace lab-i01

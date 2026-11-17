@@ -6,6 +6,8 @@
 
 ## 실습 환경 점검
 
+실습 클러스터를 가리키는지, 과제용 네임스페이스가 아직 없는지 확인합니다.
+
 ```bash shell="실습 터미널"
 kubectl config current-context
 kubectl get namespace cap-inter
@@ -122,6 +124,8 @@ spec:
               memory: 32Mi
 ```
 
+네임스페이스를 만들고 파일을 그대로 배포합니다. 마지막 줄은 사용자 입장에서 요청을 보내 볼 `client` 파드를 띄웁니다.
+
 ```bash shell="실습 터미널"
 kubectl create namespace cap-inter
 kubectl apply -f order-broken.yaml
@@ -176,7 +180,7 @@ criteria: api=2 worker=1 body={"status":"ok","service":"orders"}
 ## 해설
 
 :::answer 결함 1: 존재하지 않는 ConfigMap 키
-**증상** `order-api` 파드가 `CreateContainerConfigError`.
+**증상** `order-api` 파드가 `CreateContainerConfigError` 상태입니다.
 
 **근거** `kubectl events -n cap-inter --types=Warning`
 
@@ -243,6 +247,8 @@ kubectl rollout status deployment/order-worker -n cap-inter
 :::
 
 ## 정리와 재실행
+
+과제에서 만든 자원은 모두 `cap-inter` 안에 있으므로 네임스페이스만 지웁니다.
 
 ```bash shell="실습 터미널"
 kubectl delete namespace cap-inter

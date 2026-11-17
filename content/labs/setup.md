@@ -60,7 +60,7 @@ docker version
 docker run --rm hello-world
 ```
 
-**3. cgroup v2 확인** — Kubernetes 1.35부터 kubelet은 cgroup v1 노드에서 기본적으로 시작하지 않습니다.
+**3. cgroup v2 확인** — cgroup(control group)은 리눅스 커널이 프로세스마다 CPU·메모리 사용량을 나누고 제한하는 기능입니다. Kubernetes 1.35부터 kubelet은 cgroup v1 노드에서 기본적으로 시작하지 않습니다. 그래서 먼저 내 환경이 v2인지 확인합니다.
 
 ```bash shell="WSL2 Ubuntu 셸"
 stat -fc %T /sys/fs/cgroup/
@@ -121,6 +121,8 @@ docker run --rm hello-world
 
 **2. cgroup v2 확인**
 
+파일 시스템 종류를 출력해 cgroup 버전을 봅니다. 결과가 `cgroup2fs`인지 보세요.
+
 ```bash shell="Linux 터미널 (bash)"
 stat -fc %T /sys/fs/cgroup/
 ```
@@ -128,6 +130,8 @@ stat -fc %T /sys/fs/cgroup/
 `cgroup2fs`면 됩니다. Ubuntu 22.04 이후, Debian 12 이후, Fedora 31 이후는 기본이 cgroup v2입니다.
 
 **3. 자원 확인**
+
+CPU 개수, 메모리, 홈 디렉터리의 디스크 여유를 차례로 확인합니다. 위 「선수 지식과 준비물」의 권장값(CPU 2개, 메모리 4GB, 디스크 20GB)과 비교해 보세요.
 
 ```bash shell="Linux 터미널 (bash)"
 nproc
@@ -144,6 +148,8 @@ minikube version
 ```
 
 **5. kubectl 설치**
+
+공식 문서의 방법으로 v1.37.1을 내려받고, 체크섬(파일이 내려받는 중 바뀌지 않았는지 확인하는 값)으로 검증한 뒤 설치합니다.
 
 ```bash shell="Linux 터미널 (bash)"
 curl -LO "https://dl.k8s.io/release/v1.37.1/bin/linux/amd64/kubectl"
@@ -180,7 +186,7 @@ minikube start -p k8s-lab --driver=docker --container-runtime=containerd --kuber
 | `--kubernetes-version=v1.37.0` | 클러스터 버전. 1.36은 `v1.36.4`, 1.35는 `v1.35.8`을 씁니다. |
 | `--cpus=2 --memory=4096` | 노드 컨테이너에 줄 CPU 수와 메모리(MB). HPA 실습까지 고려한 값입니다. |
 
-처음 실행하면 노드 이미지와 Kubernetes 구성 요소를 내려받느라 수 분이 걸립니다.
+처음 실행하면 노드 이미지와 Kubernetes 구성 요소를 내려받느라 수 분이 걸립니다. 출력 마지막 줄에 `Done!`이 나오면 클러스터가 만들어진 것입니다.
 
 :::warn 런타임을 지정하는 이유
 minikube v1.38.1에서 런타임을 지정하지 않으면 docker 런타임(cri-dockerd)으로 만들어지고, 이 조합과 Kubernetes v1.37.0에서 `kubectl exec`가 `server gave HTTP response to HTTPS client`로 실패하는 것을 2026-10-30 검증 중 확인했습니다(파드 생성·로그·`kubectl top`은 정상). 여러 실습이 `kubectl exec`를 쓰므로 containerd로 만듭니다. 이미 다른 런타임으로 만든 `k8s-lab`에서 같은 오류가 나면 `minikube delete -p k8s-lab` 후 위 명령으로 다시 만듭니다(클러스터 안의 실습 자원은 사라짐). minikube 버전마다 기본 런타임이 다를 수 있습니다.
@@ -198,6 +204,10 @@ minikube v1.38.1에서 런타임을 지정하지 않으면 docker 런타임(cri-
 ```
 
 ## 결과 확인
+
+클러스터 상태, 현재 컨텍스트, 클라이언트·서버 버전, 노드 목록을 한 번에 확인합니다.
+
+**예상해 보세요.** 방금 만든 클러스터에는 노드가 몇 개 있고, 그 노드의 ROLES는 무엇일까요?
 
 ```bash shell="실습 터미널"
 minikube status -p k8s-lab
@@ -234,6 +244,8 @@ criteria: 「k8s-lab True v1.37.0」처럼 노드 이름 k8s-lab, 상태 True, �
 ```
 
 ## 날마다 쓰는 명령
+
+클러스터를 켜 두면 PC의 CPU·메모리를 계속 씁니다. 실습을 마칠 때 멈추고, 다시 시작할 때 켜는 명령을 익혀 두세요.
 
 ```bash shell="실습 터미널"
 # 실습을 마칠 때: 클러스터를 멈춰 CPU·메모리를 돌려받습니다 (데이터는 유지)

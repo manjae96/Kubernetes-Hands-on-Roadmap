@@ -7,8 +7,8 @@
 
 ## 선수 지식
 
-- [Service 유형 심화: NodePort와 LoadBalancer](#/item/b-service-types): ClusterIP ⊂ NodePort ⊂ LoadBalancer 포함 관계
-- 리눅스 네트워크 기초(같은 서브넷·ARP·기본 경로) — [리눅스 고급 1 「네트워크 진단」](/linux/#/item/a-lab01)
+- [Service 유형 심화: NodePort와 LoadBalancer](#/item/b-service-types)에서 본 ClusterIP ⊂ NodePort ⊂ LoadBalancer 포함 관계를 알아야 합니다.
+- 리눅스 네트워크 기초(같은 서브넷·ARP·기본 경로)를 알면 좋습니다. [리눅스 고급 1 「네트워크 진단」](/linux/#/item/a-lab01)에서 다룹니다.
 - 이 과정은 **선택 심화**입니다. Ingress 컨트롤러 자체는 [인그레스 항해도](/ingress/)에서, Service·EndpointSlice의 동작 원리는 심화 노트 [[service]]에서 다룹니다(여기서는 반복하지 않음).
 
 :::note 검증 범위
@@ -21,7 +21,7 @@
 
 **왜 필요한가.** NodePort(30000~32767)는 포트가 높고 노드마다 열려, 사람이 쓰는 주소로는 불편합니다. 사내 데이터센터·폐쇄망·홈랩에서도 「80·443을 가진 고정 주소 하나」를 Ingress 컨트롤러 앞에 두려면 LoadBalancer 구현이 필요합니다.
 
-**어떻게 동작하나.**
+**어떻게 동작하나.** 표에 나오는 약어를 먼저 풀어 둡니다. ARP(Address Resolution Protocol)는 같은 네트워크에서 「이 IP를 가진 장비의 MAC 주소는?」을 묻고 답하는 규약이고, NDP는 IPv6에서 같은 일을 합니다. BGP(Border Gateway Protocol)는 라우터끼리 「이 주소로 가려면 나에게 보내라」는 경로를 주고받는 규약입니다. ECMP(Equal-Cost Multi-Path)는 비용이 같은 여러 경로로 트래픽을 나누는 방식입니다.
 
 | 구성 요소 | 종류 | 하는 일 |
 |---|---|---|
@@ -37,6 +37,8 @@
 
 ## 실습 환경 점검
 
+실습 클러스터와 노드를 확인하고, minikube가 만든 Docker 네트워크의 주소 대역과 게이트웨이를 봅니다. 이 대역에서 MetalLB가 나눠 줄 주소를 고릅니다.
+
 ```bash shell="실습 터미널"
 kubectl config current-context        # k8s-lab 이어야 함
 kubectl get nodes
@@ -46,6 +48,10 @@ docker network inspect k8s-lab --format '{{range .IPAM.Config}}{{.Subnet}} gw {{
 마지막 줄의 대역(예: `192.168.58.0/24`)에서 **노드·게이트웨이와 겹치지 않는 윗부분**(예: `.200`~`.210`)을 주소 풀로 씁니다. 같은 대역의 다른 장비가 이미 쓰는 주소를 풀에 넣으면 두 장비가 같은 IP로 ARP에 답해 통신이 끊깁니다(주소 충돌).
 
 ## 1단계: 주소가 없는 LoadBalancer
+
+먼저 MetalLB 없이 `type: LoadBalancer` Service를 만들어, 주소를 줄 주체가 없으면 어떻게 되는지 봅니다. 웹 앱 두 개를 띄우고 LoadBalancer로 노출합니다.
+
+**예상해 보세요.** 클라우드가 없는 minikube에서 EXTERNAL-IP 열에는 무엇이 나올까요?
 
 ```bash shell="실습 터미널"
 kubectl create namespace lab-mlb
@@ -86,6 +92,8 @@ daemon set "speaker" successfully rolled out
 
 ## 3단계: 주소 풀과 L2 알리기
 
+MetalLB에 두 가지를 알려 줍니다. 나눠 줄 주소 범위(`IPAddressPool`)와, 그 주소를 L2 모드로 알리라는 지시(`L2Advertisement`)입니다. `addresses`는 점검 단계에서 확인한 내 대역으로 바꿔 씁니다.
+
 ```yaml file=pool.yaml
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
@@ -99,6 +107,8 @@ metadata: { name: lab-l2, namespace: metallb-system }
 spec:
   ipAddressPools: ["lab-pool"]                   # 이 풀의 주소만 L2로 알림
 ```
+
+풀을 적용한 뒤 Service의 EXTERNAL-IP와, `web` Service에 남은 이벤트를 봅니다.
 
 ```bash shell="실습 터미널"
 kubectl apply -f pool.yaml
@@ -158,6 +168,8 @@ Unicast reply from 192.168.58.200 [d2:0f:3a:98:9b:bd] 0.004ms
 
 ## 4단계: externalTrafficPolicy — 클라이언트 IP를 볼 수 있나
 
+앱이 요청 보낸 쪽의 IP를 알아야 할 때가 있습니다(접근 제어, 감사 로그). 아래 반복문은 `externalTrafficPolicy`를 `Cluster`와 `Local`로 바꿔 가며, 클라이언트 자신의 IP와 앱이 본 출발지(`RemoteAddr`)를 나란히 출력합니다. 끝나면 기본값 `Cluster`로 되돌립니다.
+
 ```bash shell="실습 터미널"
 for p in Cluster Local; do
   kubectl -n lab-mlb patch svc web -p "{\"spec\":{\"externalTrafficPolicy\":\"$p\"}}" >/dev/null; sleep 4
@@ -178,7 +190,7 @@ RemoteAddr: 192.168.58.3:36096
 
 | 정책 | 패킷이 가는 곳 | 앱이 보는 출발지 | 대가 |
 |---|---|---|---|
-| `Cluster` (기본) | 어느 노드든 받고, 다른 노드의 파드로도 보냄 | 노드 쪽 주소로 바뀜(SNAT) — 위 `10.244.0.1` | 클라이언트 IP를 잃음 |
+| `Cluster` (기본) | 어느 노드든 받고, 다른 노드의 파드로도 보냄 | 노드 쪽 주소로 바뀜(SNAT: 출발지 주소 바꾸기) — 위 `10.244.0.1` | 클라이언트 IP를 잃음 |
 | `Local` | 파드가 있는 노드에서만 처리 | **진짜 클라이언트 IP** | 파드가 없는 노드가 알리면 트래픽이 버려짐 — MetalLB L2는 파드가 있는 노드만 고르고, `healthCheckNodePort`로 노드 상태를 알림 |
 
 접근 제어·감사 로그에 클라이언트 IP가 필요하면 `Local`, 고르게 나누는 것이 중요하면 `Cluster`입니다.
@@ -272,6 +284,8 @@ criteria: 1
 ```
 
 ## 정리
+
+실습 네임스페이스, 주소 풀, MetalLB 본체를 차례로 지웁니다. 3단계에서 떼었던 노드 레이블도 되돌립니다.
 
 ```bash shell="실습 터미널" run=skip
 kubectl delete namespace lab-mlb

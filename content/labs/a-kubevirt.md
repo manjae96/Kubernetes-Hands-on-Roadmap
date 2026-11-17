@@ -8,8 +8,8 @@
 ## 선수 지식
 
 - VM과 컨테이너의 차이, KubeVirt 동작 흐름은 심화 노트 [[kubevirt|VM과 컨테이너 · KubeVirt]]에 있습니다. 여기서는 반복하지 않습니다.
-- 파드 스케줄링과 확장 자원(extended resource)을 읽는 법: [자원 요청·제한](#/item/i-lab02)
-- `kind`(Kubernetes in Docker) 설치
+- 파드 스케줄링과 확장 자원(extended resource)을 읽을 수 있어야 합니다. [자원 요청·제한](#/item/i-lab02)에서 다룹니다.
+- `kind`(Kubernetes in Docker)가 설치되어 있어야 합니다.
 - 이 과정은 **선택 심화**입니다. 필수 과정·캡스톤 진행에 필요하지 않습니다.
 
 :::warn 부분 검증 — 이 PC 종류에서는 VM이 켜지지 않았습니다
@@ -19,6 +19,8 @@
 :::
 
 ## 실습 환경 점검
+
+VM을 빠르게 돌리려면 하드웨어 가상화 장치가 필요합니다. 리눅스에서는 이 장치가 `/dev/kvm`(KVM: 리눅스 커널의 가상화 기능)으로 보입니다. 내 PC의 운영체제·아키텍처를 보고, Docker 컨테이너 안에서 `/dev/kvm`이 보이는지 확인합니다.
 
 ```bash shell="실습 터미널"
 uname -sm
@@ -38,6 +40,8 @@ Docker 메모리 16818118656 bytes · CPU 15 · OrbStack
 - 메모리 약 **2GB**(KubeVirt 구성 요소), 디스크 약 **2GB**(이미지)를 씁니다.
 
 ## 1단계: 클러스터와 KubeVirt 설치 (태그 고정·체크섬)
+
+[[kubevirt|KubeVirt]]는 VM을 쿠버네티스 객체(VirtualMachine)로 다루게 해 주는 애드온입니다. VM 하나가 파드 하나(virt-launcher) 안에서 돌아가므로, 파드처럼 스케줄링되고 자원을 요청합니다. 아래 명령은 kind로 임시 클러스터를 만들고, 릴리스 태그로 고정한 설치 파일 두 개를 받아 sha256을 출력한 뒤 설치합니다. 마지막 줄은 뜬 구성 요소 목록을 보여 줍니다.
 
 ```bash shell="실습 터미널"
 mkdir -p ~/kubevirt-lab && cd ~/kubevirt-lab
@@ -77,6 +81,10 @@ virt-template-controller Running
 | virt-launcher | VM마다 파드 하나 | 그 안의 libvirt·QEMU 프로세스가 VM |
 
 ## 2단계: 노드가 알린 가상화 자원
+
+virt-handler는 노드마다 VM용 자원이 몇 개 있는지 알립니다. 노드의 할당 가능량 가운데 KubeVirt 자원만 골라 봅니다.
+
+**예상해 보세요.** `/dev/kvm`이 없는 노드라면 `devices.kubevirt.io/kvm` 값은 얼마일까요?
 
 ```bash shell="실습 터미널"
 cd ~/kubevirt-lab && export KUBECONFIG=$PWD/kubeconfig
@@ -163,7 +171,7 @@ VMI Scheduled · 노드 hangdo-verify-kv-control-plane
 Message='unsupported configuration: CPU mode 'host-passthrough' for aarch64 qemu domain on aarch64 host is not supported by hypervisor'
 ```
 
-이번에는 노드에 배치되고 virt-launcher 파드도 뜨지만, VM 정의를 넘기는 순간 libvirt가 거절합니다. KubeVirt는 arm64에서 CPU 모드를 `host-passthrough`로 정하는데, 에뮬레이션에서는 그 모드를 쓸 수 없기 때문입니다. CPU 모델을 바꿔 보면:
+이번에는 노드에 배치되고 virt-launcher 파드도 뜨지만, VM 정의를 넘기는 순간 libvirt가 거절합니다. KubeVirt는 arm64에서 CPU 모드를 `host-passthrough`로 정하는데, 에뮬레이션에서는 그 모드를 쓸 수 없기 때문입니다. CPU 모델을 바꿔 보면 어떻게 될까요? 아래 명령은 VM을 멈추고, CPU 모델을 `cortex-a57`로 지정해 다시 켠 뒤, 거절 이벤트를 찾습니다.
 
 ```bash shell="실습 터미널"
 cd ~/kubevirt-lab && export KUBECONFIG=$PWD/kubeconfig
@@ -244,6 +252,8 @@ criteria: KVM 없는 PC: FailedScheduling(과 arm64면 SyncFailed·FailedCreate)
 ```
 
 ## 정리
+
+임시 kind 클러스터와 Docker 네트워크, 작업 폴더를 지웁니다. 평소 실습 클러스터(`k8s-lab`)는 건드리지 않습니다.
 
 ```bash shell="실습 터미널" run=skip
 cd ~/kubevirt-lab && export KUBECONFIG=$PWD/kubeconfig

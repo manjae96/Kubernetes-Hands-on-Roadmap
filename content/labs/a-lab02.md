@@ -7,8 +7,8 @@
 
 ## 선수 지식
 
-- [첫 Deployment·Service](#/item/b-lab01): Service, 라벨 셀렉터, 클라이언트 파드에서 `wget`으로 확인하는 방법
-- TCP·UDP 포트, DNS가 53번 포트를 쓴다는 것
+- [첫 Deployment·Service](#/item/b-lab01)에서 익힌 Service, 라벨 셀렉터, 클라이언트 파드에서 `wget`으로 확인하는 방법이 필요합니다.
+- TCP·UDP 포트가 무엇인지, DNS가 53번 포트를 쓴다는 것을 알면 좋습니다.
 
 ## 이 실습만의 환경: Calico 프로필
 
@@ -48,6 +48,8 @@ calico-kube-controllers-xxxxxxxxxx-xxxxx   1/1     Running   0          3m
 두 파드가 모두 `1/1 Running`이 될 때까지 기다립니다. **삭제 방법**은 맨 아래 「정리」에 있습니다.
 
 ## 실습 환경 점검
+
+kubectl이 새 Calico 프로필을 가리키는지, 이번 실습의 네임스페이스 두 개가 아직 없는지 확인합니다.
 
 ```bash shell="실습 터미널"
 kubectl config current-context
@@ -152,13 +154,17 @@ spec:
       command: ["sleep", "3600"]
 ```
 
+네임스페이스를 만들고 세 파드를 배포한 뒤, 모두 준비될 때까지 기다립니다.
+
 ```bash shell="실습 터미널 (컨텍스트 k8s-lab-calico)"
 kubectl create namespace lab-a02
 kubectl apply -f app.yaml
 kubectl wait pod --all -n lab-a02 --for=condition=Ready --timeout=120s
 ```
 
-정책 전 상태를 확인하는 짧은 셸 함수를 정의합니다. 같은 터미널에서 이후 단계마다 다시 씁니다.
+정책 전 상태를 확인하는 짧은 셸 함수를 정의합니다. `check`는 api와 stranger 파드에서 각각 DB로 요청을 보내, 3초 안에 응답이 오면 `ok`, 아니면 `blocked`를 출력합니다. 같은 터미널에서 이후 단계마다 다시 씁니다.
+
+**예상해 보세요.** 정책이 하나도 없는 지금, api와 stranger 중 누가 DB에 닿을까요?
 
 ```bash shell="실습 터미널 (bash·zsh)"
 check() { for p in api stranger; do kubectl exec $p -n lab-a02 -- wget -qO- -T 3 http://db >/dev/null 2>&1 && echo "$p=ok" || echo "$p=blocked"; done | paste -sd' ' -; }
@@ -169,9 +175,11 @@ check
 api=ok stranger=ok
 ```
 
-**예상해 보세요.** 정책이 하나도 없으니 둘 다 `ok`여야 합니다.
+정책이 하나도 없으니 둘 다 `ok`입니다. 어떤 정책에도 선택되지 않은 파드는 모두 허용된다는 개념의 첫 번째 규칙 그대로입니다.
 
 ## 2단계: 기본 차단
+
+먼저 네임스페이스의 모든 파드로 들어오는 트래픽을 막고, 필요한 것만 하나씩 엽니다. 이렇게 하면 허용 목록에 적은 것만 통하므로, 무엇이 열려 있는지 정책 파일만 보고 알 수 있습니다.
 
 ```yaml file=np-default-deny.yaml
 apiVersion: networking.k8s.io/v1
@@ -190,6 +198,8 @@ spec:
 | `podSelector: {}` | 빈 셀렉터는 **네임스페이스의 모든 파드**를 선택합니다. |
 | `policyTypes: [Ingress]` + `ingress` 없음 | 들어오는 트래픽을 하나도 허용하지 않습니다. 나가는 트래픽은 영향받지 않습니다. |
 
+정책을 적용하고 `check`를 다시 실행합니다.
+
 ```bash shell="실습 터미널 (컨텍스트 k8s-lab-calico)"
 kubectl apply -f np-default-deny.yaml
 check
@@ -202,6 +212,8 @@ api=blocked stranger=blocked
 `blocked`는 `wget`이 3초 안에 응답을 받지 못했다는 뜻입니다. Calico는 차단된 패킷을 조용히 버리므로 거부 응답 대신 시간 초과가 납니다.
 
 ## 3단계: api만 허용
+
+이제 DB 파드로 들어오는 트래픽 가운데 `role=api` 라벨을 가진 파드의 요청만 허용하는 정책을 더합니다.
 
 ```yaml file=np-allow-api.yaml
 apiVersion: networking.k8s.io/v1
@@ -230,6 +242,8 @@ spec:
 | `spec.podSelector` | 이 정책이 보호하는 파드: DB. |
 | `ingress[].from[].podSelector` | **같은 네임스페이스**에서 `role=api` 라벨을 가진 파드만 허용합니다. |
 | `ports` | 그 파드에서 오는 TCP 80만 허용합니다. Service 포트가 아니라 **파드의 포트**를 적습니다. |
+
+**예상해 보세요.** 기본 차단 정책은 그대로 둔 채 이 정책을 더하면, api는 다시 DB에 닿을까요?
 
 ```bash shell="실습 터미널 (컨텍스트 k8s-lab-calico)"
 kubectl apply -f np-allow-api.yaml
@@ -285,6 +299,8 @@ spec:
 :::
 
 `kubernetes.io/metadata.name`은 Kubernetes가 모든 네임스페이스에 자동으로 붙이는 라벨(값은 네임스페이스 이름)이라 따로 라벨을 붙이지 않아도 됩니다.
+
+정책을 적용하고, API 서버가 정책을 어떻게 해석했는지 `describe`로 본 뒤, 파트너 네임스페이스의 api에서 다시 요청합니다.
 
 ```bash shell="실습 터미널 (컨텍스트 k8s-lab-calico)"
 kubectl apply -f np-allow-partner.yaml

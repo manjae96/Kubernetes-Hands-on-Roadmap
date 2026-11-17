@@ -32,7 +32,7 @@
 |---|---|---|---|
 | `Off` | 바꾸지 않음 | 바꾸지 않음 | **추천만 받기** — 처음 도입할 때 가장 안전 |
 | `Initial` | 추천값으로 | 바꾸지 않음 | 다음 배포·재시작 때만 반영 |
-| `Recreate` (기본값) | 추천값으로 | 크게 다르면 **축출해 다시 만듦** (PDB 존중) | 재시작이 괜찮은 워크로드 |
+| `Recreate` (기본값) | 추천값으로 | 크게 다르면 **축출해 다시 만듦** (PDB(PodDisruptionBudget, 동시에 내려가도 되는 파드 수의 한도) 존중) | 재시작이 괜찮은 워크로드 |
 | `InPlaceOrRecreate` | 추천값으로 | 제자리 크기 변경, 안 되면 축출 | in-place 리사이즈를 쓰는 환경 |
 | `Auto` | — | — | **폐기 예정.** 지금은 `Recreate`와 같음 → 명시적 모드를 씀 |
 
@@ -126,6 +126,8 @@ spec:
     updateMode: "Off"
 ```
 
+앱과 VPA를 만들고, 첫 추천이 나올 때까지 3분 기다립니다. 그다음 VPA 요약, 컨테이너별 추천값, 실행 중 파드의 requests, 실제 사용량을 차례로 봅니다. 추천값(target)과 실제 사용량을 비교해 보세요.
+
 ```bash shell="실습 터미널" run=skip
 kubectl apply -f vpa-demo.yaml
 sleep 180                                   # recommender는 1분마다 계산 — 첫 추천까지 몇 분
@@ -153,6 +155,8 @@ vpa-demo-7b8fbcc49c-xz269   502m   3Mi
 ## 3단계: 만들 때만 반영 (`Initial`) — requests 변경은 파드 재생성
 
 모드를 `Initial`로 바꾸고, 실행 중인 파드가 그대로인지 봅니다.
+
+**예상해 보세요.** 모드를 바꾸는 순간 실행 중인 파드의 CPU requests(50m)도 추천값으로 바뀔까요?
 
 ```bash shell="실습 터미널" run=skip
 kubectl patch vpa vpa-demo -n lab-vpa --type=merge -p '{"spec":{"updatePolicy":{"updateMode":"Initial"}}}'
@@ -193,6 +197,8 @@ Pod resources updated by vpa-demo: container 0: cpu request, memory request, cpu
 - `Recreate`(기본값)로 두면 updater가 1분마다 보고, 추천과 크게 다른 파드를 **축출**해 같은 방식으로 다시 만들게 합니다. VPA 1.8.1 기본 설정(`--min-replicas=2`)에서는 복제본이 2개 미만인 워크로드를 축출하지 않습니다. 이 과정은 `Recreate` 축출을 실행해 보지는 않았습니다.
 
 ## 4단계: HPA와 함께 쓸 때
+
+HPA는 「사용량 ÷ requests」로 개수를 정하고, VPA는 그 requests를 바꿉니다. 그래서 두 도구가 같은 지표를 보면 서로의 판단을 흔듭니다. 어떤 조합이 괜찮은지 표로 정리했습니다.
 
 | 조합 | 결과 |
 |---|---|
@@ -254,6 +260,8 @@ criteria: 숫자(예: 587m)가 출력됨
 ```
 
 ## 정리
+
+실습 네임스페이스를 지우고, 설치 스크립트와 짝인 `vpa-down.sh`로 VPA 구성 요소를 지웁니다. 받아 둔 소스 폴더도 함께 지웁니다.
 
 ```bash shell="실습 터미널" run=skip
 kubectl delete namespace lab-vpa

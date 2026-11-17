@@ -6,10 +6,12 @@
 
 ## 선수 지식
 
-- 기본 과정의 kubectl 사용과 네임스페이스 개념
-- 인증(Authentication: 누구인가)과 인가(Authorization: 무엇을 할 수 있나)의 차이
+- 기본 과정에서 익힌 kubectl 사용법과 네임스페이스 개념이 필요합니다.
+- 인증(Authentication: 누구인가)과 인가(Authorization: 무엇을 할 수 있나)가 다르다는 것을 알면 좋습니다.
 
 ## 실습 환경 점검
+
+실습 클러스터를 가리키는지, 지금 사용자가 모든 권한을 가진 관리자인지, 이번 네임스페이스가 아직 없는지 확인합니다.
 
 ```bash shell="실습 터미널"
 kubectl config current-context
@@ -56,7 +58,7 @@ kubectl run demo -n lab-a01 --image=busybox:1.37.0 -- sh -c 'while true; do echo
 
 ## 2단계: ServiceAccount, Role, RoleBinding 만들기
 
-`rbac.yaml`로 저장합니다.
+아래 파일에는 객체 세 개가 들어 있습니다. 프로그램이 쓸 신원(ServiceAccount `log-reader`), 파드와 로그만 읽는 허용 목록(Role), 그리고 둘을 잇는 RoleBinding입니다. `rbac.yaml`로 저장합니다.
 
 ```yaml file=rbac.yaml
 apiVersion: v1
@@ -102,6 +104,8 @@ roleRef:
 | `verbs` | `get`(하나 조회), `list`(목록), `watch`(변경 구독). 쓰기는 `create`·`update`·`patch`·`delete`입니다. |
 | `roleRef` | 연결할 Role. **만든 뒤에는 바꿀 수 없어** 바꾸려면 RoleBinding을 지우고 다시 만듭니다. |
 
+세 객체를 한 번에 만듭니다.
+
 ```bash shell="실습 터미널"
 kubectl apply -f rbac.yaml
 ```
@@ -135,6 +139,8 @@ no
 
 `--as`는 관리자가 흉내 낸 결과입니다. 이제 ServiceAccount의 **진짜 토큰**으로 접속합니다. `kubectl create token`은 TokenRequest API로 수명이 짧은 토큰을 발급합니다.
 
+아래 명령은 토큰을 발급한 뒤, 그 토큰만 담은 별도 kubeconfig 파일 `reader.kubeconfig`를 만듭니다. 관리자용 설정은 그대로 두고 「log-reader로 접속하는 kubectl」을 하나 더 만드는 셈입니다.
+
 ```bash shell="실습 터미널 (bash·zsh)"
 TOKEN=$(kubectl create token log-reader -n lab-a01 --duration=10m)
 SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
@@ -152,7 +158,9 @@ rm lab-ca.crt
 | `--minify --flatten` | 현재 컨텍스트 정보만, 인증서 파일 경로를 데이터로 펼쳐서 보여 줍니다. minikube kubeconfig는 CA를 파일 경로로 저장하기 때문에 필요합니다. |
 | `--kubeconfig=reader.kubeconfig` | 원래 `~/.kube/config`를 건드리지 않고 별도 파일에 저장합니다. |
 
-이제 이 파일로 요청합니다.
+이제 이 파일로 요청합니다. 신원 확인, 파드 목록, 로그 읽기, 파드 삭제, Secret 목록, 다른 네임스페이스 조회를 차례로 시도합니다.
+
+**예상해 보세요.** 여섯 요청 중 어느 것이 성공하고 어느 것이 Forbidden으로 거부될까요?
 
 ```bash shell="실습 터미널"
 kubectl --kubeconfig=reader.kubeconfig auth whoami

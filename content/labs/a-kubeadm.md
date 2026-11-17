@@ -8,7 +8,7 @@
 ## 선수 지식
 
 - 개념(init·join 단계, HA 토폴로지, 업그레이드 순서, 인증서 수명, Kubespray와의 관계)은 심화 노트 [[kubeadm|클러스터 구축]]에 있습니다. 여기서는 반복하지 않고 손으로 해 봅니다.
-- 컨트롤 플레인 구성 요소: [[kube-apiserver]] · [[etcd]] · [[kubelet]]
+- 컨트롤 플레인 구성 요소([[kube-apiserver]] · [[etcd]] · [[kubelet]])가 무엇인지 알아야 합니다.
 - 이 과정은 **선택 심화**입니다. 필수 과정·캡스톤 진행에 필요하지 않습니다.
 
 :::warn 평소 실습 클러스터를 쓰지 않습니다
@@ -23,6 +23,8 @@
 
 ## 실습 환경 점검
 
+이 실습 전용 프로필 `kubeadm-lab`을 만들고, kubectl이 그 프로필을 가리키는지 확인합니다. 마지막 줄은 노드의 CPU 아키텍처를 봅니다. 4·5단계에서 내려받을 파일 주소를 이 값에 맞춰야 합니다.
+
 ```bash shell="실습 터미널"
 minikube start -p kubeadm-lab --driver=docker --container-runtime=containerd --kubernetes-version=v1.37.0 --cpus=2 --memory=4g
 kubectl config current-context        # kubeadm-lab
@@ -33,6 +35,8 @@ minikube -p kubeadm-lab ssh -- uname -m   # aarch64(애플 실리콘) 또는 x86
 메모리 4GB·디스크 약 3GB(이미지)를 씁니다. 이후 `minikube -p kubeadm-lab ssh -- '…'`는 노드 컨테이너 안에서 실행됩니다. minikube는 kubeadm을 `PATH`에 두지 않고 `/var/lib/minikube/binaries/v1.37.0/`에 둡니다.
 
 ## 1단계: kubeadm이 만든 것 찾기
+
+[[kubeadm|kubeadm]]은 Kubernetes가 공식으로 제공하는 클러스터 설치 도구입니다. `init`·`join`으로 노드를 묶으면서 노드 안에 인증서, 스태틱 파드 매니페스트, 설정 ConfigMap을 남깁니다. 업그레이드와 장애 대응은 모두 이 파일들을 다루는 일이라, 먼저 어디 있는지 찾아봅니다. 아래 명령은 매니페스트 폴더와 인증서 폴더의 목록, `kubeadm-config`의 주요 값, API 서버의 실행 옵션 일부를 차례로 보여 줍니다.
 
 ```bash shell="실습 터미널"
 minikube -p kubeadm-lab ssh -- 'sudo ls /etc/kubernetes/manifests; sudo ls /var/lib/minikube/certs | tr "\n" " "; echo'
@@ -68,6 +72,10 @@ kubernetesVersion: v1.37.2
 
 ## 2단계: 인증서 만료 확인
 
+컨트롤 플레인 구성 요소들은 인증서로 서로를 확인합니다. 인증서가 만료되면 API 서버에 접속할 수 없으므로, 만료 시각을 먼저 확인해 둡니다.
+
+**예상해 보세요.** 구성 요소의 인증서와 CA(다른 인증서를 발급하는 최상위 인증서)의 유효 기간은 같을까요?
+
 ```bash shell="실습 터미널"
 minikube -p kubeadm-lab ssh -- 'sudo /var/lib/minikube/binaries/v1.37.0/kubeadm certs check-expiration --cert-dir /var/lib/minikube/certs --kubeconfig /etc/kubernetes/admin.conf'
 ```
@@ -99,6 +107,8 @@ front-proxy-ca          Oct 30, 2036 13:55 UTC   9y              no
 
 ## 3단계: 부트스트랩 토큰과 join 명령
 
+새 노드가 클러스터에 붙으려면 「들어가도 된다」는 자격(부트스트랩 토큰)과 「붙으려는 곳이 진짜 이 클러스터」라는 확인 값(CA 해시)이 필요합니다. 아래 명령은 10분짜리 토큰을 만들어 목록에서 보고 지운 뒤, 5분짜리 토큰으로 `join` 명령을 출력합니다. 비밀 부분은 `****`로 가립니다.
+
 ```bash shell="실습 터미널"
 minikube -p kubeadm-lab ssh -- '
 K="sudo /var/lib/minikube/binaries/v1.37.0/kubeadm"; KC="--kubeconfig /etc/kubernetes/admin.conf"
@@ -119,7 +129,7 @@ kubeadm join control-plane.minikube.internal:8443 --token <****> --discovery-tok
 
 - 토큰은 `<id>.<secret>` 모양이고, 비밀 부분은 **노드를 붙일 수 있는 자격 증명**이라 가렸습니다. `vckvrb`(TTL 23h)는 클러스터를 만들 때 생긴 기본 24시간 토큰입니다.
 - `--discovery-token-ca-cert-hash`는 **CA 공개키의 sha256** 입니다. 새 노드는 이 값으로 「내가 붙는 API 서버가 진짜 이 클러스터」인지 확인합니다. 토큰만으로 붙으면(`--discovery-token-unsafe-skip-ca-verification`) 가짜 API 서버에 붙을 수 있습니다.
-- 실습이 끝나면 만든 토큰을 지웁니다: `kubeadm token list`에서 TTL이 분 단위인 것을 `token delete`.
+- 실습이 끝나면 만든 토큰을 지웁니다. `kubeadm token list`에서 TTL이 분 단위인 토큰을 찾아 `token delete`로 지웁니다.
 
 ## 4단계: 컨트롤 플레인 업그레이드 (v1.37.0 → v1.37.2)
 
@@ -272,6 +282,8 @@ minikube는 kubelet을 `/var/lib/minikube/binaries/<처음 버전>/kubelet`에�
 
 ## 6단계: 업그레이드가 갱신한 인증서
 
+4단계의 `upgrade apply`는 인증서도 갱신했습니다. 2단계와 같은 명령으로 만료 시각을 다시 보고, 2단계 출력과 비교합니다. 업그레이드 백업 폴더(`/etc/kubernetes/tmp`)도 함께 봅니다.
+
 ```bash shell="실습 터미널"
 minikube -p kubeadm-lab ssh -- 'sudo /var/lib/minikube/binaries/v1.37.0/kubeadm certs check-expiration --cert-dir /var/lib/minikube/certs --kubeconfig /etc/kubernetes/admin.conf 2>&1 | grep -E "^(CERTIFICATE|admin.conf|apiserver |etcd-server|ca )"; sudo ls /etc/kubernetes/tmp'
 ```
@@ -347,6 +359,8 @@ criteria: |True (unschedulable 값이 비어 있고 Ready가 True)
 ```
 
 ## 정리
+
+이 실습용 프로필을 통째로 지우고, kubectl을 평소 실습 클러스터로 되돌립니다.
 
 ```bash shell="실습 터미널" run=skip
 minikube delete -p kubeadm-lab           # 이 실습용 프로필만 지움 (k8s-lab은 그대로)

@@ -17,6 +17,8 @@
 
 ## 실습 환경 점검
 
+Docker 엔진의 버전과 아키텍처를 보고, Kubespray 공식 이미지를 받아 그 이미지의 아키텍처를 확인합니다.
+
 ```bash shell="실습 터미널"
 docker version --format '{{.Server.Version}} {{.Server.Arch}}'
 docker pull -q quay.io/kubespray/kubespray:v2.32.0 >/dev/null && docker image inspect --format '{{.Os}}/{{.Architecture}}' quay.io/kubespray/kubespray:v2.32.0
@@ -27,6 +29,8 @@ docker pull -q quay.io/kubespray/kubespray:v2.32.0 >/dev/null && docker image in
 로컬 Python으로 설치해도 되지만, Kubespray v2.32.0의 `requirements.txt`는 `ansible==12.3.0`이라 **Python 3.11 이상**이 필요합니다(macOS 기본 `python3`는 3.9라 설치되지 않음). 버전 충돌을 피하려고 이 실습은 이미지로 합니다.
 
 ## 1단계: 태그 고정으로 받기
+
+[[kubespray|Kubespray]]는 Ansible(여러 서버에 SSH로 접속해 같은 작업을 차례로 실행하는 자동화 도구)로 kubeadm 설치 과정 전체를 자동화합니다. Ansible에서 작업 순서를 적은 파일을 플레이북이라 부릅니다. 아래 명령은 Kubespray를 릴리스 태그로 고정해 받고, 태그·커밋, 필요한 Python 패키지, 들어 있는 플레이북 목록을 차례로 보여 줍니다.
 
 ```bash shell="실습 터미널"
 mkdir -p ~/kubespray-lab && cd ~/kubespray-lab
@@ -48,6 +52,8 @@ passlib==1.7.4
 _config.yml cluster.yml galaxy.yml recover-control-plane.yml remove_node.yml remove-node.yml reset.yml scale.yml upgrade_cluster.yml upgrade-cluster.yml 
 ```
 
+주요 플레이북이 하는 일은 다음과 같습니다.
+
 | 플레이북 | 하는 일 |
 |---|---|
 | `cluster.yml` | 처음 구축 (OS 준비 → 런타임 → etcd → kubeadm init·join → CNI → 애드온) |
@@ -61,7 +67,7 @@ _config.yml cluster.yml galaxy.yml recover-control-plane.yml remove_node.yml rem
 
 ## 2단계: 인벤토리 — 컨트롤 플레인 3 + 워커 2
 
-샘플 인벤토리를 복사해 고칩니다. 주소는 **문서용 예약 대역(192.0.2.0/24, RFC 5737)** 이라 어디에도 실제로 닿지 않습니다.
+인벤토리는 Ansible이 접속할 노드와 각 노드의 역할(그룹)을 적은 목록입니다. 샘플 인벤토리를 복사해 고칩니다. 아래 명령은 컨트롤 플레인 3대(etcd 겸용)와 워커 2대를 적은 뒤, 클러스터 설정 파일에서 CNI·kube-proxy 모드·런타임·DNS 도메인 값을 찾아 보여 줍니다. 주소는 **문서용 예약 대역(192.0.2.0/24, RFC 5737)** 이라 어디에도 실제로 닿지 않습니다.
 
 ```bash shell="실습 터미널"
 cd ~/kubespray-lab && rm -rf inventory && cp -R kubespray/inventory/sample inventory
@@ -129,7 +135,9 @@ cluster.yml 태스크 수: 722
 
 ## 4단계: 노드에 닿지 못하면
 
-실제 구축 첫 단계는 모든 노드에 SSH로 접속해 사실(facts)을 모으는 것입니다. 닿지 않는 주소로 그 단계만 해 봅니다.
+실제 구축 첫 단계는 모든 노드에 SSH로 접속해 사실(facts)을 모으는 것입니다. 닿지 않는 주소로 그 단계만 해 봅니다. 아래 명령은 `cp1` 노드 하나에 Ansible의 `ping`(SSH로 접속해 응답만 받는 모듈)을 보냅니다.
+
+**예상해 보세요.** 접속조차 안 되는 노드를 Ansible은 `FAILED`와 `UNREACHABLE` 중 무엇으로 표시할까요?
 
 ```bash shell="실습 터미널"
 cd ~/kubespray-lab
@@ -216,6 +224,8 @@ criteria: 3 1 2 (컨트롤 플레인 3, etcd는 하위 그룹 1개 = 컨트롤 �
 ```
 
 ## 정리
+
+받아 둔 저장소·인벤토리 폴더와 공식 이미지를 지웁니다. 클러스터를 만들지 않았으므로 지울 것은 이 둘뿐입니다.
 
 ```bash shell="실습 터미널" run=skip
 rm -rf ~/kubespray-lab
